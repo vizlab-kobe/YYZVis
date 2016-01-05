@@ -3,22 +3,44 @@
 #include <fstream>
 
 
-namespace local
+namespace
 {
 
-kvs::StructuredVolumeObject* ZhongVolumeObject::ToStructuredVolumeObject( const local::ZhongVolumeObject* object )
+kvs::ValueArray<kvs::Real32> CalculateCoords( const local::ZhongVolumeObject* object )
 {
-    kvs::StructuredVolumeObject* volume = new kvs::StructuredVolumeObject();
-    volume->setGridTypeToUniform();
-    volume->setVeclen( object->veclen() );
-    volume->setResolution( kvs::Vec3ui( object->dim(), object->dim(), object->dim() ) );
-    volume->setValues( object->values() );
-    volume->updateMinMaxValues();
-    volume->updateMinMaxCoords();
-    return volume;
+    const size_t dim = object->dim();
+    const float r_min = object->rangeR().min;
+    const float r_d = object->rangeR().d;
+
+    //ix(= iy, iz),dix(= diy, diz)
+    const float r_i = r_min + r_d * 2;
+    const float ix_max = r_i;
+    const float ix_min = -r_i;
+    const float dix = ( ix_max - ix_min ) / ( dim - 1 );
+
+    const size_t nnodes = object->numberOfNodes();
+    kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
+    kvs::Real32* pcoords = coords.data();
+    for ( size_t k = 0; k < dim; k++ )
+    {
+        const float z = ix_min + dix * k;
+        for ( size_t j = 0; j < dim; j++ )
+        {
+            const float y = ix_min + dix * j;
+            for ( size_t i = 0; i < dim; i++ )
+            {
+                const float x = ix_min + dix * i;
+                *(pcoords++) = x;
+                *(pcoords++) = y;
+                *(pcoords++) = z;
+            }
+        }
+    }
+
+    return coords;
 }
 
-kvs::UnstructuredVolumeObject* ZhongVolumeObject::ToUnstructuredVolumeObject( const local::ZhongVolumeObject* object )
+kvs::ValueArray<kvs::UInt32> CalculateConnections( const local::ZhongVolumeObject* object )
 {
     const size_t dim = object->dim();
 
@@ -43,13 +65,35 @@ kvs::UnstructuredVolumeObject* ZhongVolumeObject::ToUnstructuredVolumeObject( co
         }
     }
 
+    return connections;
+}
+
+}
+
+namespace local
+{
+
+kvs::StructuredVolumeObject* ZhongVolumeObject::ToStructuredVolumeObject( const local::ZhongVolumeObject* object )
+{
+    kvs::StructuredVolumeObject* volume = new kvs::StructuredVolumeObject();
+    volume->setGridTypeToUniform();
+    volume->setVeclen( object->veclen() );
+    volume->setResolution( kvs::Vec3ui( object->dim(), object->dim(), object->dim() ) );
+    volume->setValues( object->values() );
+    volume->updateMinMaxValues();
+    volume->updateMinMaxCoords();
+    return volume;
+}
+
+kvs::UnstructuredVolumeObject* ZhongVolumeObject::ToUnstructuredVolumeObject( const local::ZhongVolumeObject* object )
+{
     kvs::UnstructuredVolumeObject* volume = new kvs::UnstructuredVolumeObject();
     volume->setCellTypeToHexahedra();
     volume->setVeclen( object->veclen() );
     volume->setNumberOfNodes( object->numberOfNodes() );
     volume->setNumberOfCells( object->numberOfCells() );
-    volume->setCoords( object->coords() );
-    volume->setConnections( connections );
+    volume->setCoords( ::CalculateCoords( object ) );
+    volume->setConnections( ::CalculateConnections( object ) );
     volume->setValues( object->values() );
     volume->updateMinMaxValues();
     volume->updateMinMaxCoords();
@@ -62,6 +106,21 @@ ZhongVolumeObject::ZhongVolumeObject():
     m_dim_r( 0 )
 {
     BaseClass::setVolumeType( Structured );
+
+    m_range_r.min = 0.0f;
+    m_range_r.max = 0.0f;
+    m_range_r.d = 0.0f;
+}
+
+void ZhongVolumeObject::setDimR( const size_t dim_r )
+{
+    KVS_ASSERT( dim_r > 1 );
+
+    m_dim_r = dim_r;
+
+    m_range_r.max = 1.0f;
+    m_range_r.min = 0.35f;
+    m_range_r.d = ( m_range_r.max - m_range_r.min ) / ( m_dim_r - 1 );
 }
 
 size_t ZhongVolumeObject::numberOfNodes() const
@@ -72,41 +131,6 @@ size_t ZhongVolumeObject::numberOfNodes() const
 size_t ZhongVolumeObject::numberOfCells() const
 {
     return ( m_dim - 1 ) * ( m_dim - 1 ) * ( m_dim - 1 );
-}
-
-void ZhongVolumeObject::calculateCoords()
-{
-    // r
-    const float r_max = 1.0f;
-    const float r_min = 0.35f;
-    const float r_d = ( r_max - r_min ) / ( m_dim_r - 1 );
-
-    //ix(= iy, iz),dix(= diy, diz)
-    const float r_i = r_min + r_d * 2;
-    const float ix_max = r_i;
-    const float ix_min = -r_i;
-    const float dix = ( ix_max - ix_min ) / ( m_dim - 1 );
-
-    const size_t nnodes = this->numberOfNodes();
-    kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
-    kvs::Real32* pcoords = coords.data();
-    for ( size_t k = 0; k < m_dim; k++ )
-    {
-        const float z = ix_min + dix * k;
-        for ( size_t j = 0; j < m_dim; j++ )
-        {
-            const float y = ix_min + dix * j;
-            for ( size_t i = 0; i < m_dim; i++ )
-            {
-                const float x = ix_min + dix * i;
-                *(pcoords++) = x;
-                *(pcoords++) = y;
-                *(pcoords++) = z;
-            }
-        }
-    }
-
-    this->setCoords( coords );
 }
 
 bool ZhongVolumeObject::readValues( const std::string& filename )
