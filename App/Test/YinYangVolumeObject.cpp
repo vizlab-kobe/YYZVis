@@ -63,10 +63,10 @@ kvs::ValueArray<kvs::UInt32> CalculateConnections( const local::YinYangVolumeObj
             {
                 *(pconnections++) = index;
                 *(pconnections++) = index + 1;
-                *(pconnections++) = index + ( dim_r * dim_theta ) + 1;
-                *(pconnections++) = index + ( dim_r * dim_theta );
-                *(pconnections++) = index + dim_r;
                 *(pconnections++) = index + dim_r + 1;
+                *(pconnections++) = index + dim_r;
+                *(pconnections++) = index + ( dim_r * dim_theta );
+                *(pconnections++) = index + ( dim_r * dim_theta ) + 1;
                 *(pconnections++) = index + dim_r + ( dim_r * dim_theta ) + 1;
                 *(pconnections++) = index + dim_r + ( dim_r * dim_theta );
             }
