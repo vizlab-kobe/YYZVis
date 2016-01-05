@@ -47,9 +47,9 @@ public:
     void setGridTypeToYin() { this->setGridType( Yin ); }
     void setGridTypeToYang() { this->setGridType( Yang ); }
 
-    void setDimR( const size_t dim_r );
-    void setDimTheta( const size_t dim_theta );
-    void setDimPhi( const size_t dim_phi );
+    void setDimR( const size_t dim_r, const float range_min = 0.35f, const float range_max = 1.0f );
+    void setDimTheta( const size_t dim_theta, const size_t overwrap = 2 );
+    void setDimPhi( const size_t dim_phi, const size_t overwrap = 4 );
 
     GridType gridType() const { return m_grid_type; }
     size_t dimR() const { return m_dim_r; }

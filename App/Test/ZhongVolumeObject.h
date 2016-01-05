@@ -34,7 +34,7 @@ public:
     ZhongVolumeObject();
 
     void setDim( const size_t dim ) { m_dim = dim; }
-    void setDimR( const size_t dim_r );
+    void setDimR( const size_t dim_r, const float range_min = 0.35f, const float range_max = 1.0f );
 
     size_t dim() const { return m_dim; }
     size_t dimR() const { return m_dim_r; }

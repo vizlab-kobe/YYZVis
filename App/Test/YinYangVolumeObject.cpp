@@ -16,7 +16,6 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const local::YinYangVolumeObject* 
     const local::YinYangVolumeObject::Range range_theta = object->rangeTheta();
     const local::YinYangVolumeObject::Range range_phi = object->rangePhi();
 
-    const float xcoef = ( object->gridType() == local::YinYangVolumeObject::Yin ) ? 1.0f : -1.0f;
     const size_t nnodes = object->numberOfNodes();
     kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
     kvs::Real32* pcoords = coords.data();
@@ -37,9 +36,9 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const local::YinYangVolumeObject* 
                 const float y = r * cos_phi;
                 const float z = r * sin_phi * sin_theta;
 
-                *(pcoords++) = x * xcoef;
-                *(pcoords++) = y;
-                *(pcoords++) = z;
+                *(pcoords++) = ( object->gridType() == local::YinYangVolumeObject::Yin ) ? x : -x;
+                *(pcoords++) = ( object->gridType() == local::YinYangVolumeObject::Yin ) ? y : z;
+                *(pcoords++) = ( object->gridType() == local::YinYangVolumeObject::Yin ) ? z : y;
             }
         }
     }
@@ -132,39 +131,39 @@ YinYangVolumeObject::YinYangVolumeObject():
     m_range_phi.d = 0.0f;
 }
 
-void YinYangVolumeObject::setDimR( const size_t dim_r )
+void YinYangVolumeObject::setDimR( const size_t dim_r, const float range_min, const float range_max )
 {
     KVS_ASSERT( dim_r > 1 );
 
     m_dim_r = dim_r;
 
-    m_range_r.max = 1.0f;
-    m_range_r.min = 0.35f;
+    m_range_r.max = range_max;
+    m_range_r.min = range_min;
     m_range_r.d = ( m_range_r.max - m_range_r.min ) / ( m_dim_r - 1 );
 }
 
-void YinYangVolumeObject::setDimTheta( const size_t dim_theta )
+void YinYangVolumeObject::setDimTheta( const size_t dim_theta, const size_t overwrap )
 {
-    KVS_ASSERT( dim_theta > 3 );
+    KVS_ASSERT( dim_theta - overwrap > 1 );
 
     m_dim_theta = dim_theta;
 
     const float pi = 3.141593f;
     m_range_theta.max = pi - pi / 4.0f;
     m_range_theta.min = pi / 4.0f;
-    m_range_theta.d = ( m_range_theta.max - m_range_theta.min ) / ( m_dim_theta - 3 );
+    m_range_theta.d = ( m_range_theta.max - m_range_theta.min ) / ( m_dim_theta - overwrap - 1 );
 }
 
-void YinYangVolumeObject::setDimPhi( const size_t dim_phi )
+  void YinYangVolumeObject::setDimPhi( const size_t dim_phi, const size_t overwrap )
 {
-    KVS_ASSERT( dim_phi > 5 );
+    KVS_ASSERT( dim_phi - overwrap > 1 );
 
     m_dim_phi = dim_phi;
 
     const float pi = 3.141593f;
     m_range_phi.max = ( 3 * pi ) / 4.0f;
     m_range_phi.min = -( 3 * pi ) / 4.0f;
-    m_range_phi.d = ( m_range_phi.max - m_range_phi.min ) / ( m_dim_phi - 5 );
+    m_range_phi.d = ( m_range_phi.max - m_range_phi.min ) / ( m_dim_phi - overwrap - 1 );
 }
 
 size_t YinYangVolumeObject::numberOfNodes() const

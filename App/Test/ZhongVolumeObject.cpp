@@ -112,14 +112,14 @@ ZhongVolumeObject::ZhongVolumeObject():
     m_range_r.d = 0.0f;
 }
 
-void ZhongVolumeObject::setDimR( const size_t dim_r )
+  void ZhongVolumeObject::setDimR( const size_t dim_r, const float range_min, const float range_max )
 {
     KVS_ASSERT( dim_r > 1 );
 
     m_dim_r = dim_r;
 
-    m_range_r.max = 1.0f;
-    m_range_r.min = 0.35f;
+    m_range_r.max = range_max;
+    m_range_r.min = range_min;
     m_range_r.d = ( m_range_r.max - m_range_r.min ) / ( m_dim_r - 1 );
 }
 
