@@ -21,26 +21,17 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const local::YinYangVolumeObject* 
     kvs::Real32* pcoords = coords.data();
     for ( size_t k = 0; k < dim_phi; k++ )
     {
-//        const float theta = range_theta.min + range_theta.d * k;
-//        const float sin_theta = std::sin( theta );
-//        const float cos_theta = std::cos( theta );
         const float phi = range_phi.min + range_phi.d * k;
         const float sin_phi = std::sin( phi );
         const float cos_phi = std::cos( phi );
         for ( size_t j = 0; j < dim_theta; j++ )
         {
-//            const float phi = range_phi.min + range_phi.d * j;
-//            const float sin_phi = std::sin( phi );
-//            const float cos_phi = std::cos( phi );
             const float theta = range_theta.min + range_theta.d * j;
             const float sin_theta = std::sin( theta );
             const float cos_theta = std::cos( theta );
             for ( size_t i = 0; i < dim_r; i++ )
             {
                 const float r = range_r.min + range_r.d * i;
-//                const float x = r * sin_phi * cos_theta;
-//                const float y = r * cos_phi;
-//                const float z = r * sin_phi * sin_theta;
                 const float x = r * sin_theta * cos_phi;
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
@@ -72,10 +63,10 @@ kvs::ValueArray<kvs::UInt32> CalculateConnections( const local::YinYangVolumeObj
             {
                 *(pconnections++) = index;
                 *(pconnections++) = index + 1;
-                *(pconnections++) = index + dim_r + 1;
-                *(pconnections++) = index + dim_r;
-                *(pconnections++) = index + ( dim_r * dim_theta );
                 *(pconnections++) = index + ( dim_r * dim_theta ) + 1;
+                *(pconnections++) = index + ( dim_r * dim_theta );
+                *(pconnections++) = index + dim_r;
+                *(pconnections++) = index + dim_r + 1;
                 *(pconnections++) = index + dim_r + ( dim_r * dim_theta ) + 1;
                 *(pconnections++) = index + dim_r + ( dim_r * dim_theta );
             }
