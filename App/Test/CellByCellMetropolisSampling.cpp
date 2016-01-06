@@ -22,7 +22,6 @@
 #include <kvs/CellByCellSampling>
 #include "CellByCellSampling.h"
 
-
 namespace local
 {
 
@@ -295,6 +294,11 @@ void CellByCellMetropolisSampling::generate_particles( const kvs::UnstructuredVo
     for ( size_t index = 0; index < ncells; ++index )
     {
         sampler.bind( index );
+
+//        float det = 0.0f;
+//        sampler.cell()->JacobiMatrix().inverted( &det );
+//        std::cout << "det(J) = " << det << std::endl;
+//        std::cout << "J = " << sampler.cell()->JacobiMatrix().inverted( &det ) << std::endl;
 
         const size_t nparticles = sampler.numberOfParticles();
         const size_t max_loops = nparticles * 10;

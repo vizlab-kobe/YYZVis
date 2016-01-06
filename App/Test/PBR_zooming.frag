@@ -43,21 +43,20 @@ void main( void )
     vec3 L = normalize( light_position - position );
     vec3 N = normalize( gl_NormalMatrix * normal );
 
-//#if   defined( ENABLE_LAMBERT_SHADING )
-//    vec3 shaded_color = ShadingLambert( shading, gl_Color.xyz, L, N );
+#if   defined( ENABLE_LAMBERT_SHADING )
+    vec3 shaded_color = ShadingLambert( shading, gl_Color.xyz, L, N );
 
-//#elif defined( ENABLE_PHONG_SHADING )
-//    vec3 V = normalize( -position );
-//    vec3 shaded_color = ShadingPhong( shading, gl_Color.xyz, L, N, V );
+#elif defined( ENABLE_PHONG_SHADING )
+    vec3 V = normalize( -position );
+    vec3 shaded_color = ShadingPhong( shading, gl_Color.xyz, L, N, V );
 
-//#elif defined( ENABLE_BLINN_PHONG_SHADING )
-//    vec3 V = normalize( -position );
-//    vec3 shaded_color = ShadingBlinnPhong( shading, gl_Color.xyz, L, N, V );
+#elif defined( ENABLE_BLINN_PHONG_SHADING )
+    vec3 V = normalize( -position );
+    vec3 shaded_color = ShadingBlinnPhong( shading, gl_Color.xyz, L, N, V );
 
-//#else // DISABLE SHADING
+#else // DISABLE SHADING
     vec3 shaded_color = ShadingNone( shading, gl_Color.xyz );
-//#endif
+#endif
 
     gl_FragColor = vec4( shaded_color, 1.0 );
-//    gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 );
 }

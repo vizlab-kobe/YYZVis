@@ -371,6 +371,43 @@ public:
     }
 };
 
+inline kvs::Real32 Interp(
+    const kvs::Real32* values,
+    const kvs::Real32* weights,
+    const size_t nnodes )
+{
+    kvs::Real32 value = 0;
+    for ( size_t i = 0; i < nnodes; ++i )
+    {
+        value += *values * *weights;
+        ++values; ++weights;
+    }
+    return value;
+}
+
+
+inline kvs::Vec3 Grad( kvs::CellBase* cell )
+{
+    const kvs::UInt32 nnodes = cell->numberOfCellNodes();
+    const float* dNdp = cell->differentialFunctions();
+    const float* dNdq = cell->differentialFunctions() + nnodes;
+    const float* dNdr = cell->differentialFunctions() + nnodes + nnodes;
+    const kvs::Real32* S = cell->values();
+
+    const float dSdp = Interp( S, dNdp, nnodes );
+    const float dSdq = Interp( S, dNdq, nnodes );
+    const float dSdr = Interp( S, dNdr, nnodes );
+    const kvs::Vec3 g( dSdp, dSdq, dSdr );
+
+    // Calculate a gradient vector in the global coordinate.
+    const kvs::Mat3 J = cell->JacobiMatrix();
+
+//    float determinant = 0.0f;
+//    const kvs::Vec3 G = 3.0f * J.inverted( &determinant ) * g;
+//    return kvs::Math::IsZero( determinant ) ? kvs::Vec3::Zero() : G;
+    return 3.0f * J.inverted() * g;
+}
+
 /*===========================================================================*/
 /**
  *  @brief  Sampling class for each cell.
@@ -412,7 +449,8 @@ public:
     kvs::Real32 sample()
     {
         m_current.coord = m_cell->randomSampling();
-        m_current.normal = -m_cell->gradientVector();
+//        m_current.normal = -m_cell->gradientVector();
+        m_current.normal = -Grad( m_cell );
         m_current.scalar = m_cell->scalar();
         return m_density_map->at( m_current.scalar );
     }
@@ -443,7 +481,8 @@ public:
     kvs::Real32 trySample()
     {
         m_trial.coord = m_cell->randomSampling();
-        m_trial.normal = -m_cell->gradientVector();
+//        m_trial.normal = -m_cell->gradientVector();
+        m_trial.normal = -Grad( m_cell );
         m_trial.scalar = m_cell->scalar();
         return m_density_map->at( m_trial.scalar );
     }
