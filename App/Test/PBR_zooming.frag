@@ -12,7 +12,7 @@
  *  $Id: zooming.frag 490 2010-03-22 12:00:41Z naohisa.sakamoto $
  */
 /*****************************************************************************/
-#include <shading.h>
+#include "shading.h"
 
 varying vec3  position;
 varying vec3  normal;
