@@ -42,8 +42,8 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const local::YinYangVolumeObject* 
 //                const float y = r * cos_phi;
 //                const float z = r * sin_phi * sin_theta;
                 const float x = r * sin_theta * cos_phi;
-                const float y = r * cos_theta;
-                const float z = r * sin_theta * sin_phi;
+                const float y = r * sin_theta * sin_phi;
+                const float z = r * cos_theta;
 
                 *(pcoords++) = ( object->gridType() == local::YinYangVolumeObject::Yin ) ? x : -x;
                 *(pcoords++) = ( object->gridType() == local::YinYangVolumeObject::Yin ) ? y : z;
