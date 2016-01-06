@@ -21,29 +21,20 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const local::YinYangVolumeObject* 
     kvs::Real32* pcoords = coords.data();
     for ( size_t k = 0; k < dim_phi; k++ )
     {
-//        const float theta = range_theta.min + range_theta.d * k;
-//        const float sin_theta = std::sin( theta );
-//        const float cos_theta = std::cos( theta );
         const float phi = range_phi.min + range_phi.d * k;
         const float sin_phi = std::sin( phi );
         const float cos_phi = std::cos( phi );
         for ( size_t j = 0; j < dim_theta; j++ )
         {
-//            const float phi = range_phi.min + range_phi.d * j;
-//            const float sin_phi = std::sin( phi );
-//            const float cos_phi = std::cos( phi );
             const float theta = range_theta.min + range_theta.d * j;
             const float sin_theta = std::sin( theta );
             const float cos_theta = std::cos( theta );
             for ( size_t i = 0; i < dim_r; i++ )
             {
                 const float r = range_r.min + range_r.d * i;
-//                const float x = r * sin_phi * cos_theta;
-//                const float y = r * cos_phi;
-//                const float z = r * sin_phi * sin_theta;
                 const float x = r * sin_theta * cos_phi;
-                const float y = r * cos_theta;
-                const float z = r * sin_theta * sin_phi;
+                const float y = r * sin_theta * sin_phi;
+                const float z = r * cos_theta;
 
                 *(pcoords++) = ( object->gridType() == local::YinYangVolumeObject::Yin ) ? x : -x;
                 *(pcoords++) = ( object->gridType() == local::YinYangVolumeObject::Yin ) ? y : z;
@@ -72,10 +63,10 @@ kvs::ValueArray<kvs::UInt32> CalculateConnections( const local::YinYangVolumeObj
             {
                 *(pconnections++) = index;
                 *(pconnections++) = index + 1;
-                *(pconnections++) = index + dim_r + 1;
-                *(pconnections++) = index + dim_r;
-                *(pconnections++) = index + ( dim_r * dim_theta );
                 *(pconnections++) = index + ( dim_r * dim_theta ) + 1;
+                *(pconnections++) = index + ( dim_r * dim_theta );
+                *(pconnections++) = index + dim_r;
+                *(pconnections++) = index + dim_r + 1;
                 *(pconnections++) = index + dim_r + ( dim_r * dim_theta ) + 1;
                 *(pconnections++) = index + dim_r + ( dim_r * dim_theta );
             }
@@ -96,7 +87,7 @@ kvs::StructuredVolumeObject* YinYangVolumeObject::ToStructuredVolumeObject( cons
     volume->setGridTypeToCurvilinear();
     volume->setVeclen( object->veclen() );
     volume->setResolution( kvs::Vec3ui( object->dimR(), object->dimTheta(), object->dimPhi() ) );
-    volume->setCoords( object->coords().size() == 0 ? ::CalculateCoords( object ) : object->coords() );
+    volume->setCoords( ::CalculateCoords( object ) );
     volume->setValues( object->values() );
     volume->updateMinMaxValues();
     volume->updateMinMaxCoords();
@@ -110,7 +101,7 @@ kvs::UnstructuredVolumeObject* YinYangVolumeObject::ToUnstructuredVolumeObject( 
     volume->setVeclen( object->veclen() );
     volume->setNumberOfNodes( object->numberOfNodes() );
     volume->setNumberOfCells( object->numberOfCells() );
-    volume->setCoords( object->coords().size() == 0 ? ::CalculateCoords( object ) : object->coords() );
+    volume->setCoords( ::CalculateCoords( object ) );
     volume->setConnections( ::CalculateConnections( object ) );
     volume->setValues( object->values() );
     volume->updateMinMaxValues();
@@ -155,7 +146,7 @@ void YinYangVolumeObject::setDimTheta( const size_t dim_theta, const size_t over
 {
     KVS_ASSERT( dim_theta - overwrap > 1 );
 
-    m_dim_theta = dim_theta;
+    m_dim_theta = dim_theta + 3;
 
     const float pi = 3.141593f;
     m_range_theta.max = pi - pi / 4.0f;
@@ -163,11 +154,11 @@ void YinYangVolumeObject::setDimTheta( const size_t dim_theta, const size_t over
     m_range_theta.d = ( m_range_theta.max - m_range_theta.min ) / ( m_dim_theta - overwrap - 1 );
 }
 
-void YinYangVolumeObject::setDimPhi( const size_t dim_phi, const size_t overwrap )
+  void YinYangVolumeObject::setDimPhi( const size_t dim_phi, const size_t overwrap )
 {
     KVS_ASSERT( dim_phi - overwrap > 1 );
 
-    m_dim_phi = dim_phi;
+    m_dim_phi = dim_phi * 3 + 5;
 
     const float pi = 3.141593f;
     m_range_phi.max = ( 3 * pi ) / 4.0f;
@@ -183,11 +174,6 @@ size_t YinYangVolumeObject::numberOfNodes() const
 size_t YinYangVolumeObject::numberOfCells() const
 {
     return ( m_dim_r - 1 ) * ( m_dim_theta - 1 ) * ( m_dim_phi - 1 );
-}
-
-void YinYangVolumeObject::calculateCoords()
-{
-    this->setCoords( ::CalculateCoords( this ) );
 }
 
 bool YinYangVolumeObject::readValues( const std::string& filename )
