@@ -99,28 +99,40 @@ kvs::UnstructuredVolumeObject* ZhongVolumeObject::ToUnstructuredVolumeObject( co
     volume->updateMinMaxCoords();
     return volume;
 }
-
+  
 ZhongVolumeObject::ZhongVolumeObject():
-    kvs::VolumeObjectBase(),
-    m_dim( 0 ),
-    m_dim_r( 0 )
+  kvs::VolumeObjectBase(),
+  m_dim( 0 ),
+  m_dim_r( 0 )
 {
-    BaseClass::setVolumeType( Structured );
-
-    m_range_r.min = 0.0f;
-    m_range_r.max = 0.0f;
-    m_range_r.d = 0.0f;
+  BaseClass::setVolumeType( Structured );
+  
+  m_range_r.min = 0.0f;
+  m_range_r.max = 0.0f;
+  m_range_r.d = 0.0f;
 }
-
-  void ZhongVolumeObject::setDimR( const size_t dim_r, const float range_min, const float range_max )
+  
+  void ZhongVolumeObject::setDim( const local::ZhongVolumeObject* object, const float boundary_r )
 {
-    KVS_ASSERT( dim_r > 1 );
-
-    m_dim_r = dim_r;
-
-    m_range_r.max = range_max;
-    m_range_r.min = range_min;
-    m_range_r.d = ( m_range_r.max - m_range_r.min ) / ( m_dim_r - 1 );
+  KVS_ASSERT( object->rangeR().d > 1 );
+  
+  m_dim = ceil( boundary_r * 2 / object->rangeR().d ) + 1;
+  std::cout << "dim = " << m_dim << std::endl;
+  if( ( m_dim % 2 ) == 1 ) m_dim = m_dim + 1;
+  std::cout << "dim = " << m_dim << std::endl;
+  std::cout << "rangeR_d = " << object->rangeR().d << std::endl;
+  std::cout << "boundary_r = " << boundary_r << std::endl;
+}
+  
+void ZhongVolumeObject::setDimR( const size_t dim_r, const float range_min, const float range_max )
+{
+  KVS_ASSERT( dim_r > 1 );
+  
+  m_dim_r = dim_r;
+  
+  m_range_r.max = range_max;
+  m_range_r.min = range_min;
+  m_range_r.d = ( m_range_r.max - m_range_r.min ) / ( m_dim_r - 1 );
 }
 
 size_t ZhongVolumeObject::numberOfNodes() const

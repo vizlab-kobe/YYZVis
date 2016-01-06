@@ -326,8 +326,8 @@ void CellByCellMetropolisSampling::generate_particles( const kvs::UnstructuredVo
 #ifdef DUPLICATION
                     sampler.accept( color_map );
                     counter++;
-#else
-                    if ( ++nduplications > max_loops ) { break; }
+#else     
+		    if ( ++nduplications > max_loops ) { break; }
 #endif
                 }
             }
