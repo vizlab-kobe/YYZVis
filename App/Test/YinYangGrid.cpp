@@ -47,6 +47,7 @@ inline void Bind(
     grid_coords[4] = kvs::Vec3( coords + index[4] * 3 );
     grid_coords[5] = kvs::Vec3( coords + index[5] * 3 );
     grid_coords[6] = kvs::Vec3( coords + index[6] * 3 );
+    grid_coords[7] = kvs::Vec3( coords + index[7] * 3 );
 }
 
 inline kvs::Real32 InterpolateValue( const kvs::Real32* values, const kvs::Real32* weights )
@@ -97,21 +98,16 @@ YinYangGrid::YinYangGrid( const local::YinYangVolumeObject* volume ):
     m_local_point( 0, 0, 0 ),
     m_reference_volume( volume )
 {
-    if ( m_reference_volume == NULL ) { std::cout << "Ref Volume is Null 0" << std::endl; }
     KVS_ASSERT( volume->coords().size() != 0 );
 
-    const size_t dimension = 3;
-    const size_t nnodes = 8;
-    const size_t veclen = 1;
-    std::memset( m_coords, 0, sizeof( kvs::Vec3 ) * nnodes );
-    std::memset( m_values, 0, sizeof( kvs::Real32 ) * nnodes * veclen );
-    std::memset( m_interpolation_functions, 0, sizeof( kvs::Real32 ) * nnodes );
-    std::memset( m_differential_functions, 0, sizeof( kvs::Real32 ) * nnodes * dimension );
+    std::memset( m_coords, 0, sizeof( kvs::Vec3 ) * 8 );
+    std::memset( m_values, 0, sizeof( kvs::Real32 ) * 8 );
+    std::memset( m_interpolation_functions, 0, sizeof( kvs::Real32 ) * 8 );
+    std::memset( m_differential_functions, 0, sizeof( kvs::Real32 ) * 24 );
 }
 
 void YinYangGrid::bind( const kvs::Vec3ui& base_index )
 {
-    if ( m_reference_volume == NULL ) { std::cout << "Ref Volume is Null 1" << std::endl; }
     KVS_ASSERT( base_index.x() < m_reference_volume->dimR() - 1 );
     KVS_ASSERT( base_index.y() < m_reference_volume->dimTheta() - 1 );
     KVS_ASSERT( base_index.z() < m_reference_volume->dimPhi() - 1 );

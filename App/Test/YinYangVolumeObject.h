@@ -63,6 +63,7 @@ public:
     size_t numberOfCells() const;
     void calculateCoords();
     bool readValues( const std::string& filename );
+    void updateMinMaxCoords();
 };
 
 } // end of namespace local

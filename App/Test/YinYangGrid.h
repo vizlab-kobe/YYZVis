@@ -12,7 +12,7 @@ private:
     kvs::Vec3 m_coords[8];
     kvs::Real32 m_values[8];
     mutable kvs::Real32 m_interpolation_functions[8];
-    mutable kvs::Real32 m_differential_functions[8];
+    mutable kvs::Real32 m_differential_functions[24];
     mutable kvs::Vec3 m_local_point; ///< local point
     const local::YinYangVolumeObject* m_reference_volume;
 

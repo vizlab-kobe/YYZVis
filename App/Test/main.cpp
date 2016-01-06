@@ -79,8 +79,6 @@ void ParticleBasedRendering( kvs::glut::Screen& screen, local::YinYangVolumeObje
 
 void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume, size_t repeats = 1 )
 {
-    const size_t subpixels = 1; // fixed to '1'
-    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
     const float step = 0.1f;
 
     kvs::OpacityMap omap( 256 );
@@ -92,7 +90,7 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
 
     const kvs::TransferFunction tfunc( omap );
     kvs::Timer timer( kvs::Timer::Start );
-    kvs::PointObject* object = new local::YinYangGridSampling( volume, level, step, tfunc );
+    kvs::PointObject* object = new local::YinYangGridSampling( volume, repeats, step, tfunc );
     timer.stop();
     object->print( std::cout << std::endl );
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
@@ -128,12 +126,13 @@ int main( int argc, char** argv )
     volume_yin->readValues( filename );
     volume_yin->updateMinMaxCoords();
     volume_yin->updateMinMaxValues();
+    volume_yin->print( std::cout << std::endl );
 
     //ExternalFaces( screen, volume_yin );
 
     size_t repeats = 16;
-    ParticleBasedRendering( screen, volume_yin, repeats );
-    //ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
+    //ParticleBasedRendering( screen, volume_yin, repeats );
+    ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
     delete volume_yin;
 
     kvs::TargetChangeEvent event;

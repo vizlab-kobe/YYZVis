@@ -241,13 +241,7 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
 
     BaseClass::attachVolume( volume );
     BaseClass::setRange( volume );
-//    BaseClass::setMinMaxCoords( volume, this );
-    const kvs::Vec3 min_obj_coord( volume->minObjectCoord() );
-    const kvs::Vec3 max_obj_coord( volume->maxObjectCoord() );
-    const kvs::Vec3 min_ext_coord( volume->minExternalCoord() );
-    const kvs::Vec3 max_ext_coord( volume->maxExternalCoord() );
-    this->setMinMaxObjectCoords( min_obj_coord, max_obj_coord );
-    this->setMinMaxExternalCoords( min_ext_coord, max_ext_coord );
+    BaseClass::setMinMaxCoords( volume, this );
 
     local::YinYangGrid grid( volume );
     local::DensityMap density_map;
@@ -262,28 +256,34 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
     const size_t dim_phi = volume->dimPhi(); // longitude
     const kvs::ColorMap color_map( BaseClass::transferFunction().colorMap() );
 
-    for ( size_t l = 0; l < m_repeat_level; l++ )
+    for ( size_t k = 0; k < dim_phi - 1; k++ )
     {
-        for ( size_t k = 0; k < dim_phi - 1; k++ )
+        for ( size_t j = 0; j < dim_theta - 1; j++ )
         {
-            for ( size_t j = 0; j < dim_theta - 1; j++ )
+            for ( size_t i = 0; i < dim_r - 1; i++ )
             {
-                for ( size_t i = 0; i < dim_r - 1; i++ )
+                sampler.bind( kvs::Vec3ui( i, j, k ) );
+
+                const size_t nparticles = sampler.numberOfParticles() * m_repeat_level;
+                const size_t max_loops = nparticles * 10;
+                if ( nparticles == 0 ) continue;
+
+                size_t nduplications = 0;
+                size_t counter = 0;
+                kvs::Real32 density = sampler.sample( max_loops );
+                while ( counter < nparticles )
                 {
-                    sampler.bind( kvs::Vec3ui( i, j, k ) );
-
-                    const size_t nparticles = sampler.numberOfParticles();
-                    const size_t max_loops = nparticles * 10;
-                    if ( nparticles == 0 ) continue;
-
-                    size_t nduplications = 0;
-                    size_t counter = 0;
-                    kvs::Real32 density = sampler.sample( max_loops );
-                    while ( counter < nparticles )
+                    const kvs::Real32 density_trial = sampler.trySample();
+                    const kvs::Real32 ratio = density_trial / density;
+                    if ( ratio >= 1.0f )
                     {
-                        const kvs::Real32 density_trial = sampler.trySample();
-                        const kvs::Real32 ratio = density_trial / density;
-                        if ( ratio >= 1.0f )
+                        sampler.acceptTrial( color_map );
+                        density = density_trial;
+                        counter++;
+                    }
+                    else
+                    {
+                        if ( ratio >= ::RandomNumber() )
                         {
                             sampler.acceptTrial( color_map );
                             density = density_trial;
@@ -291,27 +291,18 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
                         }
                         else
                         {
-                            if ( ratio >= ::RandomNumber() )
-                            {
-                                sampler.acceptTrial( color_map );
-                                density = density_trial;
-                                counter++;
-                            }
-                            else
-                            {
 #ifdef DUPLICATION
-                                sampler.accept( color_map );
-                                counter++;
+                            sampler.accept( color_map );
+                            counter++;
 #else
-                                if ( ++nduplications > max_loops ) { break; }
+                            if ( ++nduplications > max_loops ) { break; }
 #endif
-                            }
                         }
-                    } // end of while-loop
-                } // end of i-loop
-            } // end of j-loop
-        } // end of k-loop
-    } // end of repeat-loop
+                    }
+                } // end of while-loop
+            } // end of i-loop
+        } // end of j-loop
+    } // end of k-loop
 
     SuperClass::setCoords( sampler.particles().coords() );
     SuperClass::setColors( sampler.particles().colors() );
