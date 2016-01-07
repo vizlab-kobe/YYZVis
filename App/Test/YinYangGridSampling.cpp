@@ -90,7 +90,7 @@ public:
     kvs::Real32 sample()
     {
         m_current.coord = m_grid->randomSampling();
-        m_current.normal = m_grid->gradientVector();
+        m_current.normal = -m_grid->gradientVector();
         m_current.scalar = m_grid->scalar();
         return m_density_map->at( m_current.scalar );
     }
@@ -121,7 +121,7 @@ public:
     kvs::Real32 trySample()
     {
         m_trial.coord = m_grid->randomSampling();
-        m_trial.normal = m_grid->gradientVector();
+        m_trial.normal = -m_grid->gradientVector();
         m_trial.scalar = m_grid->scalar();
         return m_density_map->at( m_trial.scalar );
     }
