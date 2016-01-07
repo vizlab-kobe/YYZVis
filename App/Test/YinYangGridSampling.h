@@ -18,14 +18,14 @@ class YinYangGridSampling : public kvs::MapperBase, public kvs::PointObject
 
 private:
     const kvs::Camera* m_camera; ///< camera (reference)
-    size_t m_repeat_level; ///< repeat level
+    size_t m_subpixel_level; ///< subpixel level
     float m_sampling_step; ///< sampling step in the object coordinate
     float m_object_depth; ///< object depth
 
 public:
     YinYangGridSampling(
         const kvs::VolumeObjectBase* volume,
-        const size_t repeat_level,
+        const size_t subpixel_level,
         const float sampling_step,
         const kvs::TransferFunction& transfer_function,
         const float object_depth = 0.0f );
@@ -33,19 +33,19 @@ public:
     YinYangGridSampling(
         const kvs::Camera* camera,
         const kvs::VolumeObjectBase* volume,
-        const size_t repeat_level,
+        const size_t subpixel_level,
         const float sampling_step,
         const kvs::TransferFunction& transfer_function,
         const float object_depth = 0.0f );
 
     SuperClass* exec( const kvs::ObjectBase* object );
 
-    size_t repeatLevel() const { return m_repeat_level; }
+    size_t subpixelLevel() const { return m_subpixel_level; }
     float samplingStep() const { return m_sampling_step; }
     float objectDepth() const { return m_object_depth; }
 
     void attachCamera( const kvs::Camera* camera ) { m_camera = camera; }
-    void setRepeatLevel( const size_t repeat_level ) { m_repeat_level = repeat_level; }
+    void setSubpixelLevel( const size_t subpixel_level ) { m_subpixel_level = subpixel_level; }
     void setSamplingStep( const float step ) { m_sampling_step = step; }
     void setObjectDepth( const float depth ) { m_object_depth = depth; }
 

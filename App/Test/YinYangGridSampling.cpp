@@ -171,7 +171,7 @@ namespace local
 
 YinYangGridSampling::YinYangGridSampling(
     const kvs::VolumeObjectBase* volume,
-    const size_t repeat_level,
+    const size_t subpixel_level,
     const float sampling_step,
     const kvs::TransferFunction& transfer_function,
     const float object_depth ):
@@ -179,7 +179,7 @@ YinYangGridSampling::YinYangGridSampling(
     kvs::PointObject(),
     m_camera( 0 )
 {
-    this->setRepeatLevel( repeat_level );
+    this->setSubpixelLevel( subpixel_level );
     this->setSamplingStep( sampling_step );
     this->setObjectDepth( object_depth );
     this->exec( volume );
@@ -188,13 +188,13 @@ YinYangGridSampling::YinYangGridSampling(
 YinYangGridSampling::YinYangGridSampling(
     const kvs::Camera* camera,
     const kvs::VolumeObjectBase* volume,
-    const size_t repeat_level,
+    const size_t subpixel_level,
     const float sampling_step,
     const kvs::TransferFunction& transfer_function,
     const float object_depth )
 {
     this->attachCamera( camera );
-    this->setRepeatLevel( repeat_level );
+    this->setSubpixelLevel( subpixel_level );
     this->setSamplingStep( sampling_step );
     this->setObjectDepth( object_depth );
     this->exec( volume );
@@ -245,6 +245,7 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
 
     local::YinYangGrid grid( volume );
     local::DensityMap density_map;
+    density_map.setSubpixelLevel( m_subpixel_level );
     density_map.setSamplingStep( m_sampling_step );
     density_map.attachCamera( m_camera );
     density_map.attachObject( volume );
@@ -264,7 +265,7 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
             {
                 sampler.bind( kvs::Vec3ui( i, j, k ) );
 
-                const size_t nparticles = sampler.numberOfParticles() * m_repeat_level;
+                const size_t nparticles = sampler.numberOfParticles();
                 const size_t max_loops = nparticles * 10;
                 if ( nparticles == 0 ) continue;
 
