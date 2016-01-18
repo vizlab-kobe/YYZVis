@@ -1,0 +1,212 @@
+#include <kvs/Message>
+#include <kvs/PolygonObject>
+#include <kvs/glut/Application>
+#include <kvs/glut/Screen>
+#include <kvs/UnstructuredVolumeObject>
+#include <kvs/Endian>
+#include <kvs/PointObject>
+#include <kvs/CellByCellMetropolisSampling>
+#include <kvs/ParticleBasedRenderer>
+#include <kvs/TransferFunction>
+#include <kvs/StochasticPolygonRenderer>
+#include <kvs/StochasticTetrahedraRenderer>
+#include <kvs/StochasticRenderingCompositor>
+#include <kvs/ExternalFaces>
+#include <kvs/Bounds>
+#include <kvs/PolygonRenderer>
+#include <kvs/Scene>
+#include <kvs/ObjectManager>
+#include <kvs/RendererManager>
+#include <kvs/TargetChangeEvent>
+#include <kvs/Timer>
+#include <kvs/DivergingColorMap>
+
+#include <iostream>
+#include <fstream>
+
+#include "YinYangVolumeObject.h"
+#include "YinYangGridSampling.h"
+#include "ZhongVolumeObject.h"
+#include "CellByCellMetropolisSampling.h"
+
+
+void ExternalFaces( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume )
+{
+    kvs::UnstructuredVolumeObject* temp = local::YinYangVolumeObject::ToUnstructuredVolumeObject( volume );
+    temp->print( std::cout << std::endl );
+
+    kvs::PolygonObject* object = new kvs::ExternalFaces( temp );
+    object->print( std::cout << std::endl );
+    delete temp;
+
+    screen.registerObject( object, new kvs::PolygonRenderer() );
+    screen.registerObject( object, new kvs::Bounds() );
+}
+
+void ParticleBasedRendering( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume, size_t repeats = 1 )
+{
+    kvs::UnstructuredVolumeObject* temp = local::YinYangVolumeObject::ToUnstructuredVolumeObject( volume );
+    temp->print( std::cout << std::endl );
+
+    const size_t subpixels = 1; // fixed to '1'
+    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
+    const float step = 0.1f;
+
+    kvs::OpacityMap omap( 256 );
+    omap.addPoint( 0, 1.0 );
+    omap.addPoint( 90, 0.0 );
+    omap.addPoint( 180, 0.0 );
+    omap.addPoint( 255, 1.0 );
+    omap.create();
+        
+    const kvs::TransferFunction tfunc( 256 );
+    kvs::Timer timer( kvs::Timer::Start );
+    kvs::PointObject* object = new local::CellByCellMetropolisSampling( temp, level, step, tfunc );
+    timer.stop();
+    object->print( std::cout << std::endl );
+    std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
+    delete temp;
+
+    kvs::glsl::ParticleBasedRenderer* renderer = new kvs::glsl::ParticleBasedRenderer();
+    renderer->disableShading();
+
+    screen.registerObject( object, renderer );
+
+    kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
+    compositor->setRepetitionLevel( repeats );
+    compositor->enableLODControl();
+    screen.setEvent( compositor );
+}
+
+void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume, size_t repeats = 1 )
+{
+    const size_t subpixels = 1; // fixed to '1'
+    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
+    const float step = 0.1f;
+
+    kvs::ColorMap cmap = kvs::DivergingColorMap::CoolWarm( 256 );
+
+    kvs::OpacityMap omap( 256 );
+    omap.addPoint( 0, 1.0 );
+    omap.addPoint( 90, 0.0 );
+    omap.addPoint( 180, 0.0 );
+    omap.addPoint( 255, 1.0 );
+    omap.create();
+
+    const kvs::TransferFunction tfunc( cmap, omap );
+    kvs::Timer timer( kvs::Timer::Start );
+    kvs::PointObject* object = new local::YinYangGridSampling( volume, level, step, tfunc );
+    timer.stop();
+    object->print( std::cout << std::endl );
+    std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
+
+    kvs::glsl::ParticleBasedRenderer* renderer = new kvs::glsl::ParticleBasedRenderer();
+    renderer->disableShading();
+
+    screen.registerObject( object, renderer );
+
+    kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
+    compositor->setRepetitionLevel( repeats );
+    compositor->enableLODControl();
+    screen.setEvent( compositor );
+}
+
+void SetMinMax( local::YinYangVolumeObject* volume_yin, local::YinYangVolumeObject* volume_yang )//, local::YinYangVolumeObject* volume_zhong )
+{
+    const float min_yyz_value  = kvs::Math::Min( volume_yin->minValue(), volume_yang->minValue() );// , volume_zhong->minValue() );
+    const float max_yyz_value  = kvs::Math::Max( volume_yin->maxValue(), volume_yang->maxValue() );// , volume_zhong->maxValue() );
+
+    volume_yin->setMinMaxValues( min_yyz_value, max_yyz_value );
+    volume_yang->setMinMaxValues( min_yyz_value, max_yyz_value );
+    //volume_zhong->setMinMaxValues( min_yyz_value, max_yyz_value );
+
+    const kvs::Vec3 min_yin_coord = volume_yin->minObjectCoord();
+    const kvs::Vec3 min_yang_coord = volume_yang->minObjectCoord();
+    //const kvs::Vec3 min_zhong_coord = volume_zhong->minObjectCoord();
+    const kvs::Vec3 max_yin_coord = volume_yin->maxObjectCoord();
+    const kvs::Vec3 max_yang_coord = volume_yang->maxObjectCoord();
+    //const kvs::Vec3 max_zhong_coord = volume_zhong->maxObjectCoord();
+
+    const float min_x_coord = kvs::Math::Min( min_yin_coord.x(), min_yang_coord.x() );// , min_zhong_coord.x() );
+    const float min_y_coord = kvs::Math::Min( min_yin_coord.y(), min_yang_coord.y() );// , min_zhong_coord.y() );
+    const float min_z_coord = kvs::Math::Min( min_yin_coord.z(), min_yang_coord.z() );// , min_zhong_coord.z() );
+    const kvs::Vec3 min_coord = kvs::Vec3( min_x_coord, min_y_coord, min_z_coord );
+
+    const float max_x_coord = kvs::Math::Max( max_yin_coord.x(), max_yang_coord.x() );// , max_zhong_coord.x() );
+    const float max_y_coord = kvs::Math::Max( max_yin_coord.y(), max_yang_coord.y() );//, max_zhong_coord.y() );
+    const float max_z_coord = kvs::Math::Max( max_yin_coord.z(), max_yang_coord.z() );//, max_zhong_coord.z() );
+    const kvs::Vec3 max_coord = kvs::Vec3( max_x_coord, max_y_coord, max_z_coord );
+
+    volume_yin->setMinMaxObjectCoords( min_coord, max_coord );
+    volume_yang->setMinMaxObjectCoords( min_coord, max_coord );
+    //volume_zhong->setMinMaxObjectCoords( min_coord, max_coord );
+
+    volume_yin->setMinMaxExternalCoords( min_coord, max_coord );
+    volume_yang->setMinMaxExternalCoords( min_coord, max_coord );
+    //volume_zhong->setMinMaxExternalCoords( min_coord, max_coord );
+}
+
+void SetVolumeYin( local::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
+{
+    volume->setDimR( rad_n );
+    volume->setDimTheta( lat_n );
+    volume->setDimPhi( lon_n );
+    volume->setVeclen( 1 );
+    volume->setGridTypeToYin();
+    volume->calculateCoords();
+    volume->readValues( filename );
+    volume->updateMinMaxCoords();
+    volume->updateMinMaxValues();
+    volume->print( std::cout << std::endl );
+}
+
+void SetVolumeYang( local::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
+{
+    volume->setDimR( rad_n );
+    volume->setDimTheta( lat_n );
+    volume->setDimPhi( lon_n );
+    volume->setVeclen( 1 );
+    volume->setGridTypeToYang();
+    volume->calculateCoords();
+    volume->readValues( filename );
+    volume->updateMinMaxCoords();
+    volume->updateMinMaxValues();
+    volume->print( std::cout << std::endl );
+}
+
+int main( int argc, char** argv )
+{
+    kvs::glut::Application app( argc, argv );
+    kvs::glut::Screen screen( &app );
+    screen.setBackgroundColor( kvs::RGBColor::White() );
+
+    const size_t rad_n = 201;
+    const size_t lat_n = 204;
+    const size_t lon_n = 608;
+
+    const std::string filename_yin( argv[1] );
+    local::YinYangVolumeObject* volume_yin = new local::YinYangVolumeObject();
+    SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
+        
+    const std::string filename_yang( argv[2] );
+    local::YinYangVolumeObject* volume_yang = new local::YinYangVolumeObject();
+    SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
+    
+    SetMinMax( volume_yin, volume_yang );
+    
+    size_t repeats = 36;
+    //ParticleBasedRendering( screen, volume_yang, repeats );
+    ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
+    delete volume_yin;
+    ParticleBasedRenderingYinYang( screen, volume_yang, repeats );
+    delete volume_yang;
+
+    kvs::TargetChangeEvent event;
+    screen.addEvent( &event );
+
+    screen.show();
+
+    kvs::Light::SetModelTwoSide( true );
+
+    return app.run();
+}
