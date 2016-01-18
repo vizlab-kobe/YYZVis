@@ -19,11 +19,13 @@ private:
     kvs::Real32 m_max_value; ///< max. value
     Table m_table; ///< value table
     kvs::Real32 m_sampling_step; ///< length of the ray segment (dt)
+    kvs::UInt32 m_subpixel_level; ///< subpixel level
     const kvs::Camera* m_camera; ///< pointer to the referenced camera
     const kvs::ObjectBase* m_object; ///< pointer to the referenced object
 
 public:
     void setSamplingStep( const kvs::Real32 step ) { m_sampling_step = step; }
+    void setSubpixelLevel( const kvs::UInt32 level ) { m_subpixel_level = level; }
     void attachCamera( const kvs::Camera* camera ) { m_camera = camera; }
     void attachObject( const kvs::ObjectBase* object ) { m_object = object; }
     size_t resolution() const { return m_resolution; }

@@ -206,7 +206,7 @@ void DensityMap::create( const kvs::OpacityMap& omap )
     m_max_value = omap.maxValue();
 
     const kvs::Real32 dt = m_sampling_step;
-    const kvs::Real32 length = ::PixelLength( m_camera, m_object );
+    const kvs::Real32 length = ::PixelLength( m_camera, m_object ) / m_subpixel_level;
 
     const kvs::Real32 max_opacity = 1.0f - std::exp( -dt / length );
     const kvs::Real32 max_density = 1.0f / ( length * length * length );

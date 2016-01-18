@@ -19,6 +19,7 @@
 #include <kvs/RendererManager>
 #include <kvs/TargetChangeEvent>
 #include <kvs/Timer>
+#include <kvs/DivergingColorMap>
 
 #include <iostream>
 #include <fstream>
@@ -79,7 +80,11 @@ void ParticleBasedRendering( kvs::glut::Screen& screen, local::YinYangVolumeObje
 
 void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume, size_t repeats = 1 )
 {
+    const size_t subpixels = 1; // fixed to '1'
+    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
     const float step = 0.1f;
+
+    kvs::ColorMap cmap = kvs::DivergingColorMap::CoolWarm( 256 );
 
     kvs::OpacityMap omap( 256 );
     omap.addPoint( 0, 1.0 );
@@ -88,9 +93,9 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
     omap.addPoint( 255, 1.0 );
     omap.create();
 
-    const kvs::TransferFunction tfunc( omap );
+    const kvs::TransferFunction tfunc( cmap, omap );
     kvs::Timer timer( kvs::Timer::Start );
-    kvs::PointObject* object = new local::YinYangGridSampling( volume, repeats, step, tfunc );
+    kvs::PointObject* object = new local::YinYangGridSampling( volume, level, step, tfunc );
     timer.stop();
     object->print( std::cout << std::endl );
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
@@ -110,6 +115,7 @@ int main( int argc, char** argv )
 {
     kvs::glut::Application app( argc, argv );
     kvs::glut::Screen screen( &app );
+    screen.setBackgroundColor( kvs::RGBColor::White() );
 
     const size_t rad_n = 201;
     const size_t lat_n = 204;
@@ -130,8 +136,8 @@ int main( int argc, char** argv )
 
     //ExternalFaces( screen, volume_yin );
 
-    size_t repeats = 16;
-    //ParticleBasedRendering( screen, volume_yin, repeats );
+    size_t repeats = 36;
+//    ParticleBasedRendering( screen, volume_yin, repeats );
     ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
     delete volume_yin;
 

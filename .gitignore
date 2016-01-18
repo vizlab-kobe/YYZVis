@@ -26,3 +26,7 @@
 *.exe
 *.out
 *.app
+
+App/Test/Test
+
+*.kvs

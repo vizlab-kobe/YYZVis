@@ -294,9 +294,10 @@ const kvs::Vec3 YinYangGrid::gradientVector() const
     // Calculate a gradient vector in the global coordinate.
     const kvs::Mat3 J = this->JacobiMatrix();
 
-    float determinant = 0.0f;
-    const kvs::Vec3 G = 3.0f * J.inverted( &determinant ) * g;
-    return kvs::Math::IsZero( determinant ) ? kvs::Vec3::Zero() : G;
+//    float determinant = 0.0f;
+//    const kvs::Vec3 G = 3.0f * J.inverted( &determinant ) * g;
+//    return kvs::Math::IsZero( determinant ) ? kvs::Vec3::Zero() : G;
+    return 3.0f * J.inverted() * g;
 }
 
 const kvs::Vec3 YinYangGrid::randomSampling() const
