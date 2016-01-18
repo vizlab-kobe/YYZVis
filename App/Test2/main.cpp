@@ -88,8 +88,8 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
 
     kvs::OpacityMap omap( 256 );
     omap.addPoint( 0, 1.0 );
-    omap.addPoint( 90, 0.0 );
-    omap.addPoint( 180, 0.0 );
+    omap.addPoint( 90, 1.0 );
+    omap.addPoint( 180, 1.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
 
@@ -105,10 +105,6 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
 
     screen.registerObject( object, renderer );
 
-    kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
-    compositor->setRepetitionLevel( repeats );
-    compositor->enableLODControl();
-    screen.setEvent( compositor );
 }
 
 void SetMinMax( local::YinYangVolumeObject* volume_yin, local::YinYangVolumeObject* volume_yang )//, local::YinYangVolumeObject* volume_zhong )
@@ -184,28 +180,33 @@ int main( int argc, char** argv )
     const size_t lat_n = 204;
     const size_t lon_n = 608;
 
-    const std::string filename_yin( argv[1] );
+    //const std::string filename_yin( argv[1] );
+    const std::string filename_yin( "../../../bx_vx/oct09b.011.wyin.vx.n000250000.t00302" );
     local::YinYangVolumeObject* volume_yin = new local::YinYangVolumeObject();
     SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
         
-    const std::string filename_yang( argv[2] );
+    //const std::string filename_yang( argv[2] );
+    const std::string filename_yang( "../../../bx_vx/oct09b.011.wyng.vx.n000250000.t00302" );
     local::YinYangVolumeObject* volume_yang = new local::YinYangVolumeObject();
     SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
     
     SetMinMax( volume_yin, volume_yang );
     
-    size_t repeats = 36;
+    size_t repeats = 1;
     //ParticleBasedRendering( screen, volume_yang, repeats );
     ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
     delete volume_yin;
     ParticleBasedRenderingYinYang( screen, volume_yang, repeats );
     delete volume_yang;
 
+    kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
+    compositor->setRepetitionLevel( repeats );
+    compositor->enableLODControl();
+    screen.setEvent( compositor );
+    
     kvs::TargetChangeEvent event;
     screen.addEvent( &event );
-
     screen.show();
-
     kvs::Light::SetModelTwoSide( true );
 
     return app.run();

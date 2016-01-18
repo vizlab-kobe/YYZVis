@@ -145,6 +145,8 @@ public:
         m_current.scalar = m_trial.scalar;
     }
 
+    
+
 private:
   kvs::Real32 averaged_scalar() const
   {
@@ -271,35 +273,9 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
             for ( size_t i = 0; i < dim_r - 1; i++ )
             {
                 sampler.bind( kvs::Vec3ui( i, j, k ) );
-		size_t nparticles = sampler.numberOfParticles();
+		const size_t nparticles = sampler.numberOfParticles();
 		const size_t max_loops = nparticles * 10;
 
-		//---Yangの重複判定-----
-		if( volume->gridType() == YinYangVolumeObject::Yang )
-		  {
-		    kvs::Vec3 grid_coord_xyz, grid_coord_rtp;
-		    YinYangVolumeObject::Range r_theta, r_phi;
-		    for( int index = 0, count = 0; index < 8; index++ )
-		      {
-			grid_coord_xyz = sampler.getGridCoords( index );
-			r_theta = volume->rangeTheta();
-			r_phi = volume->rangePhi();
-
-			grid_coord_rtp.x() = (float)sqrt( (double)grid_coord_xyz.x() * (double)grid_coord_xyz.x() + (double)grid_coord_xyz.y() * (double)grid_coord_xyz.y() + (double)grid_coord_xyz.z() * (double)grid_coord_xyz.z() );
-			grid_coord_rtp.y() = (float)atan2( (double)grid_coord_xyz.y(), (double)grid_coord_xyz.x() );
-			grid_coord_rtp.z() = (float)atan2( (double)grid_coord_xyz.z(), sqrt( (double)grid_coord_xyz.x() * (double)grid_coord_xyz.x() + (double)grid_coord_xyz.y() * (double)grid_coord_xyz.y() ) );
-			
-			if( 0.35f <= grid_coord_rtp.x() && grid_coord_rtp.x() <= 1.0f 
-			    && ( pi / 4 ) - r_theta.d <= grid_coord_rtp.y() && grid_coord_rtp.y() <= ( 3 *  pi / 4 ) + r_theta.d
-			    && -(3 * pi / 4 ) - 2 * r_phi.d <= grid_coord_rtp.z() && grid_coord_rtp.z() <= ( 3 * pi / 4 ) + 2 * r_phi.d )
-			  count++; 
-
-			if( count >= 8 )
-			  nparticles = 0;
-		      }
-		  }
-
-		//std::cout << "gridcoord[ "  << index <<  " ] = " << grid_coord.x() << std::endl;
 		if ( nparticles == 0 ) continue;
 
                 size_t nduplications = 0;

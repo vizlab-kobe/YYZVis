@@ -35,7 +35,7 @@ include $(KVS_DIR)/Makefile.def
 #=============================================================================
 #  Project name.
 #=============================================================================
-PROJECT_NAME := Test_rtp
+PROJECT_NAME := Test2
 
 ifeq "$(findstring CYGWIN,$(shell uname -s))" "CYGWIN"
 TARGET_EXE := $(PROJECT_NAME).exe
