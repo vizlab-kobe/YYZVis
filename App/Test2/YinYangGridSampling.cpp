@@ -2,6 +2,7 @@
 #include "YinYangVolumeObject.h"
 #include "YinYangGrid.h"
 #include "DensityMap.h"
+#include <string>
 #include <math.h>
 
 namespace
@@ -80,9 +81,9 @@ public:
         m_grid->bind( base_index );
     }
 
-    size_t numberOfParticles()
+  size_t numberOfParticles( const local::YinYangVolumeObject* object )
     {
-        const kvs::Real32 scalar = this->averaged_scalar();
+        const kvs::Real32 scalar = this->averaged_scalar( object );
         const kvs::Real32 density = m_density_map->at( scalar );
         const kvs::Real32 volume = m_grid->volume();
         return this->number_of_particles( density, volume );
@@ -145,20 +146,266 @@ public:
         m_current.scalar = m_trial.scalar;
     }
 
+  
     
-
 private:
-  kvs::Real32 averaged_scalar() const
+
+      //---YinYangの重複部分の重み計算---------------
+
+  struct ControlVolume
   {
+    kvs::Real32 f11;
+    kvs::Real32 f12;
+    kvs::Real32 f21;
+    kvs::Real32 f22;
+    std::string pattern;
+  };
+
+  struct RangeYY
+  {
+    kvs::Real32 min;
+    kvs::Real32 max;
+    kvs::Real32 d;
+  };
+  
+  void rtpSelfToOthr( kvs::Real32 tht_self, kvs::Real32 phi_self, kvs::Real32& tht_othr, kvs::Real32& phi_othr )
+  {
+    kvs::Real32 x_self, y_self, z_self;
+    kvs::Real32 x_othr, y_othr, z_othr;
+
+    x_self = sin( tht_self ) * cos( phi_self );
+    y_self = sin( tht_self ) * sin( phi_self );
+    z_self = cos( tht_self );
+    x_othr = -x_self;
+    y_othr =  z_self;
+    z_othr =  y_self;
+    tht_othr = acos( z_othr );
+    phi_othr = atan2( y_othr, x_othr );
+  }
+  
+  std::string iFtoC( kvs::Real32 f )
+  {
+    std::string fc;
+
+    if( f >= 0.0f )
+      fc = "+";
+    else
+      fc = "-";
+
+    return fc;
+  }
+  
+  kvs::Real32 iPyramid( kvs::Real32 tht, kvs::Real32 phi, kvs::Real32 tht_middle, kvs::Real32 phi_middle, kvs::Real32 tht_halfspan, kvs::Real32 phi_halfspan )
+  {
+    kvs::Real32 py;
+    kvs::Real32 abs_x, abs_y;
+    
+    abs_x = abs( ( phi - phi_middle ) / phi_halfspan );
+    abs_y = abs( ( tht - tht_middle ) / tht_halfspan );
+    
+    py = ( 1 - abs_x ) * step( abs_x - abs_y ) + (1 - abs_y ) * step( abs_y - abs_x );
+    return py;
+  }
+  
+  
+  
+  kvs::Real32 iHowDeepInOtherSystem( const kvs::Real32 tht_self, const kvs::Real32 phi_self, kvs::Real32 tht_middle, kvs::Real32 phi_middle, kvs::Real32 tht_halfspan, kvs::Real32 phi_halfspan )
+  {
+    kvs::Real32 how_deep;
+    kvs::Real32 tht_othr, phi_othr;
+    
+    rtpSelfToOthr( tht_self, phi_self, tht_othr, phi_othr );
+    how_deep = iPyramid( tht_othr, phi_othr, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    
+    return how_deep;
+  }
+
+  kvs::Real32 iOverlapWeight( ControlVolume cv )
+  {
+    kvs::Real32 ol_weight;
+    kvs::Real32 a, b, s;
+
+     if( cv.pattern == "+++-" )
+       {
+	 a = -cv.f22;
+	 b = -cv.f22;
+	 s = a * b / 2;
+       }
+     else if( cv.pattern == "++-+" )
+       {
+	 a = -cv.f21;
+	 b = -cv.f21;
+	 s = a * b / 2;
+       }
+     else if( cv.pattern == "+-++" )
+       {
+	 a = -cv.f12;
+	 b = -cv.f12;
+	 s = a * b / 2;
+       }
+     else if( cv.pattern == "-+++" )
+       {
+	 a = -cv.f11;
+	 b = -cv.f11;
+	 s = a * b / 2;
+       }
+     else if( cv.pattern == "++--" )
+       {
+	 a = -cv.f21;
+	 b = -cv.f22;
+	 s = ( a + b ) / 2;
+       }
+     else if( cv.pattern == "--++" )
+       {
+	 a = -cv.f11;
+	 b = -cv.f12;
+	 s = ( a + b ) / 2;
+       }
+     else if( cv.pattern == "+-+-" )
+       {
+	 a = -cv.f12;
+	 b = -cv.f22;
+	 s = ( a + b ) / 2;
+       }	
+     else if( cv.pattern == "-+-+" )
+       {
+	 a = -cv.f11;
+	 b = -cv.f21;
+	 s = ( a + b ) / 2;
+       }
+     else if( cv.pattern == "+---" )
+       {
+	 a = -cv.f11;
+	 b = -cv.f11;
+	 s = 1 - a * b / 2;
+       }	
+     else if( cv.pattern == "-+--" )
+       {
+	 a = -cv.f12;
+	 b = -cv.f12;
+	 s = 1 - a * b / 2;
+       }	
+     else if( cv.pattern == "--+-" )
+       {
+	 a = -cv.f21;
+	 b = -cv.f21;
+	 s = 1 - a * b / 2;
+       }	
+     else if( cv.pattern == "---+" )
+       {
+	 a = -cv.f22;
+	 b = -cv.f22;
+	 s = 1 - a * b / 2;
+       }	
+     else if( cv.pattern == "++++" )
+       {
+	s = 0.0f;
+       }	
+     else if( cv.pattern == "----" )
+       {
+	s = 1.0f;
+       }
+     else
+       {
+	return false;
+       }
+
+    ol_weight = s + ( 1 - s ) / 2;
+    
+    return ol_weight;
+  }
+
+  kvs::Real32 step( kvs::Real32 x )
+  {
+    kvs::Real32 st;
+    
+    if( x > 0.0f )
+      st = 1.0f;
+    else if( x < 0.0f )
+      st = 0.0f;
+    else
+      st = 0.5f;
+
+    return st;
+  }
+
+  kvs::Real32 calcYinYangOverlapWeight( const local::YinYangVolumeObject* object, size_t j, size_t k )
+  {
+    kvs::Real32 tht, phi, tht_n, tht_s, phi_w, phi_e;
+    std::string c11, c12, c21, c22;
+
+    kvs::Real32 tht_ctr_max;
+    kvs::Real32 tht_ctr_min;
+    kvs::Real32 tht_middle;
+    kvs::Real32 tht_halfspan;
+    kvs::Real32 phi_ctr_max;
+    kvs::Real32 phi_ctr_min;
+    kvs::Real32 phi_middle;
+    kvs::Real32 phi_halfspan;
+
+    const size_t dim_r = object->dimR();
+    const size_t dim_theta = object->dimTheta();
+    const size_t dim_phi = object->dimPhi();
+
+    ControlVolume cv;
+    RangeYY range_r = { object->rangeR().min, object->rangeR().max, object->rangeR().d };
+    RangeYY range_theta = { object->rangeTheta().min, object->rangeTheta().max, object->rangeTheta().d };
+    RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
+
+    tht_ctr_min = range_theta.min + range_theta.d * ( 0 - 1 ) + range_theta.d * 0.5f;
+    tht_ctr_max = range_theta.min + range_theta.d * ( dim_theta - 1 ) + range_theta.d * 0.5f;
+    tht_middle = ( tht_ctr_max + tht_ctr_min ) / 2;
+    tht_halfspan = ( tht_ctr_max - tht_ctr_min ) / 2;
+
+    phi_ctr_min = range_phi.min + range_phi.d * ( 0 - 1 ) + range_phi.d * 0.5f;
+    phi_ctr_max = range_phi.min + range_phi.d * ( dim_phi - 1 ) + range_phi.d * 0.5f;
+    phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2;
+    phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2;
+
+    if( j == 0 && 1 <= k && k <= dim_phi - 1 )
+      j = 1;
+    else if( j == dim_theta - 1 && 1 <= k && k <= dim_phi - 1 )
+      j = dim_theta - 2;
+    else if( 0 <= j && j <= dim_theta - 1 && k == 0 )
+      k = 1;
+    else if( 0 <= j && j <= dim_theta - 1 && k == dim_phi - 1 )
+      k = dim_phi - 2;
+    
+    tht = range_theta.min + range_theta.d * ( j - 1 );
+    phi = range_phi.min + range_phi.d * ( k - 1 );
+    tht_n = tht - range_theta.d / 2;
+    tht_s = tht + range_theta.d / 2;
+    phi_w = phi - range_phi.d / 2;
+    phi_e = phi + range_phi.d / 2;
+    cv.f11 = iHowDeepInOtherSystem( tht_n, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    cv.f12 = iHowDeepInOtherSystem( tht_n, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    cv.f21 = iHowDeepInOtherSystem( tht_s, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    cv.f22 = iHowDeepInOtherSystem( tht_s, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    c11 = iFtoC( cv.f11 );
+    c12 = iFtoC( cv.f12 );
+    c21 = iFtoC( cv.f21 );
+    c22 = iFtoC( cv.f22 );
+    cv.pattern = c11 + c12 + c21 + c22;
+
+    return iOverlapWeight( cv );
+  }
+
+
+    kvs::Real32 averaged_scalar( const local::YinYangVolumeObject* object ) const
+  {
+    const kvs::Vec3ui base_index = m_grid->baseIndex();
+    size_t j = base_index[1];
+    size_t k = base_index[2];
+    kvs::Real32 olweight = calcYinYangOverlapWeight( object, j, k ); 
     return (
-            m_grid->value(0) +
-            m_grid->value(1) +
-            m_grid->value(2) +
-            m_grid->value(3) +
-            m_grid->value(4) +
-            m_grid->value(5) +
-            m_grid->value(6) +
-            m_grid->value(7) ) / 8.0f;
+            m_grid->value(0) * calcYinYangOverlapWeight( object, j, k ) +
+            m_grid->value(1) * calcYinYangOverlapWeight( object, j, k ) +
+            m_grid->value(2) * calcYinYangOverlapWeight( object, j, k + 1 ) +
+            m_grid->value(3) * calcYinYangOverlapWeight( object, j, k + 1 ) +
+            m_grid->value(4) * calcYinYangOverlapWeight( object, j + 1, k ) +
+            m_grid->value(5) * calcYinYangOverlapWeight( object, j + 1, k ) +
+            m_grid->value(6) * calcYinYangOverlapWeight( object, j + 1, k + 1 ) +
+            m_grid->value(7) * calcYinYangOverlapWeight( object, j + 1, k + 1 ) ) / 8.0f;
   }
   
   size_t number_of_particles( const kvs::Real32 density, const kvs::Real32 volume ) const
@@ -170,6 +417,7 @@ private:
     return n;
   }
 
+
 };
 
 }
@@ -180,9 +428,9 @@ namespace local
 YinYangGridSampling::YinYangGridSampling(
     const kvs::VolumeObjectBase* volume,
     const size_t subpixel_level,
-    const float sampling_step,
+    const kvs::Real32 sampling_step,
     const kvs::TransferFunction& transfer_function,
-    const float object_depth ):
+    const kvs::Real32 object_depth ):
     kvs::MapperBase( transfer_function ),
     kvs::PointObject(),
     m_camera( 0 )
@@ -197,9 +445,9 @@ YinYangGridSampling::YinYangGridSampling(
     const kvs::Camera* camera,
     const kvs::VolumeObjectBase* volume,
     const size_t subpixel_level,
-    const float sampling_step,
+    const kvs::Real32 sampling_step,
     const kvs::TransferFunction& transfer_function,
-    const float object_depth )
+    const kvs::Real32 object_depth )
 {
     this->attachCamera( camera );
     this->setSubpixelLevel( subpixel_level );
@@ -264,7 +512,7 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
     const size_t dim_theta = volume->dimTheta(); // latitude
     const size_t dim_phi = volume->dimPhi(); // longitude
     const kvs::ColorMap color_map( BaseClass::transferFunction().colorMap() );
-    const float pi = 3.141593f;
+    const kvs::Real32 pi = 3.141593f;
 
     for ( size_t k = 0; k < dim_phi - 1; k++ )
     {
@@ -273,7 +521,7 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
             for ( size_t i = 0; i < dim_r - 1; i++ )
             {
                 sampler.bind( kvs::Vec3ui( i, j, k ) );
-		const size_t nparticles = sampler.numberOfParticles();
+		const size_t nparticles = sampler.numberOfParticles( volume );
 		const size_t max_loops = nparticles * 10;
 
 		if ( nparticles == 0 ) continue;

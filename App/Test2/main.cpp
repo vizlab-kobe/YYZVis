@@ -80,6 +80,8 @@ void ParticleBasedRendering( kvs::glut::Screen& screen, local::YinYangVolumeObje
 
 void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume, size_t repeats = 1 )
 {
+
+  std::cout << "repeats = " << repeats << std::endl;
     const size_t subpixels = 1; // fixed to '1'
     const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
     const float step = 0.1f;
@@ -88,8 +90,8 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
 
     kvs::OpacityMap omap( 256 );
     omap.addPoint( 0, 1.0 );
-    omap.addPoint( 90, 1.0 );
-    omap.addPoint( 180, 1.0 );
+    omap.addPoint( 90, 0.0 );
+    omap.addPoint( 180, 0.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
 
@@ -192,7 +194,7 @@ int main( int argc, char** argv )
     
     SetMinMax( volume_yin, volume_yang );
     
-    size_t repeats = 1;
+    size_t repeats = 20;
     //ParticleBasedRendering( screen, volume_yang, repeats );
     ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
     delete volume_yin;
