@@ -19,17 +19,17 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const local::YinYangVolumeObject* 
     const size_t nnodes = object->numberOfNodes();
     kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
     kvs::Real32* pcoords = coords.data();
-    for ( size_t k = 0; k < dim_phi; k++ )
+    for ( int k = 0; k < dim_phi; k++ )
     {
       const float phi = range_phi.min + range_phi.d * ( k - 2 );
         const float sin_phi = std::sin( phi );
         const float cos_phi = std::cos( phi );
-        for ( size_t j = 0; j < dim_theta; j++ )
+        for ( int j = 0; j < dim_theta; j++ )
         {
 	    const float theta = range_theta.min + range_theta.d * ( j - 1);
             const float sin_theta = std::sin( theta );
             const float cos_theta = std::cos( theta );
-            for ( size_t i = 0; i < dim_r; i++ )
+            for ( int i = 0; i < dim_r; i++ )
             {
                 const float r = range_r.min + range_r.d * i;
                 const float x = r * sin_theta * cos_phi;

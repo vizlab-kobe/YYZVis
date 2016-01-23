@@ -186,7 +186,7 @@ int main( int argc, char** argv )
     const std::string filename_yin( "../../../bx_vx/oct09b.011.wyin.vx.n000250000.t00302" );
     local::YinYangVolumeObject* volume_yin = new local::YinYangVolumeObject();
     SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
-        
+
     //const std::string filename_yang( argv[2] );
     const std::string filename_yang( "../../../bx_vx/oct09b.011.wyng.vx.n000250000.t00302" );
     local::YinYangVolumeObject* volume_yang = new local::YinYangVolumeObject();
@@ -194,13 +194,15 @@ int main( int argc, char** argv )
     
     SetMinMax( volume_yin, volume_yang );
     
+
     size_t repeats = 20;
     //ParticleBasedRendering( screen, volume_yang, repeats );
     ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
     delete volume_yin;
     ParticleBasedRenderingYinYang( screen, volume_yang, repeats );
     delete volume_yang;
-
+    
+    
     kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
     compositor->setRepetitionLevel( repeats );
     compositor->enableLODControl();

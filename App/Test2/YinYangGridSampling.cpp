@@ -83,7 +83,8 @@ public:
 
   size_t numberOfParticles( const local::YinYangVolumeObject* object )
     {
-        const kvs::Real32 scalar = this->averaged_scalar( object );
+      const kvs::Real32 scalar = this->averaged_scalar_olweight( object );
+      //const kvs::Real32 scalar = this->averaged_scalar( object );
         const kvs::Real32 density = m_density_map->at( scalar );
         const kvs::Real32 volume = m_grid->volume();
         return this->number_of_particles( density, volume );
@@ -168,7 +169,7 @@ private:
     kvs::Real32 d;
   };
   
-  void rtpSelfToOthr( kvs::Real32 tht_self, kvs::Real32 phi_self, kvs::Real32& tht_othr, kvs::Real32& phi_othr )
+  void rtpSelfToOthr( kvs::Real32 tht_self, kvs::Real32 phi_self, kvs::Real32& tht_othr, kvs::Real32& phi_othr ) const
   {
     kvs::Real32 x_self, y_self, z_self;
     kvs::Real32 x_othr, y_othr, z_othr;
@@ -183,7 +184,7 @@ private:
     phi_othr = atan2( y_othr, x_othr );
   }
   
-  std::string iFtoC( kvs::Real32 f )
+  std::string iFtoC( kvs::Real32 f ) const
   {
     std::string fc;
 
@@ -195,7 +196,7 @@ private:
     return fc;
   }
   
-  kvs::Real32 iPyramid( kvs::Real32 tht, kvs::Real32 phi, kvs::Real32 tht_middle, kvs::Real32 phi_middle, kvs::Real32 tht_halfspan, kvs::Real32 phi_halfspan )
+  kvs::Real32 iPyramid( kvs::Real32 tht, kvs::Real32 phi, kvs::Real32 tht_middle, kvs::Real32 phi_middle, kvs::Real32 tht_halfspan, kvs::Real32 phi_halfspan ) const
   {
     kvs::Real32 py;
     kvs::Real32 abs_x, abs_y;
@@ -209,7 +210,7 @@ private:
   
   
   
-  kvs::Real32 iHowDeepInOtherSystem( const kvs::Real32 tht_self, const kvs::Real32 phi_self, kvs::Real32 tht_middle, kvs::Real32 phi_middle, kvs::Real32 tht_halfspan, kvs::Real32 phi_halfspan )
+  kvs::Real32 iHowDeepInOtherSystem( const kvs::Real32 tht_self, const kvs::Real32 phi_self, kvs::Real32 tht_middle, kvs::Real32 phi_middle, kvs::Real32 tht_halfspan, kvs::Real32 phi_halfspan ) const
   {
     kvs::Real32 how_deep;
     kvs::Real32 tht_othr, phi_othr;
@@ -220,7 +221,7 @@ private:
     return how_deep;
   }
 
-  kvs::Real32 iOverlapWeight( ControlVolume cv )
+  kvs::Real32 iOverlapWeight( ControlVolume cv ) const
   {
     kvs::Real32 ol_weight;
     kvs::Real32 a, b, s;
@@ -315,7 +316,7 @@ private:
     return ol_weight;
   }
 
-  kvs::Real32 step( kvs::Real32 x )
+  kvs::Real32 step( kvs::Real32 x ) const
   {
     kvs::Real32 st;
     
@@ -329,7 +330,7 @@ private:
     return st;
   }
 
-  kvs::Real32 calcYinYangOverlapWeight( const local::YinYangVolumeObject* object, size_t j, size_t k )
+  kvs::Real32 calcYinYangOverlapWeight( const local::YinYangVolumeObject* object, size_t j, size_t k ) const
   {
     kvs::Real32 tht, phi, tht_n, tht_s, phi_w, phi_e;
     std::string c11, c12, c21, c22;
@@ -371,8 +372,8 @@ private:
     else if( 0 <= j && j <= dim_theta - 1 && k == dim_phi - 1 )
       k = dim_phi - 2;
     
-    tht = range_theta.min + range_theta.d * ( j - 1 );
-    phi = range_phi.min + range_phi.d * ( k - 1 );
+    tht = range_theta.min + range_theta.d * ( (int)j - 1 );
+    phi = range_phi.min + range_phi.d * ( (int)k - 2 );
     tht_n = tht - range_theta.d / 2;
     tht_s = tht + range_theta.d / 2;
     phi_w = phi - range_phi.d / 2;
@@ -391,12 +392,11 @@ private:
   }
 
 
-    kvs::Real32 averaged_scalar( const local::YinYangVolumeObject* object ) const
+    kvs::Real32 averaged_scalar_olweight( const local::YinYangVolumeObject* object ) const
   {
     const kvs::Vec3ui base_index = m_grid->baseIndex();
     size_t j = base_index[1];
     size_t k = base_index[2];
-    kvs::Real32 olweight = calcYinYangOverlapWeight( object, j, k ); 
     return (
             m_grid->value(0) * calcYinYangOverlapWeight( object, j, k ) +
             m_grid->value(1) * calcYinYangOverlapWeight( object, j, k ) +
@@ -408,6 +408,22 @@ private:
             m_grid->value(7) * calcYinYangOverlapWeight( object, j + 1, k + 1 ) ) / 8.0f;
   }
   
+  kvs::Real32 averaged_scalar( const local::YinYangVolumeObject* object ) const
+  {
+    const kvs::Vec3ui base_index = m_grid->baseIndex();
+    size_t j = base_index[1];
+    size_t k = base_index[2];
+    return (
+            m_grid->value(0) +
+            m_grid->value(1) +
+            m_grid->value(2) +
+            m_grid->value(3) +
+            m_grid->value(4) +
+            m_grid->value(5) +
+            m_grid->value(6) +
+            m_grid->value(7) ) / 8.0f;
+  }
+
   size_t number_of_particles( const kvs::Real32 density, const kvs::Real32 volume ) const
   {
     const kvs::Real32 R = ::RandomNumber();

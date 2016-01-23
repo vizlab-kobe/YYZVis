@@ -88,8 +88,8 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
 
     kvs::OpacityMap omap( 256 );
     omap.addPoint( 0, 1.0 );
-    omap.addPoint( 90, 1.0 );
-    omap.addPoint( 180, 1.0 );
+    omap.addPoint( 90, 0.0 );
+    omap.addPoint( 180, 0.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
 
