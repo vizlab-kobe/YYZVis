@@ -199,12 +199,11 @@ private:
   kvs::Real32 iPyramid( kvs::Real32 tht, kvs::Real32 phi, kvs::Real32 tht_middle, kvs::Real32 phi_middle, kvs::Real32 tht_halfspan, kvs::Real32 phi_halfspan ) const
   {
     kvs::Real32 py;
-    kvs::Real32 abs_x, abs_y;
+    kvs::Real32 fabs_x, fabs_y;
+    fabs_x = fabs( ( phi - phi_middle ) / phi_halfspan );
+    fabs_y = fabs( ( tht - tht_middle ) / tht_halfspan );
     
-    abs_x = abs( ( phi - phi_middle ) / phi_halfspan );
-    abs_y = abs( ( tht - tht_middle ) / tht_halfspan );
-    
-    py = ( 1 - abs_x ) * step( abs_x - abs_y ) + (1 - abs_y ) * step( abs_y - abs_x );
+    py = ( 1 - fabs_x ) * step( fabs_x - fabs_y ) + (1 - fabs_y ) * step( fabs_y - fabs_x );
     return py;
   }
   
@@ -330,6 +329,16 @@ private:
     return st;
   }
 
+  void debug( std::string x, kvs::Real32 y ) const
+  {
+    std::cout << x << " = " << y << std::endl;
+  }
+
+  void debug( std::string x, size_t y ) const
+  {
+    std::cout << x << " = " << y << std::endl;
+  }	
+  
   kvs::Real32 calcYinYangOverlapWeight( const local::YinYangVolumeObject* object, size_t j, size_t k ) const
   {
     kvs::Real32 tht, phi, tht_n, tht_s, phi_w, phi_e;
@@ -344,12 +353,10 @@ private:
     kvs::Real32 phi_middle;
     kvs::Real32 phi_halfspan;
 
-    const size_t dim_r = object->dimR();
     const size_t dim_theta = object->dimTheta();
     const size_t dim_phi = object->dimPhi();
 
     ControlVolume cv;
-    RangeYY range_r = { object->rangeR().min, object->rangeR().max, object->rangeR().d };
     RangeYY range_theta = { object->rangeTheta().min, object->rangeTheta().max, object->rangeTheta().d };
     RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
 
@@ -358,14 +365,14 @@ private:
     tht_middle = ( tht_ctr_max + tht_ctr_min ) / 2;
     tht_halfspan = ( tht_ctr_max - tht_ctr_min ) / 2;
 
-    phi_ctr_min = range_phi.min + range_phi.d * ( 0 - 1 ) + range_phi.d * 0.5f;
-    phi_ctr_max = range_phi.min + range_phi.d * ( dim_phi - 1 ) + range_phi.d * 0.5f;
+    phi_ctr_min = range_phi.min + range_phi.d * ( 0 - 2 ) + range_phi.d * 0.5f;
+    phi_ctr_max = range_phi.min + range_phi.d * ( dim_phi - 2 ) + range_phi.d * 0.5f;
     phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2;
     phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2;
 
-    if( j == 0 && 1 <= k && k <= dim_phi - 1 )
+    if( j == 0 && 1 <= k && k <= dim_phi - 2 )
       j = 1;
-    else if( j == dim_theta - 1 && 1 <= k && k <= dim_phi - 1 )
+    else if( j == dim_theta - 1 && 1 <= k && k <= dim_phi - 2 )
       j = dim_theta - 2;
     else if( 0 <= j && j <= dim_theta - 1 && k == 0 )
       k = 1;
