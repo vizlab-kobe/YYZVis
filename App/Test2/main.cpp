@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 
 #include "YinYangVolumeObject.h"
 #include "YinYangGridSampling.h"
@@ -195,7 +196,7 @@ int main( int argc, char** argv )
     SetMinMax( volume_yin, volume_yang );
     
 
-    size_t repeats = 20;
+    size_t repeats = atoi(argv[1]);
     //ParticleBasedRendering( screen, volume_yang, repeats );
     ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
     delete volume_yin;

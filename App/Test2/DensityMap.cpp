@@ -185,10 +185,22 @@ kvs::Real32 PixelLength( const kvs::Camera* camera, const kvs::ObjectBase* objec
 namespace local
 {
 
+kvs::Real32 DensityMap::at( const float value, const kvs::Real32 overlapweight ) const
+{
+    if ( value < m_min_value || m_max_value < value ) { return 0.0f; }
+    const float r = static_cast<float>( m_resolution - 1 );
+    const float v = ( value - m_min_value ) / ( m_max_value - m_min_value ) * r;
+    const size_t s0 = static_cast<size_t>( v );
+    const size_t s1 = s0 + 1;
+
+    const kvs::Real32 d0 = m_table[ s0 ] * overlapweight;
+    const kvs::Real32 d1 = m_table[ s1 ] * overlapweight;
+    return kvs::Math::Mix( d0, d1, v - s0 );
+}
+
 kvs::Real32 DensityMap::at( const float value ) const
 {
     if ( value < m_min_value || m_max_value < value ) { return 0.0f; }
-
     const float r = static_cast<float>( m_resolution - 1 );
     const float v = ( value - m_min_value ) / ( m_max_value - m_min_value ) * r;
     const size_t s0 = static_cast<size_t>( v );

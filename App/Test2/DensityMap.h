@@ -33,6 +33,7 @@ public:
     kvs::Real32 maxValue() const { return m_max_value; }
     const Table& table() const { return m_table; }
 
+    kvs::Real32 at( const kvs::Real32 value, const kvs::Real32 overlapweight ) const;
     kvs::Real32 at( const kvs::Real32 value ) const;
     void create( const kvs::OpacityMap& omap );
 
