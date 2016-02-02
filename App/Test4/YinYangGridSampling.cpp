@@ -85,8 +85,16 @@ public:
   size_t numberOfParticles( const local::YinYangVolumeObject* object )
     {
         const kvs::Real32 scalar = this->averaged_scalar();
-	kvs::Real32 overlapweight = averaged_overlapweight( object );
-        const kvs::Real32 density = m_density_map->at( scalar, overlapweight );
+	kvs::Real32 density;
+	if( object->gridType() == object->gridYin() )
+	  {
+	    density =  m_density_map->at( scalar );
+	  }
+	else //gridType == Yang
+	  {
+	    kvs::Real32 overlapweight = averaged_overlapweight( object );
+	    density = m_density_map->at( scalar, overlapweight );
+	  }
         const kvs::Real32 volume = m_grid->volume();
         return this->number_of_particles( density, volume );
     }
@@ -96,7 +104,7 @@ public:
       return m_grid->coord( index );
     }
 
-    kvs::Real32 sample()
+  kvs::Real32 sample()
     {
         m_current.coord = m_grid->randomSampling();
         m_current.normal = -m_grid->gradientVector();
@@ -112,27 +120,69 @@ public:
         return m_density_map->at( m_current.scalar );
     }
 
-    kvs::Real32 sample( const size_t max_loops )
+  kvs::Real32 sample( const size_t max_loops )
     {
-        kvs::Real32 density = this->sample();
-        if ( kvs::Math::IsZero( density ) )
+      kvs::Real32 density = this->sample();
+      if ( kvs::Math::IsZero( density ) )
         {
-            for ( size_t i = 0; i < max_loops; i++ )
+	  for ( size_t i = 0; i < max_loops; i++ )
             {
-                density = this->sample();
-                if ( !kvs::Math::IsZero( density ) ) { break; }
+	      density = this->sample();
+	      if ( !kvs::Math::IsZero( density ) ) { break; }
             }
         }
 
         return density;
     }
 
-    kvs::Real32 trySample()
+  kvs::Real32 trySample()
     {
         m_trial.coord = m_grid->randomSampling();
         m_trial.normal = -m_grid->gradientVector();
         m_trial.scalar = m_grid->scalar();
-        return m_density_map->at( m_trial.scalar );
+        return m_density_map->at( m_current.scalar );
+    }
+
+  kvs::Real32 sampleOverlap( const local::YinYangVolumeObject* object )
+    {
+      bool flag(false);
+      while( flag == false )
+	{
+	  m_current.coord = m_grid->randomSampling();
+	  std::cout << "judgeol = " << judge_yinyang_overlap( object, m_current.coord ) << std::endl;
+	  if( judge_yinyang_overlap( object, m_current.coord) < 0 ) { flag = true; }
+	}
+        m_current.normal = -m_grid->gradientVector();
+        m_current.scalar = m_grid->scalar();
+        return m_density_map->at( m_current.scalar );
+    }
+
+    kvs::Real32 sampleOverlap( const size_t max_loops, const local::YinYangVolumeObject* object )
+    {
+      kvs::Real32 density = this->sampleOverlap( object );
+      if ( kvs::Math::IsZero( density ) )
+        {
+	  for ( size_t i = 0; i < max_loops; i++ )
+            {
+	      density = this->sampleOverlap( object );
+	      if ( !kvs::Math::IsZero( density ) ) { break; }
+            }
+        }
+
+        return density;
+    }
+
+  kvs::Real32 trySampleOverlap( const local::YinYangVolumeObject* object )
+    {
+      bool flag(false);
+      while( flag == false )
+	{
+	  m_trial.coord = m_grid->randomSampling();
+	  if( judge_yinyang_overlap( object, m_trial.coord ) < 0 ) { flag = true; }
+	}
+        m_trial.normal = -m_grid->gradientVector();
+        m_trial.scalar = m_grid->scalar();
+        return m_density_map->at( m_current.scalar );
     }
 
     void accept( const kvs::ColorMap& cmap )
@@ -147,6 +197,50 @@ public:
         m_current.normal = m_trial.normal;
         m_current.scalar = m_trial.scalar;
     }
+
+    
+  void checkOverlapFlag( const local::YinYangVolumeObject* object, size_t& flag ) const
+  {
+    kvs::Real32 tht_ctr_max;
+    kvs::Real32 tht_ctr_min;
+    kvs::Real32 tht_middle;
+    kvs::Real32 tht_halfspan;
+    kvs::Real32 phi_ctr_max;
+    kvs::Real32 phi_ctr_min;
+    kvs::Real32 phi_middle;
+    kvs::Real32 phi_halfspan;
+    const size_t dim_theta = object->dimTheta();
+    const size_t dim_phi = object->dimPhi();
+
+    RangeYY range_theta = { object->rangeTheta().min, object->rangeTheta().max, object->rangeTheta().d };
+    RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
+
+    tht_ctr_min = range_theta.min + range_theta.d * ( 0 - 1 );
+    tht_ctr_max = range_theta.min + range_theta.d * ( dim_theta - 1 );
+    tht_middle = ( tht_ctr_max + tht_ctr_min ) / 2;
+    tht_halfspan = ( tht_ctr_max - tht_ctr_min ) / 2;
+
+    phi_ctr_min = range_phi.min + range_phi.d * ( 0 - 2 );
+    phi_ctr_max = range_phi.min + range_phi.d * ( dim_phi - 2 );
+    phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2;
+    phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2;
+
+    kvs::Real32 tht[8], phi[8];
+    for( int i = 0; i < 8; i++)
+      {
+	tht[i] = acos( m_grid->coord(i).z() );
+	phi[i] = atan2( m_grid->coord(i).y(), m_grid->coord(i).x() );
+      }
+
+    flag |= overlap_flag(how_deep_in_other_system( tht[0], phi[0], tht_middle, phi_middle, tht_halfspan, phi_halfspan ) ) * 128;
+    flag |= overlap_flag(how_deep_in_other_system( tht[1], phi[1], tht_middle, phi_middle, tht_halfspan, phi_halfspan ) ) * 64;
+    flag |= overlap_flag(how_deep_in_other_system( tht[2], phi[2], tht_middle, phi_middle, tht_halfspan, phi_halfspan ) ) * 32;
+    flag |= overlap_flag(how_deep_in_other_system( tht[3], phi[3], tht_middle, phi_middle, tht_halfspan, phi_halfspan ) ) * 16;
+    flag |= overlap_flag(how_deep_in_other_system( tht[4], phi[4], tht_middle, phi_middle, tht_halfspan, phi_halfspan ) ) * 8;
+    flag |= overlap_flag(how_deep_in_other_system( tht[5], phi[5], tht_middle, phi_middle, tht_halfspan, phi_halfspan ) ) * 4;
+    flag |= overlap_flag(how_deep_in_other_system( tht[6], phi[6], tht_middle, phi_middle, tht_halfspan, phi_halfspan ) ) * 2;
+    flag |= overlap_flag(how_deep_in_other_system( tht[7], phi[7], tht_middle, phi_middle, tht_halfspan, phi_halfspan ) ) * 1;
+  }
 
   
     
@@ -207,17 +301,12 @@ private:
     return py;
   }
   
-  
-  
   kvs::Real32 how_deep_in_other_system( const kvs::Real32 tht_self, const kvs::Real32 phi_self, kvs::Real32 tht_middle, kvs::Real32 phi_middle, kvs::Real32 tht_halfspan, kvs::Real32 phi_halfspan ) const
   {
-    kvs::Real32 how_deep;
     kvs::Real32 tht_othr, phi_othr;
     
     rtp_self_to_othr( tht_self, phi_self, tht_othr, phi_othr );
-    how_deep = pyramid( tht_othr, phi_othr, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
-    
-    return how_deep;
+    return pyramid( tht_othr, phi_othr, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
   }
 
   kvs::Real32 overlap_weight( ControlVolume cv ) const
@@ -328,16 +417,6 @@ private:
     return st;
   }
 
-  void debug( std::string x, kvs::Real32 y ) const
-  {
-    std::cout << x << " = " << y << std::endl;
-  }
-
-  void debug( std::string x, size_t y ) const
-  {
-    std::cout << x << " = " << y << std::endl;
-  }	
-  
   kvs::Real32 calc_yinyang_overlap_weight( const local::YinYangVolumeObject* object, int j, int k ) const
   {
     kvs::Real32 tht, phi, tht_n, tht_s, phi_w, phi_e;
@@ -392,11 +471,46 @@ private:
     cv.pattern_flag |= overlap_flag( cv.f12 ) * 4; //0100
     cv.pattern_flag |= overlap_flag( cv.f21 ) * 2; //0010
     cv.pattern_flag |= overlap_flag( cv.f22 );     //0001
-    //std::cout << "( j, k ) = ( " << j << ", " << k << " ) cv.pattern_flag = " << cv.pattern_flag << std::endl;
 
     return overlap_weight( cv );
   }
 
+
+  kvs::Real32 judge_yinyang_overlap( const local::YinYangVolumeObject* object, kvs::Vec3 coords ) const
+  {
+    kvs::Real32 tht = acos( coords.z() );
+    kvs::Real32 phi = atan2( coords.y(), coords.z() );
+
+    kvs::Real32 tht_ctr_max;
+    kvs::Real32 tht_ctr_min;
+    kvs::Real32 tht_middle;
+    kvs::Real32 tht_halfspan;
+    kvs::Real32 phi_ctr_max;
+    kvs::Real32 phi_ctr_min;
+    kvs::Real32 phi_middle;
+    kvs::Real32 phi_halfspan;
+    const size_t dim_theta = object->dimTheta();
+    const size_t dim_phi = object->dimPhi();
+
+    RangeYY range_theta = { object->rangeTheta().min, object->rangeTheta().max, object->rangeTheta().d };
+    RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
+
+    tht_ctr_min = range_theta.min + range_theta.d * ( 0 - 1 );
+    tht_ctr_max = range_theta.min + range_theta.d * ( dim_theta - 1 );
+    tht_middle = ( tht_ctr_max + tht_ctr_min ) / 2;
+    tht_halfspan = ( tht_ctr_max - tht_ctr_min ) / 2;
+
+    phi_ctr_min = range_phi.min + range_phi.d * ( 0 - 2 );
+    phi_ctr_max = range_phi.min + range_phi.d * ( dim_phi - 2 );
+    phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2;
+    phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2;
+
+    return how_deep_in_other_system( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+  }
+
+
+
+  
   kvs::Real32 averaged_overlapweight( const local::YinYangVolumeObject* object ) const
   {
     const kvs::Vec3ui base_index = m_grid->baseIndex();
@@ -432,7 +546,7 @@ private:
     return n;
   }
 
-
+    
 };
 
 }
@@ -527,6 +641,7 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
     const size_t dim_theta = volume->dimTheta(); // latitude
     const size_t dim_phi = volume->dimPhi(); // longitude
     const kvs::ColorMap color_map( BaseClass::transferFunction().colorMap() );
+    size_t overlap_flag = 0;
 
     for ( size_t k = 0; k < dim_phi - 1; k++ )
     {
@@ -535,16 +650,37 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
 	  for ( size_t i = 0; i < dim_r - 1; i++ )
             {
                 sampler.bind( kvs::Vec3ui( i, j, k ) );
+
+		sampler.checkOverlapFlag( volume, overlap_flag );
+
 		const size_t nparticles = sampler.numberOfParticles( volume );
 		const size_t max_loops = nparticles * 10;
 		if ( nparticles == 0 ) continue;
 
                 size_t nduplications = 0;
                 size_t counter = 0;
-                kvs::Real32 density = sampler.sample( max_loops );
+                kvs::Real32 density;
+		if( overlap_flag == 0 || overlap_flag == 255 || volume->gridType() == volume->gridYin() )
+		  {
+		    density =  sampler.sample( max_loops );
+		  }
+		else //1 <=  flag <= 254
+		  {
+		    std::cout << "checkflag = " << overlap_flag << std::endl;
+		    density = sampler.sampleOverlap( max_loops, volume );
+		  }
                 while ( counter < nparticles )
                 {
-                    const kvs::Real32 density_trial = sampler.trySample();
+		  kvs::Real32 density_trial;
+		  if( overlap_flag == 0 || overlap_flag == 255 || volume->gridType() == volume->gridYin() )
+		    {
+		      density_trial = sampler.trySample();
+		    }
+		  else //1 <=  flag <= 254
+		    {
+		      density_trial = sampler.trySampleOverlap( volume );
+		    }
+		      
                     const kvs::Real32 ratio = density_trial / density;
                     if ( ratio >= 1.0f )
                     {

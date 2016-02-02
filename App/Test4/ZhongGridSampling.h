@@ -10,9 +10,9 @@
 namespace local
 {
 
-class YinYangGridSampling : public kvs::MapperBase, public kvs::PointObject
+class ZhongGridSampling : public kvs::MapperBase, public kvs::PointObject
 {
-    kvsModule( local::YinYangGridSampling, Mapper );
+    kvsModule( local::ZhongGridSampling, Mapper );
     kvsModuleBaseClass( kvs::MapperBase );
     kvsModuleSuperClass( kvs::PointObject );
 
@@ -23,14 +23,14 @@ private:
     float m_object_depth; ///< object depth
 
 public:
-    YinYangGridSampling(
+    ZhongGridSampling(
         const kvs::VolumeObjectBase* volume,
         const size_t subpixel_level,
         const float sampling_step,
         const kvs::TransferFunction& transfer_function,
         const float object_depth = 0.0f );
 
-    YinYangGridSampling(
+    ZhongGridSampling(
         const kvs::Camera* camera,
         const kvs::VolumeObjectBase* volume,
         const size_t subpixel_level,

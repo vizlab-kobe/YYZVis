@@ -133,6 +133,12 @@ size_t ZhongVolumeObject::numberOfCells() const
     return ( m_dim - 1 ) * ( m_dim - 1 ) * ( m_dim - 1 );
 }
 
+void ZhongVolumeObject::calculateCoords()
+{
+    this->setCoords( ::CalculateCoords( this ) );
+}
+
+
 bool ZhongVolumeObject::readValues( const std::string& filename )
 {
     const size_t nnodes = this->numberOfNodes();
@@ -150,5 +156,46 @@ bool ZhongVolumeObject::readValues( const std::string& filename )
 
     return true;
 }
+
+void ZhongVolumeObject::updateMinMaxCoords()
+{
+    kvs::Vec3 min_coord( 0.0f, 0.0f, 0.0f );
+    kvs::Vec3 max_coord( 0.0f, 0.0f, 0.0f );
+
+    const float* coord = this->coords().data();
+    const float* const end = coord + this->coords().size();
+
+    float x = *( coord++ );
+    float y = *( coord++ );
+    float z = *( coord++ );
+
+    min_coord.set( x, y, z );
+    max_coord.set( x, y, z );
+
+    while ( coord < end )
+    {
+        x = *( coord++ );
+        y = *( coord++ );
+        z = *( coord++ );
+
+        min_coord.x() = kvs::Math::Min( min_coord.x(), x );
+        min_coord.y() = kvs::Math::Min( min_coord.y(), y );
+        min_coord.z() = kvs::Math::Min( min_coord.z(), z );
+
+        max_coord.x() = kvs::Math::Max( max_coord.x(), x );
+        max_coord.y() = kvs::Math::Max( max_coord.y(), y );
+        max_coord.z() = kvs::Math::Max( max_coord.z(), z );
+    }
+
+    this->setMinMaxObjectCoords( min_coord, max_coord );
+
+    if ( !( this->hasMinMaxExternalCoords() ) )
+    {
+        this->setMinMaxExternalCoords(
+            this->minObjectCoord(),
+            this->maxObjectCoord() );
+    }
+}
+
 
 } // end of namespace local

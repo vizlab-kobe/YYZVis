@@ -6,13 +6,13 @@ namespace
 
 template <typename ValueType>
 inline void Bind(
-    const local::YinYangVolumeObject* volume,
+    const local::ZhongVolumeObject* volume,
     const kvs::Vec3ui& base_index,
     kvs::Real32* grid_values,
     kvs::Vec3* grid_coords )
 {
-    const size_t dim0 = volume->dimR();
-    const size_t dim1 = dim0 * volume->dimTheta();
+    const size_t dim0 = volume->dim();
+    const size_t dim1 = dim0 * volume->dim();
 
     const size_t i = base_index[0];
     const size_t j = base_index[1];

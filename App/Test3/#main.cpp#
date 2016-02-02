@@ -270,14 +270,12 @@ int main( int argc, char** argv )
     local::YinYangVolumeObject* volume_yang = new local::YinYangVolumeObject();
     SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
 
-    /*
     //const std::string filename_zhong( argv[3] );
     const std::string filename_zhong( "../../../bx_vx/oct09b.011.icore_3d.vx.n000250000.t00302" );
     local::ZhongVolumeObject* volume_zhong = new local::ZhongVolumeObject();
     SetVolumeZhong( volume_zhong,zhong_n, rad_n, filename_zhong );
-    */
     
-    SetMinMax( volume_yin, volume_yang ); //, volume_zhong );
+    SetMinMax( volume_yin, volume_yang, volume_zhong );
     
     size_t repeats = atoi(argv[1]);
 
@@ -286,11 +284,9 @@ int main( int argc, char** argv )
     delete volume_yin;
     ParticleBasedRenderingYinYang( screen, volume_yang, repeats );
     delete volume_yang;
-    /*
     ParticleBasedRenderingZhong( screen, volume_zhong, repeats );
     delete volume_zhong;
-    */
-    
+
     kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
     compositor->setRepetitionLevel( repeats );
     compositor->enableLODControl();

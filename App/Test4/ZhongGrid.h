@@ -5,7 +5,7 @@
 namespace local
 {
 
-class YinYangGrid
+class ZhongGrid
 {
 private:
     kvs::Vec3ui m_base_index; ///< base index of the bound grid

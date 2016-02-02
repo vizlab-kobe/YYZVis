@@ -79,10 +79,11 @@ public:
         m_grid->bind( base_index );
     }
 
-    size_t numberOfParticles()
+    size_t numberOfParticles(const local::ZhongVolumeObject* object )
     {
         const kvs::Real32 scalar = this->averaged_scalar();
-        const kvs::Real32 density = m_density_map->at( scalar );
+       	kvs::Real32 overlapweight = averaged_overlapweight( object );
+        const kvs::Real32 density = m_density_map->at( scalar, overlapweight );
         const kvs::Real32 volume = m_grid->volume();
         return this->number_of_particles( density, volume );
     }
@@ -140,7 +141,62 @@ public:
     }
 
 private:
-    kvs::Real32 averaged_scalar() const
+  struct Range
+  {
+    kvs::Real32 min;
+    kvs::Real32 max;
+    kvs::Real32 d;
+  };
+  
+  kvs::Real32 calc_zhong_overlap_weight( const local::ZhongVolumeObject* object, int i, int j, int k ) const
+  {
+    kvs::Real32 x, y, z;
+    kvs::Real32 rad;
+
+    const size_t dim = object->dim();
+    Range range_r = { object->rangeR().min, object->rangeR().max, object->rangeR().d };
+
+    const kvs::Real32 inner_r = range_r.min + range_r.d * 2;
+    const kvs::Real32 inner_max = inner_r;
+    const kvs::Real32 inner_min = -inner_r;
+    const kvs::Real32 inner_d = ( inner_max - inner_min ) / ( dim - 1 );
+    
+    x = inner_min + inner_d * i;
+    y = inner_min + inner_d * j;
+    z = inner_min + inner_d * k;
+    rad = sqrt( x*x + y*y + z*z );
+
+    if( rad < inner_r )
+      {
+	return 1.0f;
+      }
+    else
+      {
+	return 0.0f;
+      }
+  }
+
+  kvs::Real32 averaged_overlapweight( const local::ZhongVolumeObject* object ) const
+  {
+    const kvs::Vec3ui base_index = m_grid->baseIndex();
+    int i = (int)base_index[0];
+    int j = (int)base_index[1];
+    int k = (int)base_index[2];
+    kvs::Real32 ow = ( calc_zhong_overlap_weight( object, i, j, k ) +
+		       calc_zhong_overlap_weight( object, i + 1, j, k ) +
+		       calc_zhong_overlap_weight( object, i + 1, j + 1, k ) +
+		       calc_zhong_overlap_weight( object, i, j + 1, k) +
+		       calc_zhong_overlap_weight( object, i, j, k + 1 ) +
+		       calc_zhong_overlap_weight( object, i + 1, j, k + 1 ) +
+		       calc_zhong_overlap_weight( object, i + 1, j + 1, k + 1 ) +
+		       calc_zhong_overlap_weight( object, i, j + 1, k + 1 ) ) / 8.0f;
+    return ow;
+  }
+
+    
+    
+  
+      kvs::Real32 averaged_scalar() const
     {
         return (
             m_grid->value(0) +
@@ -263,7 +319,7 @@ void ZhongGridSampling::mapping( const local::ZhongVolumeObject* volume )
             {
                 sampler.bind( kvs::Vec3ui( i, j, k ) );
 
-                const size_t nparticles = sampler.numberOfParticles();
+                const size_t nparticles = sampler.numberOfParticles( volume );
                 const size_t max_loops = nparticles * 10;
                 if ( nparticles == 0 ) continue;
 
