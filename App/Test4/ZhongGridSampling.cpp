@@ -127,6 +127,51 @@ public:
         return m_density_map->at( m_trial.scalar );
     }
 
+  kvs::Real32 sampleOverlap( const local::ZhongVolumeObject* object )
+    {
+      bool flag(false);
+      size_t counter = 0;
+      while( flag == false )
+	{
+	  m_current.coord = m_grid->randomSampling();
+	  counter++;
+	  if( judge_zhong_overlap( object, m_current.coord ) == 0 || counter > 5 ) { flag = true; }
+	}
+        m_current.normal = -m_grid->gradientVector();
+        m_current.scalar = m_grid->scalar();
+        return m_density_map->at( m_current.scalar );
+    }
+
+  kvs::Real32 sampleOverlap( const size_t max_loops, const local::ZhongVolumeObject* object )
+    {
+        kvs::Real32 density = this->sampleOverlap( object );
+        if ( kvs::Math::IsZero( density ) )
+        {
+            for ( size_t i = 0; i < max_loops; i++ )
+            {
+                density = this->sampleOverlap( object );
+                if ( !kvs::Math::IsZero( density ) ) { break; }
+            }
+        }
+
+        return density;
+    }
+
+    kvs::Real32 trySampleOverlap( const local::ZhongVolumeObject* object )
+    {
+      bool flag(false);
+      size_t counter = 0;
+      while( flag == false )
+	{
+	  m_trial.coord = m_grid->randomSampling();
+	  counter++;
+	  if( judge_zhong_overlap( object, m_trial.coord ) == 0 || counter > 5 ) { flag = true; }
+	}
+      m_trial.normal = -m_grid->gradientVector();
+      m_trial.scalar = m_grid->scalar();
+      return m_density_map->at( m_trial.scalar );
+    }
+
     void accept( const kvs::ColorMap& cmap )
     {
         m_particles.push( m_current, cmap );
@@ -140,6 +185,29 @@ public:
         m_current.scalar = m_trial.scalar;
     }
 
+  void checkOverlapFlag( const local::ZhongVolumeObject* object, size_t& flag ) const
+  {
+    kvs::Real32 l;
+    size_t cflag[8];
+    for( int i = 0; i < 8; i++ )
+      {
+	l = sqrt( m_grid->coord(i).x() * m_grid->coord(i).x() + m_grid->coord(i).y() * m_grid->coord(i).y() + m_grid->coord(i).z() * m_grid->coord(i).z() );
+	if( l >= object->rangeR().min )
+	  cflag[i] = 1;
+	else
+	  cflag[i] = 0;
+      }
+	flag = 0;
+	flag |= cflag[0] * 128;
+	flag |= cflag[1] * 64;
+	flag |= cflag[2] * 32;
+	flag |= cflag[3] * 16;
+	flag |= cflag[4] * 8;
+	flag |= cflag[5] * 4;
+	flag |= cflag[6] * 2;
+	flag |= cflag[7] * 1;
+  }
+  
 private:
   struct Range
   {
@@ -150,8 +218,7 @@ private:
   
   kvs::Real32 calc_zhong_overlap_weight( const local::ZhongVolumeObject* object, int i, int j, int k ) const
   {
-    kvs::Real32 x, y, z;
-    kvs::Real32 rad;
+    kvs::Real32 x, y, z, l;
 
     const size_t dim = object->dim();
     Range range_r = { object->rangeR().min, object->rangeR().max, object->rangeR().d };
@@ -164,9 +231,9 @@ private:
     x = inner_min + inner_d * i;
     y = inner_min + inner_d * j;
     z = inner_min + inner_d * k;
-    rad = sqrt( x*x + y*y + z*z );
+    l = sqrt( x*x + y*y + z*z );
 
-    if( rad < inner_r )
+    if( l < inner_r )
       {
 	return 1.0f;
       }
@@ -193,12 +260,25 @@ private:
     return ow;
   }
 
-    
-    
-  
-      kvs::Real32 averaged_scalar() const
-    {
-        return (
+  size_t judge_zhong_overlap( const local::ZhongVolumeObject* object, kvs::Vec3 coords ) const
+  {
+    kvs::Real32 l;
+    kvs::Real32 outercore_min_r;
+    l = sqrt( coords.x() * coords.x() + coords.y() * coords.y() + coords.z() * coords.z() );
+    outercore_min_r = object->rangeR().min;
+    if( l >= outercore_min_r )
+      {
+	return 1;
+      }
+    else
+      {
+	return 0;
+      }
+  }
+     
+  kvs::Real32 averaged_scalar() const
+  {
+    return (
             m_grid->value(0) +
             m_grid->value(1) +
             m_grid->value(2) +
@@ -310,6 +390,7 @@ void ZhongGridSampling::mapping( const local::ZhongVolumeObject* volume )
     ::Sampler sampler( &grid, &density_map );
     const size_t dim = volume->dim(); // resolution
     const kvs::ColorMap color_map( BaseClass::transferFunction().colorMap() );
+    size_t overlap_flag = 0; 
 
     for ( size_t k = 0; k < dim - 1; k++ )
     {
@@ -325,11 +406,29 @@ void ZhongGridSampling::mapping( const local::ZhongVolumeObject* volume )
 
                 size_t nduplications = 0;
                 size_t counter = 0;
-                kvs::Real32 density = sampler.sample( max_loops );
+                kvs::Real32 density;
+		if( overlap_flag == 0 || overlap_flag == 255 )
+		  {
+		    density =  sampler.sample( max_loops );
+		  }
+		else //1 <=  flag <= 254
+		  {
+		    //std::cout << "checkflag = " << overlap_flag << std::endl;
+		    density = sampler.sampleOverlap( max_loops, volume );
+		  }
                 while ( counter < nparticles )
                 {
-                    const kvs::Real32 density_trial = sampler.trySample();
-                    const kvs::Real32 ratio = density_trial / density;
+		  kvs::Real32 density_trial;
+		  if( overlap_flag == 0 || overlap_flag == 255 )
+		    {
+		      density_trial = sampler.trySample();
+		    }
+		  else //1 <=  flag <= 254
+		    {
+		      density_trial = sampler.trySampleOverlap( volume );
+		    }
+		  
+		  const kvs::Real32 ratio = density_trial / density;
                     if ( ratio >= 1.0f )
                     {
                         sampler.acceptTrial( color_map );

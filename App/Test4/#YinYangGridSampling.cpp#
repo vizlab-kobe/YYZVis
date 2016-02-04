@@ -150,7 +150,10 @@ public:
 	{
 	  m_current.coord = m_grid->randomSampling();
 	  counter++;
-	  if( judge_yinyang_overlap( object, m_trial.coord ) == 0 ) break;
+	  if( judge_yinyang_overlap( object, m_trial.coord ) == 0 )
+	    {
+	      std::cout << "suceed." << std::endl;
+	      break;
 	  else if( counter > 500 )
 	    {
 	      sample_stoper = 1;

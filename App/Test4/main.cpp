@@ -92,8 +92,8 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
 
     kvs::OpacityMap omap( 256 );
     omap.addPoint( 0, 1.0 );
-    omap.addPoint( 90, 0.0 );
-    omap.addPoint( 180, 0.0 );
+    omap.addPoint( 140, 0.0 );
+    omap.addPoint( 160, 0.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
 
@@ -123,8 +123,8 @@ void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, local::ZhongVolumeO
 
     kvs::OpacityMap omap( 256 );
     omap.addPoint( 0, 1.0 );
-    omap.addPoint( 90, 0.0 );
-    omap.addPoint( 180, 0.0 );
+    omap.addPoint( 140, 0.0 );
+    omap.addPoint( 160, 0.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
 
@@ -260,15 +260,15 @@ int main( int argc, char** argv )
     const size_t lon_n = 608;
     const size_t zhong_n = 222;
 
-    //const std::string filename_yin( argv[1] );
-    const std::string filename_yin( "../../../bx_vx/oct09b.011.wyin.vx.n000250000.t00302" );
-    local::YinYangVolumeObject* volume_yin = new local::YinYangVolumeObject();
-    SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
-
     //const std::string filename_yang( argv[2] );
     const std::string filename_yang( "../../../bx_vx/oct09b.011.wyng.vx.n000250000.t00302" );
     local::YinYangVolumeObject* volume_yang = new local::YinYangVolumeObject();
     SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
+
+    //const std::string filename_yin( argv[1] );
+    const std::string filename_yin( "../../../bx_vx/oct09b.011.wyin.vx.n000250000.t00302" );
+    local::YinYangVolumeObject* volume_yin = new local::YinYangVolumeObject();
+    SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
 
     //const std::string filename_zhong( argv[3] );
     const std::string filename_zhong( "../../../bx_vx/oct09b.011.icore_3d.vx.n000250000.t00302" );
@@ -276,17 +276,17 @@ int main( int argc, char** argv )
     SetVolumeZhong( volume_zhong,zhong_n, rad_n, filename_zhong );
     
     SetMinMax( volume_yin, volume_yang, volume_zhong );
-    
+
     size_t repeats = atoi(argv[1]);
 
     //ParticleBasedRendering( screen, volume_yang, repeats );
-    ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
-    delete volume_yin;
     ParticleBasedRenderingYinYang( screen, volume_yang, repeats );
     delete volume_yang;
+    ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
+    delete volume_yin;
     ParticleBasedRenderingZhong( screen, volume_zhong, repeats );
     delete volume_zhong;
-
+    
     kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
     compositor->setRepetitionLevel( repeats );
     compositor->enableLODControl();
