@@ -53,6 +53,7 @@ public:
 
     GridType gridType() const { return m_grid_type; }
     GridType gridYin() const { return Yin; }
+    GridType gridYang() const { return Yang; }
     size_t dimR() const { return m_dim_r; }
     size_t dimTheta() const { return m_dim_theta; }
     size_t dimPhi() const { return m_dim_phi; }

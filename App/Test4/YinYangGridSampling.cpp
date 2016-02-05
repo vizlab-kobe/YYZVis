@@ -84,16 +84,24 @@ public:
 
   size_t numberOfParticles( const local::YinYangVolumeObject* object )
     {
-        const kvs::Real32 scalar = this->averaged_scalar();
+      const kvs::Real32 scalar = this->averaged_scalar();
 	kvs::Real32 density;
+	kvs::Real32 overlap_weight;
 	if( object->gridType() == object->gridYin() )
 	  {
 	    density =  m_density_map->at( scalar );
 	  }
 	else //gridType == Yang
 	  {
-	    kvs::Real32 overlapweight = averaged_overlapweight( object );
-	    density = m_density_map->at( scalar, overlapweight );
+	    if( checkOverlapFlag( object ) == 0 )
+	      overlap_weight = 1.0f;
+	    else if( checkOverlapFlag( object ) == 255 )
+	      overlap_weight = 0.0f;
+	    else
+	      //overlap_weight = 0.0f;
+	      //overlap_weight = number_of_flags( checkOverlapFlag( object ) ) / 8.0f;
+	      overlap_weight = averaged_overlapweight( object );
+	      density = m_density_map->at( scalar ) * overlap_weight;
 	  }
         const kvs::Real32 volume = m_grid->volume();
         return this->number_of_particles( density, volume );
@@ -150,11 +158,11 @@ public:
 	{
 	  m_current.coord = m_grid->randomSampling();
 	  counter++;
-	  if( judge_yinyang_overlap( object, m_trial.coord ) == 0 ) break;
-	  else if( counter > 500 )
+	  if( judge_yinyang_overlap( object, m_current.coord ) == 0 ) break;
+	  else if( counter > 500000 )
 	    {
 	      sample_stoper = 1;
-	      std::cout << "sample stop." << std::endl;
+	      //std::cout << "sample stop." << std::endl;
 	      break;
 	    }
 	}
@@ -186,10 +194,10 @@ public:
 	  m_trial.coord = m_grid->randomSampling();
 	  counter++;
 	  if( judge_yinyang_overlap( object, m_trial.coord ) == 0 ) break;
-	  else if( counter > 500 )
+	  else if( counter > 500000 )
 	    {
 	      sample_stoper = 1;
-	      std::cout << "tryal sample stop." << std::endl;
+	      //std::cout << "tryal sample stop." << std::endl;
 	      break;
 	    }
 	}
@@ -212,16 +220,16 @@ public:
     }
 
     
-  void checkOverlapFlag( const local::YinYangVolumeObject* object, size_t& flag ) const
+  size_t checkOverlapFlag( const local::YinYangVolumeObject* object ) const
   {
     kvs::Real32 tht_max;
     kvs::Real32 tht_min;
-    kvs::Real32 tht_middle;
-    kvs::Real32 tht_halfspan;
+    //kvs::Real32 tht_middle;
+    //kvs::Real32 tht_halfspan;
     kvs::Real32 phi_max;
     kvs::Real32 phi_min;
-    kvs::Real32 phi_middle;
-    kvs::Real32 phi_halfspan;
+    //kvs::Real32 phi_middle;
+    //kvs::Real32 phi_halfspan;
     const size_t dim_theta = object->dimTheta();
     const size_t dim_phi = object->dimPhi();
 
@@ -229,27 +237,33 @@ public:
     RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
 
     tht_min = range_theta.min + range_theta.d * ( 0 - 1 );
-    tht_max = range_theta.min + range_theta.d * ( dim_theta - 1 );
-    tht_middle = ( tht_max + tht_min ) / 2;
-    tht_halfspan = ( tht_max - tht_min ) / 2;
+    tht_max = range_theta.min + range_theta.d * ( ( dim_theta - 1 ) - 1 );
+    //tht_middle = ( tht_max + tht_min ) / 2;
+    //tht_halfspan = ( tht_max - tht_min ) / 2;
     phi_min = range_phi.min + range_phi.d * ( 0 - 2 );
-    phi_max = range_phi.min + range_phi.d * ( dim_phi - 2 );
-    phi_middle = ( phi_max + phi_min ) / 2;
-    phi_halfspan = ( phi_max - phi_min ) / 2;
+    phi_max = range_phi.min + range_phi.d * ( ( dim_phi - 1 ) - 2 );
+    //phi_middle = ( phi_max + phi_min ) / 2;
+    //phi_halfspan = ( phi_max - phi_min ) / 2;
 
     kvs::Real32 tht, phi;
+    size_t flag = 0;
     size_t cflag[8];
     for( int i = 0; i < 8; i++)
       {
 	tht = acos( m_grid->coord(i).z() );
 	phi = atan2( m_grid->coord(i).y(), m_grid->coord(i).x() );
 	
-	if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
-	  cflag[i] = 1;
+	//if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
+	if( tht_min <= tht && tht <= tht_max ){
+	  if( phi_min <= phi && phi <= phi_max ){
+	    cflag[i] = 1;
+	  }
+	  else
+	    cflag[i] = 0;
+	}
 	else
 	  cflag[i] = 0;
       }
-    flag = 0;
     flag |= cflag[0] * 128;
     flag |= cflag[1] * 64;
     flag |= cflag[2] * 32;
@@ -258,6 +272,7 @@ public:
     flag |= cflag[5] * 4;
     flag |= cflag[6] * 2;
     flag |= cflag[7] * 1;
+    return flag;
   }
 
   
@@ -331,7 +346,7 @@ private:
   {
     kvs::Real32 ol_weight;
     kvs::Real32 a, b, s;
-    if( cv.pattern_flag == 14 ) //1110
+     if( cv.pattern_flag == 14 ) //1110
        {
 	 a = -cv.f22;
 	 b = -cv.f22;
@@ -403,18 +418,20 @@ private:
 	 b = -cv.f22;
 	 s = 1 - a * b / 2;
        }	
-    else if( cv.pattern_flag == 15 ) //1111
+    else if( cv.pattern_flag == 0 ) //0000
+      {
+	return 1.0f;
+      }
+
+     else if( cv.pattern_flag == 15 ) //1111
        {
 	 return 0.0f;
-       }	
-    else if( cv.pattern_flag == 0 ) //0000
-       {
-	 return 1.0f;
        }
      else
        {
 	return false;
        }
+
 
     ol_weight = s + ( 1 - s ) / 2;
     
@@ -456,13 +473,13 @@ private:
     RangeYY range_theta = { object->rangeTheta().min, object->rangeTheta().max, object->rangeTheta().d };
     RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
 
-    tht_ctr_min = range_theta.min + range_theta.d * ( 0 - 1 ) + range_theta.d * 0.5f;
-    tht_ctr_max = range_theta.min + range_theta.d * ( dim_theta - 1 ) - range_theta.d * 0.5f;
+    tht_ctr_min = range_theta.min + range_theta.d * ( kvs::Real32 )( 0 - 1 ) + range_theta.d * 0.5f;
+    tht_ctr_max = range_theta.min + range_theta.d * ( kvs::Real32 )( ( dim_theta -1 ) - 1 ) - range_theta.d * 0.5f;
     tht_middle = ( tht_ctr_max + tht_ctr_min ) / 2;
     tht_halfspan = ( tht_ctr_max - tht_ctr_min ) / 2;
 
-    phi_ctr_min = range_phi.min + range_phi.d * ( 0 - 2 ) + range_phi.d * 0.5f;
-    phi_ctr_max = range_phi.min + range_phi.d * ( dim_phi - 2 ) - range_phi.d * 0.5f;
+    phi_ctr_min = range_phi.min + range_phi.d * ( kvs::Real32 )( 0 - 2 ) + range_phi.d * 0.5f;
+    phi_ctr_max = range_phi.min + range_phi.d * ( kvs::Real32 )( ( dim_phi -1 ) - 2 ) - range_phi.d * 0.5f;
     phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2;
     phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2;
 
@@ -485,6 +502,7 @@ private:
     cv.f12 = how_deep_in_other_system( tht_n, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
     cv.f21 = how_deep_in_other_system( tht_s, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
     cv.f22 = how_deep_in_other_system( tht_s, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    cv.pattern_flag = 0;
     cv.pattern_flag |= overlap_flag( cv.f11 ) * 8; //1000
     cv.pattern_flag |= overlap_flag( cv.f12 ) * 4; //0100
     cv.pattern_flag |= overlap_flag( cv.f21 ) * 2; //0010
@@ -493,19 +511,52 @@ private:
     return overlap_weight( cv );
   }
 
+  kvs::Real32 calc_yinyang_overlap_weight2( const local::YinYangVolumeObject* object, int j, int k ) const
+  {
+    kvs::Real32 tht, phi;
+    kvs::Real32 tht_max;
+    kvs::Real32 tht_min;
+    kvs::Real32 phi_max;
+    kvs::Real32 phi_min;
+    const size_t dim_theta = object->dimTheta();
+    const size_t dim_phi = object->dimPhi();
+
+    RangeYY range_theta = { object->rangeTheta().min, object->rangeTheta().max, object->rangeTheta().d };
+    RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
+
+    tht_min = range_theta.min + range_theta.d * ( kvs::Real32 )( 0 - 1 );
+    tht_max = range_theta.min + range_theta.d * ( kvs::Real32 )( ( dim_theta -1 ) - 1 );
+    phi_min = range_phi.min + range_phi.d * ( kvs::Real32 )( 0 - 2 ) + range_phi.d * 0.5f;
+    phi_max = range_phi.min + range_phi.d * ( kvs::Real32 )( ( dim_phi -1 ) - 2 ) - range_phi.d * 0.5f;
+
+    tht = range_theta.min + range_theta.d * ( j - 1 );
+    phi = range_phi.min + range_phi.d * ( k - 2 );
+
+    if( tht_min <= tht && tht <= tht_max ){
+      if( phi_min <= phi && phi <= phi_max ){
+	return 1;
+      }
+      else
+	return 0;
+    }
+    else
+      return 0;
+  }
+    
 
   size_t judge_yinyang_overlap( const local::YinYangVolumeObject* object, kvs::Vec3 coords ) const
   {
+    //std::cout << "(x, y, z) = " << coords.x() << ", " << coords.y() << ", " << coords.z() << std::endl;
     kvs::Real32 tht = acos( coords.z() );
     kvs::Real32 phi = atan2( coords.y(), coords.x() );
     kvs::Real32 tht_max;
     kvs::Real32 tht_min;
-    kvs::Real32 tht_middle;
-    kvs::Real32 tht_halfspan;
+    //kvs::Real32 tht_middle;
+    //kvs::Real32 tht_halfspan;
     kvs::Real32 phi_max;
     kvs::Real32 phi_min;
-    kvs::Real32 phi_middle;
-    kvs::Real32 phi_halfspan;
+    //kvs::Real32 phi_middle;
+    //kvs::Real32 phi_halfspan;
     const size_t dim_theta = object->dimTheta();
     const size_t dim_phi = object->dimPhi();
 
@@ -513,22 +564,38 @@ private:
     RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
 
     tht_min = range_theta.min + range_theta.d * ( 0 - 1 );
-    tht_max = range_theta.min + range_theta.d * ( dim_theta - 1 );
-    tht_middle = ( tht_max + tht_min ) / 2;
-    tht_halfspan = ( tht_max - tht_min ) / 2;
+    tht_max = range_theta.min + range_theta.d * ( dim_theta -1 - 1 );
+    //tht_middle = ( tht_max + tht_min ) / 2;
+    //tht_halfspan = ( tht_max - tht_min ) / 2;
     phi_min = range_phi.min + range_phi.d * ( 0 - 2 );
-    phi_max = range_phi.min + range_phi.d * ( dim_phi - 2 );
-    phi_middle = ( phi_max + phi_min ) / 2;
-    phi_halfspan = ( phi_max - phi_min ) / 2;
-    //std::cout << "pyramid = " << pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan) << std::endl;
-    if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
-      return 1;
+    phi_max = range_phi.min + range_phi.d * ( dim_phi -1  - 2 );
+    //phi_middle = ( phi_max + phi_min ) / 2;
+    //phi_halfspan = ( phi_max - phi_min ) / 2;
+    //if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
+    if( tht_min <= tht && tht <= tht_max ){
+      if( phi_min <= phi && phi <= phi_max ){
+	return 1;
+      }
+      else
+	return 0;
+    }
     else
       return 0;
   }
 
-
-
+  kvs::Real32 number_of_flags( size_t flag ) const
+  {
+    size_t counter = 0;
+    if( ( flag & 1 ) == 1 ) counter++;
+    if( ( flag & 2 ) == 2 ) counter++;
+    if( ( flag & 4 ) == 4 ) counter++;
+    if( ( flag & 8 ) == 8 ) counter++;
+    if( ( flag & 16 ) == 16 ) counter++;
+    if( ( flag & 32 ) == 32 ) counter++;
+    if( ( flag & 64 ) == 64 ) counter++;
+    if( ( flag & 128 )== 128 ) counter++;
+    return counter;
+  }
   
   kvs::Real32 averaged_overlapweight( const local::YinYangVolumeObject* object ) const
   {
@@ -565,8 +632,7 @@ private:
     return n;
   }
 
-    
-};
+    };
 
 }
 
@@ -628,7 +694,15 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
         delete_camera = true;
     }
 
-    this->mapping( local::YinYangVolumeObject::DownCast( volume ) );
+    const local::YinYangVolumeObject* yin_yang_object = local::YinYangVolumeObject::DownCast( volume );
+    if ( yin_yang_object->gridType() == yin_yang_object->gridYin() )
+      {
+        this->mapping_metro_yin( local::YinYangVolumeObject::DownCast( volume ) );
+      }
+    else
+      {
+	this->mapping_metro_yang( local::YinYangVolumeObject::DownCast( volume ) );
+      }
 
     if ( delete_camera )
     {
@@ -639,10 +713,84 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
     return this;
 }
 
-void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
-{
+  void YinYangGridSampling::mapping_metro_yin( const local::YinYangVolumeObject* volume ) //Yin-grid Metropolis sampling.
+  {
     KVS_ASSERT( volume != NULL );
-    std::cout << volume->gridType() << ", " << volume->rangeTheta().min << std::endl;
+    BaseClass::attachVolume( volume );
+    BaseClass::setRange( volume );
+    BaseClass::setMinMaxCoords( volume, this );
+
+    local::YinYangGrid grid( volume );
+    local::DensityMap density_map;
+    density_map.setSubpixelLevel( m_subpixel_level );
+    density_map.setSamplingStep( m_sampling_step );
+    density_map.attachCamera( m_camera );
+    density_map.attachObject( volume );
+    density_map.create( BaseClass::transferFunction().opacityMap() );
+
+    ::Sampler sampler( &grid, &density_map );
+    const size_t dim_r = volume->dimR(); // radius
+    const size_t dim_theta = volume->dimTheta(); // latitude
+    const size_t dim_phi = volume->dimPhi(); // longitude
+    const kvs::ColorMap color_map( BaseClass::transferFunction().colorMap() );
+
+    for ( size_t k = 0; k < dim_phi - 1; k++ )
+      {
+	for ( size_t j = 0; j < dim_theta - 1; j++ )
+	  {
+	    for ( size_t i = 0; i < dim_r - 1; i++ )
+	      {
+		sampler.bind( kvs::Vec3ui( i, j, k ) );
+		const size_t nparticles = sampler.numberOfParticles( volume );
+		const size_t max_loops = nparticles * 10;
+		if ( nparticles == 0 ) continue;
+
+		size_t nduplications = 0;
+		size_t counter = 0;
+		kvs::Real32 density =  sampler.sample( max_loops );
+		while ( counter < nparticles )
+		  {
+		    const kvs::Real32 density_trial = sampler.trySample();
+		    const kvs::Real32 ratio = density_trial / density;
+		    if ( ratio >= 1.0f )
+		      {
+			sampler.acceptTrial( color_map );
+			density = density_trial;
+			counter++;
+		      }
+		    else
+		      {
+			if ( ratio >= ::RandomNumber() )
+			  {
+			    sampler.acceptTrial( color_map );
+			    density = density_trial;
+			    counter++;
+			  }
+			else
+			  {
+                            #ifdef DUPLICATION
+			    sampler.accept( color_map );
+			    counter++;
+			    #else
+			    if ( ++nduplications > max_loops ) { break; }
+			    #endif
+			  }
+		      }
+		  } // end of while-loop
+	      } // end of i-loop
+	  } // end of j-loop
+      } // end of k-loop
+
+    SuperClass::setCoords( sampler.particles().coords() );
+    SuperClass::setColors( sampler.particles().colors() );
+    SuperClass::setNormals( sampler.particles().normals() );
+    SuperClass::setSize( 1.0f );
+ 
+  }
+
+  void YinYangGridSampling::mapping_metro_yang( const local::YinYangVolumeObject* volume ) //Yang-grid Metropolis sampling.
+  {
+    KVS_ASSERT( volume != NULL );
     BaseClass::attachVolume( volume );
     BaseClass::setRange( volume );
     BaseClass::setMinMaxCoords( volume, this );
@@ -663,6 +811,136 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
     size_t overlap_flag = 0;
 
     for ( size_t k = 0; k < dim_phi - 1; k++ )
+      {
+	for ( size_t j = 0; j < dim_theta - 1; j++ )
+	  {
+	    for ( size_t i = 0; i < dim_r - 1; i++ )
+	      {
+		sampler.bind( kvs::Vec3ui( i, j, k ) );
+		const size_t nparticles = sampler.numberOfParticles( volume );
+		const size_t max_loops = nparticles * 10;
+		if ( nparticles == 0 ) continue;
+
+		overlap_flag = sampler.checkOverlapFlag( volume );
+		
+		size_t nduplications = 0;
+		size_t counter = 0;
+		size_t sample_stoper = 0;
+		kvs::Real32 density;
+		kvs::Real32 density_trial;
+		kvs::Real32 ratio;
+		
+		if( overlap_flag == 0 || overlap_flag == 255 ) // overlap flag == 0.
+		  {
+		    density =  sampler.sample( max_loops );
+		    while ( counter < nparticles )
+		      {
+			density_trial = sampler.trySample();
+			ratio = density_trial / density;
+			if ( ratio >= 1.0f )
+			  {
+			    sampler.acceptTrial( color_map );
+			    density = density_trial;
+			    counter++;
+			  }
+			else
+			  {
+			    if ( ratio >= ::RandomNumber() )
+			      {
+				sampler.acceptTrial( color_map );
+				density = density_trial;
+				counter++;
+			      }
+			    else
+			      {
+                                #ifdef DUPLICATION
+				sampler.accept( color_map );
+				counter++;
+                                #else
+				if ( ++nduplications > max_loops ) { break; }
+                                #endif
+			      }
+			  }
+		      } // end of while-loop
+		    
+		  } // end if. overlap flag == 0
+		
+		//else if( overlap_flag == 255 ) continue; // overlap flag == 255. 
+
+		else
+		  {
+		    //std::cout << "checkflag = " << overlap_flag << std::endl;
+		    sample_stoper = 0;
+		    density =  sampler.sampleOverlap( max_loops, volume, sample_stoper );
+		    if( sample_stoper == 1 ) continue;
+		    while ( counter < nparticles )
+		      {
+			sample_stoper = 0;
+			density_trial = sampler.trySampleOverlap( volume, sample_stoper );
+			if( sample_stoper == 1 ) continue;
+			ratio = density_trial / density;
+			if ( ratio >= 1.0f )
+			  {
+			    sampler.acceptTrial( color_map );
+			    density = density_trial;
+			    counter++;
+			  }
+			else
+			  {
+			    if ( ratio >= ::RandomNumber() )
+			      {
+				sampler.acceptTrial( color_map );
+				density = density_trial;
+				counter++;
+			      }
+			    else
+			      {
+                                #ifdef DUPLICATION
+				sampler.accept( color_map );
+				counter++;
+                                #else
+				if ( ++nduplications > max_loops ) { break; }
+                                #endif
+			      }
+			  }
+		      } // end of while-loop
+		  } //end else. 1 <= overlap flag <= 254
+		
+	      } // end of i-loop
+	  } // end of j-loop
+      } // end of k-loop
+    
+    SuperClass::setCoords( sampler.particles().coords() );
+    SuperClass::setColors( sampler.particles().colors() );
+    SuperClass::setNormals( sampler.particles().normals() );
+    SuperClass::setSize( 1.0f );
+  }
+  
+  void YinYangGridSampling::mapping_uniform( const local::YinYangVolumeObject* volume )
+  {
+    KVS_ASSERT( volume != NULL );
+    BaseClass::attachVolume( volume );
+    BaseClass::setRange( volume );
+    BaseClass::setMinMaxCoords( volume, this );
+
+    local::YinYangGrid grid( volume );
+    local::DensityMap density_map;
+    density_map.setSubpixelLevel( m_subpixel_level );
+    density_map.setSamplingStep( m_sampling_step );
+    density_map.attachCamera( m_camera );
+    density_map.attachObject( volume );
+    density_map.create( BaseClass::transferFunction().opacityMap() );
+
+    ::Sampler sampler( &grid, &density_map );
+    const size_t dim_r = volume->dimR(); // radius
+    const size_t dim_theta = volume->dimTheta(); // latitude
+    const size_t dim_phi = volume->dimPhi(); // longitude
+    const kvs::ColorMap color_map( BaseClass::transferFunction().colorMap() );
+    size_t overlap_flag = 0;
+    size_t nparticles = 0;
+    size_t sample_stoper = 0;
+    
+    for ( size_t k = 0; k < dim_phi - 1; k++ )
     {
         for ( size_t j = 0; j < dim_theta - 1; j++ )
         {
@@ -670,74 +948,35 @@ void YinYangGridSampling::mapping( const local::YinYangVolumeObject* volume )
             {
                 sampler.bind( kvs::Vec3ui( i, j, k ) );
 
-		sampler.checkOverlapFlag( volume, overlap_flag );
+		overlap_flag = sampler.checkOverlapFlag( volume );
 
-		const size_t nparticles = sampler.numberOfParticles( volume );
-		const size_t max_loops = nparticles * 10;
-		if ( nparticles == 0 ) continue;
+		nparticles = sampler.numberOfParticles( volume );
+                if ( nparticles == 0 ) continue;
 
-                size_t nduplications = 0;
-                size_t counter = 0;
-                kvs::Real32 density;
-		size_t sample_stoper = 0;
-		if( overlap_flag == 0 || overlap_flag == 255 || volume->gridType() == volume->gridYin() )
+                for ( size_t i = 0; i < nparticles; ++i )
 		  {
-		    density =  sampler.sample( max_loops );
-		  }
-		else //1 <=  flag <= 254
-		  {
-		    // std::cout << "checkflag = " << overlap_flag << std::endl;
-		    sample_stoper = 0;
-		    density = sampler.sampleOverlap( max_loops, volume, sample_stoper );
-		    if( sample_stoper == 1 ) continue;
-		  }
-                while ( counter < nparticles )
-                {
-		  kvs::Real32 density_trial;
-		  if( overlap_flag == 0 || overlap_flag == 255 || volume->gridType() == volume->gridYin() )
-		    {
-		      density_trial = sampler.trySample();
-		    }
-		  else //1 <=  flag <= 254
-		    {
-		      sample_stoper = 0;
-		      density_trial = sampler.trySampleOverlap( volume, sample_stoper );
-		      if( sample_stoper == 1 ) continue;
-		    }
-                    const kvs::Real32 ratio = density_trial / density;
-                    if ( ratio >= 1.0f )
-                    {
-                        sampler.acceptTrial( color_map );
-                        density = density_trial;
-                        counter++;
-                    }
-                    else
-                    {
-                        if ( ratio >= ::RandomNumber() )
-                        {
-                            sampler.acceptTrial( color_map );
-                            density = density_trial;
-                            counter++;
-                        }
-                        else
-                        {
-#ifdef DUPLICATION
-                            sampler.accept( color_map );
-                            counter++;
-#else
-                            if ( ++nduplications > max_loops ) { break; }
-#endif
-                        }
-                    }
-                } // end of while-loop
-            } // end of i-loop
-        } // end of j-loop
-    } // end of k-loop
+		    if( overlap_flag == 0 || overlap_flag == 255 || volume->gridType() == volume->gridYin() )
+		      {
+			sampler.sample();
+			sampler.accept( color_map );
+		      }
+		    else //1 <=  flag <= 254
+		      {
+			sample_stoper = 0;
+			sampler.sampleOverlap( volume, sample_stoper );
+			if( sample_stoper == 1 ) continue;
+			sampler.accept( color_map );
+		      }
+                }
+            }
+        }
+    }
 
     SuperClass::setCoords( sampler.particles().coords() );
     SuperClass::setColors( sampler.particles().colors() );
     SuperClass::setNormals( sampler.particles().normals() );
     SuperClass::setSize( 1.0f );
 }
+
 
 } // end of namespace local

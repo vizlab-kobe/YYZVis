@@ -50,7 +50,9 @@ public:
     void setObjectDepth( const float depth ) { m_object_depth = depth; }
 
 private:
-    void mapping( const local::YinYangVolumeObject* volume );
+    void mapping_metro_yin( const local::YinYangVolumeObject* volume );
+    void mapping_metro_yang( const local::YinYangVolumeObject* volume );
+    void mapping_uniform( const local::YinYangVolumeObject* volume );
 };
 
 } // end of namespace local
