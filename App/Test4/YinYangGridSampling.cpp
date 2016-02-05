@@ -86,27 +86,39 @@ public:
     {
       const kvs::Real32 scalar = this->averaged_scalar();
 	kvs::Real32 density;
-	kvs::Real32 overlap_weight;
-	if( object->gridType() == object->gridYin() )
-	  {
-	    density =  m_density_map->at( scalar );
-	  }
-	else //gridType == Yang
-	  {
-	    if( checkOverlapFlag( object ) == 0 )
-	      overlap_weight = 1.0f;
-	    else if( checkOverlapFlag( object ) == 255 )
-	      overlap_weight = 0.0f;
-	    else
-	      //overlap_weight = 0.0f;
-	      //overlap_weight = number_of_flags( checkOverlapFlag( object ) ) / 8.0f;
-	      overlap_weight = averaged_overlapweight( object );
-	      density = m_density_map->at( scalar ) * overlap_weight;
-	  }
+	density =  m_density_map->at( scalar );
         const kvs::Real32 volume = m_grid->volume();
         return this->number_of_particles( density, volume );
     }
-
+  
+  size_t numberOfParticles( const local::YinYangVolumeObject* object, size_t overlap_flag )
+  {
+    const kvs::Real32 scalar = this->averaged_scalar();
+    kvs::Real32 density;
+    kvs::Real32 overlap_weight;
+    if( overlap_flag == 0 )
+      {
+	overlap_weight = 1.0f;
+      }
+    else if( overlap_flag == 255 )
+      {
+	overlap_weight = 0.0f;
+      }
+    else
+      {
+	std::cout << "checkflag = " << overlap_flag << std::endl;
+	//overlap_weight = 0.0f;
+	//overlap_weight = number_of_flags( checkOverlapFlag( object ) ) / 8.0f;
+	overlap_weight = calc_yinyang_overlap_weight( object );
+	std::cout << "overlap_weight = " << overlap_weight << std::endl;
+      }
+    density = m_density_map->at( scalar ) * overlap_weight;
+    
+    const kvs::Real32 volume = m_grid->volume();
+    return this->number_of_particles( density, volume );
+  }
+  
+  
   kvs::Vec3 getGridCoords( size_t index)
     {
       return m_grid->coord( index );
@@ -252,26 +264,30 @@ public:
       {
 	tht = acos( m_grid->coord(i).z() );
 	phi = atan2( m_grid->coord(i).y(), m_grid->coord(i).x() );
-	
-	//if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
-	if( tht_min <= tht && tht <= tht_max ){
-	  if( phi_min <= phi && phi <= phi_max ){
-	    cflag[i] = 1;
-	  }
-	  else
-	    cflag[i] = 0;
-	}
+	/*
+	if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
+	  cflag[i] = 1;
 	else
 	  cflag[i] = 0;
+	*/
+	if( tht_min > tht || tht > tht_max || phi_min > phi || phi > phi_max )
+	  {
+	    cflag[i] = 0;
+	  }
+	else
+	  {
+	    cflag[i] = 1;
+	  }
       }
-    flag |= cflag[0] * 128;
-    flag |= cflag[1] * 64;
-    flag |= cflag[2] * 32;
-    flag |= cflag[3] * 16;
-    flag |= cflag[4] * 8;
-    flag |= cflag[5] * 4;
-    flag |= cflag[6] * 2;
-    flag |= cflag[7] * 1;
+    flag = 0;
+    flag += cflag[0] * 128;
+    flag += cflag[1] * 64;
+    flag += cflag[2] * 32;
+    flag += cflag[3] * 16;
+    flag += cflag[4] * 8;
+    flag += cflag[5] * 4;
+    flag += cflag[6] * 2;
+    flag += cflag[7] * 1;
     return flag;
   }
 
@@ -344,96 +360,96 @@ private:
 
   kvs::Real32 overlap_weight( ControlVolume cv ) const
   {
-    kvs::Real32 ol_weight;
-    kvs::Real32 a, b, s;
-     if( cv.pattern_flag == 14 ) //1110
-       {
-	 a = -cv.f22;
-	 b = -cv.f22;
-	 s = a * b / 2;
-       }
-    else if( cv.pattern_flag == 13 ) //1101
-       {
-	 a = -cv.f21;
-	 b = -cv.f21;
-	 s = a * b / 2;
-       }
-    else if( cv.pattern_flag == 11 ) //1011
-       {
-	 a = -cv.f12;
-	 b = -cv.f12;
-	 s = a * b / 2;
-       }
-    else if( cv.pattern_flag == 7 ) //0111
-       {
-	 a = -cv.f11;
-	 b = -cv.f11;
-	 s = a * b / 2;
-       }
-    else if( cv.pattern_flag == 12 ) //1100
-       {
-	 a = -cv.f21;
-	 b = -cv.f22;
-	 s = ( a + b ) / 2;
-       }
-    else if( cv.pattern_flag == 3 ) //0011
-       {
-	 a = -cv.f11;
-	 b = -cv.f12;
-	 s = ( a + b ) / 2;
-       }
-    else if( cv.pattern_flag == 10 ) //1010
-       {
-	 a = -cv.f12;
-	 b = -cv.f22;
-	 s = ( a + b ) / 2;
-       }	
-    else if( cv.pattern_flag == 5 ) //0101
-       {
-	 a = -cv.f11;
-	 b = -cv.f21;
-	 s = ( a + b ) / 2;
-       }
-    else if( cv.pattern_flag == 8 ) //1000
-       {
-	 a = -cv.f11;
-	 b = -cv.f11;
-	 s = 1 - a * b / 2;
-       }	
-    else if( cv.pattern_flag == 4 ) //0100
-       {
-	 a = -cv.f12;
-	 b = -cv.f12;
-	 s = 1 - a * b / 2;
-       }	
-    else if( cv.pattern_flag == 2 ) //0010
-       {
-	 a = -cv.f21;
-	 b = -cv.f21;
-	 s = 1 - a * b / 2;
-       }	
-    else if( cv.pattern_flag == 1 ) //0001
-       {
-	 a = -cv.f22;
-	 b = -cv.f22;
-	 s = 1 - a * b / 2;
-       }	
-    else if( cv.pattern_flag == 0 ) //0000
+    if( cv.pattern_flag == 0 ) //0000
       {
+	//std::cout << "----" << std::endl;
 	return 1.0f;
       }
 
-     else if( cv.pattern_flag == 15 ) //1111
+    if( cv.pattern_flag == 15 ) //1111
        {
+	 //std::cout << "++++" << std::endl;
 	 return 0.0f;
        }
-     else
+
+    kvs::Real32 ol_weight = 0.0f;
+    kvs::Real32 a = 0.0f, b = 0.0f, s = 0.0f;
+     if( cv.pattern_flag == 14 ) //1110
        {
-	return false;
+	 a = -cv.f22 / ( cv.f12 - cv.f22 );
+	 b = -cv.f22 / ( cv.f21 - cv.f22 );
+	 s = a * b / 2.0f;
        }
+    else if( cv.pattern_flag == 13 ) //1101
+       {
+	 a = -cv.f21 / ( cv.f11 - cv.f21 );
+	 b = -cv.f21 / ( cv.f22 - cv.f21 );
+	 s = a * b / 2.0f;
+       }
+    else if( cv.pattern_flag == 11 ) //1011
+       {
+	 a = -cv.f12 / ( cv.f11 - cv.f12 );
+	 b = -cv.f12 / ( cv.f22 - cv.f12 );
+	 s = a * b / 2.0f;
+       }
+    else if( cv.pattern_flag == 7 ) //0111
+       {
+	 a = -cv.f11 / ( cv.f12 - cv.f11 );
+	 b = -cv.f11 / ( cv.f21 - cv.f11 );
+	 s = a * b / 2.0f;
+       }
+    else if( cv.pattern_flag == 12 ) //1100
+       {
+	 a = -cv.f21 / ( cv.f11 - cv.f21 );
+	 b = -cv.f22 / ( cv.f12 - cv.f22 );
+	 s = ( a + b ) / 2.0f;
+       }
+    else if( cv.pattern_flag == 3 ) //0011
+       {
+	 a = -cv.f11 / ( cv.f21 - cv.f11 );
+	 b = -cv.f12 / ( cv.f22 - cv.f12 );
+	 s = ( a + b ) / 2.0f;
+       }
+    else if( cv.pattern_flag == 10 ) //1010
+       {
+	 a = -cv.f12 / ( cv.f11 - cv.f12 );
+	 b = -cv.f22 / ( cv.f21 - cv.f22 );
+	 s = ( a + b ) / 2.0f;
+       }	
+    else if( cv.pattern_flag == 5 ) //0101
+       {
+	 a = -cv.f11 / ( cv.f12 - cv.f11 );
+	 b = -cv.f21 / ( cv.f22 - cv.f11 );
+	 s = ( a + b ) / 2.0f;
+       }
+    else if( cv.pattern_flag == 8 ) //1000
+       {
+	 a = cv.f11 / ( cv.f11 - cv.f12 );
+	 b = cv.f11 / ( cv.f11 - cv.f21 );
+	 s = 1.0f - a * b / 2.0f;
+       }	
+    else if( cv.pattern_flag == 4 ) //0100
+       {
+	 a = cv.f12 / ( cv.f12 - cv.f11 );
+	 b = cv.f12 / ( cv.f12 - cv.f22 );
+	 s = 1.0f - a * b / 2.0f;
+       }	
+    else if( cv.pattern_flag == 2 ) //0010
+       {
+	 a = cv.f21 / ( cv.f21 - cv.f11 );
+	 b = cv.f21 / ( cv.f21 - cv.f22 );
+	 s = 1.0f - a * b / 2.0f;
+       }	
+    else if( cv.pattern_flag == 1 ) //0001
+       {
+	 a = cv.f22 / ( cv.f22 - cv.f12 );
+	 b = cv.f22 / ( cv.f22 - cv.f21 );
+	 s = 1.0f - a * b / 2.0f;
+       }	
 
 
-    ol_weight = s + ( 1 - s ) / 2;
+
+    ol_weight = s + ( 1.0f - s ) / 2.0f;
     
     return ol_weight;
   }
@@ -452,9 +468,9 @@ private:
     return st;
   }
 
-  kvs::Real32 calc_yinyang_overlap_weight( const local::YinYangVolumeObject* object, int j, int k ) const
+  kvs::Real32 calc_yinyang_overlap_weight( const local::YinYangVolumeObject* object ) const
   {
-    kvs::Real32 tht, phi, tht_n, tht_s, phi_w, phi_e;
+    kvs::Real32 tht_n, tht_s, phi_w, phi_e;
     std::string c11, c12, c21, c22;
 
     kvs::Real32 tht_ctr_max;
@@ -473,40 +489,30 @@ private:
     RangeYY range_theta = { object->rangeTheta().min, object->rangeTheta().max, object->rangeTheta().d };
     RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
 
-    tht_ctr_min = range_theta.min + range_theta.d * ( kvs::Real32 )( 0 - 1 ) + range_theta.d * 0.5f;
-    tht_ctr_max = range_theta.min + range_theta.d * ( kvs::Real32 )( ( dim_theta -1 ) - 1 ) - range_theta.d * 0.5f;
-    tht_middle = ( tht_ctr_max + tht_ctr_min ) / 2;
-    tht_halfspan = ( tht_ctr_max - tht_ctr_min ) / 2;
+    tht_ctr_min = range_theta.min + range_theta.d * ( kvs::Real32 )( 0 - 1 );
+    tht_ctr_max = range_theta.min + range_theta.d * ( kvs::Real32 )( ( dim_theta -1 ) - 1 );
+    tht_middle = ( tht_ctr_max + tht_ctr_min ) / 2.0f;
+    tht_halfspan = ( tht_ctr_max - tht_ctr_min ) / 2.0f;
 
-    phi_ctr_min = range_phi.min + range_phi.d * ( kvs::Real32 )( 0 - 2 ) + range_phi.d * 0.5f;
-    phi_ctr_max = range_phi.min + range_phi.d * ( kvs::Real32 )( ( dim_phi -1 ) - 2 ) - range_phi.d * 0.5f;
-    phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2;
-    phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2;
+    phi_ctr_min = range_phi.min + range_phi.d * ( kvs::Real32 )( 0 - 2 );
+    phi_ctr_max = range_phi.min + range_phi.d * ( kvs::Real32 )( ( dim_phi -1 ) - 2 );
+    phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2.0f;
+    phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2.0f;
 
-    if( j == 0 && 1 <= k && k <= (int)dim_phi - 2 )
-      j = 1;
-    else if( j == (int)dim_theta - 1 && 1 <= k && k <= (int)dim_phi - 2 )
-      j = dim_theta - 2;
-    else if( 0 <= j && j <= (int)dim_theta - 1 && k == 0 )
-      k = 1;
-    else if( 0 <= j && j <= (int)dim_theta - 1 && k == (int)dim_phi - 1 )
-      k = dim_phi - 2;
-    
-    tht = range_theta.min + range_theta.d * ( j - 1 );
-    phi = range_phi.min + range_phi.d * ( k - 2 );
-    tht_n = tht - range_theta.d / 2;
-    tht_s = tht + range_theta.d / 2;
-    phi_w = phi - range_phi.d / 2;
-    phi_e = phi + range_phi.d / 2;
-    cv.f11 = how_deep_in_other_system( tht_n, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
-    cv.f12 = how_deep_in_other_system( tht_n, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
-    cv.f21 = how_deep_in_other_system( tht_s, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
-    cv.f22 = how_deep_in_other_system( tht_s, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    tht_n = acos( m_grid->coord(0).z() );
+    tht_s = acos( m_grid->coord(3).z() );
+    phi_w = atan2( m_grid->coord(4).y(), m_grid->coord(4).x() );
+    phi_e = atan2( m_grid->coord(0).y(), m_grid->coord(0).x() );
+    //std::cout << "( n, s, w, e ) = " << tht_n << ", " << tht_s << ", " << phi_w << ", " << phi_e << std::endl;
+    cv.f11 = pyramid( tht_n, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    cv.f12 = pyramid( tht_n, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    cv.f21 = pyramid( tht_s, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
+    cv.f22 = pyramid( tht_s, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
     cv.pattern_flag = 0;
-    cv.pattern_flag |= overlap_flag( cv.f11 ) * 8; //1000
-    cv.pattern_flag |= overlap_flag( cv.f12 ) * 4; //0100
-    cv.pattern_flag |= overlap_flag( cv.f21 ) * 2; //0010
-    cv.pattern_flag |= overlap_flag( cv.f22 );     //0001
+    cv.pattern_flag += overlap_flag( cv.f11 ) * 8; //1000
+    cv.pattern_flag += overlap_flag( cv.f12 ) * 4; //0100
+    cv.pattern_flag += overlap_flag( cv.f21 ) * 2; //0010
+    cv.pattern_flag += overlap_flag( cv.f22 );     //0001
 
     return overlap_weight( cv );
   }
@@ -546,7 +552,6 @@ private:
 
   size_t judge_yinyang_overlap( const local::YinYangVolumeObject* object, kvs::Vec3 coords ) const
   {
-    //std::cout << "(x, y, z) = " << coords.x() << ", " << coords.y() << ", " << coords.z() << std::endl;
     kvs::Real32 tht = acos( coords.z() );
     kvs::Real32 phi = atan2( coords.y(), coords.x() );
     kvs::Real32 tht_max;
@@ -565,13 +570,18 @@ private:
 
     tht_min = range_theta.min + range_theta.d * ( 0 - 1 );
     tht_max = range_theta.min + range_theta.d * ( dim_theta -1 - 1 );
-    //tht_middle = ( tht_max + tht_min ) / 2;
-    //tht_halfspan = ( tht_max - tht_min ) / 2;
+    //tht_middle = ( tht_max + tht_min ) / 2.0f;
+    //tht_halfspan = ( tht_max - tht_min ) / 2.0f;
     phi_min = range_phi.min + range_phi.d * ( 0 - 2 );
     phi_max = range_phi.min + range_phi.d * ( dim_phi -1  - 2 );
-    //phi_middle = ( phi_max + phi_min ) / 2;
-    //phi_halfspan = ( phi_max - phi_min ) / 2;
-    //if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
+    //phi_middle = ( phi_max + phi_min ) / 2.0f;
+    //phi_halfspan = ( phi_max - phi_min ) / 2.0f;
+    /*
+    if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
+      return 1;
+    else
+      return 0;
+    */
     if( tht_min <= tht && tht <= tht_max ){
       if( phi_min <= phi && phi <= phi_max ){
 	return 1;
@@ -596,7 +606,8 @@ private:
     if( ( flag & 128 )== 128 ) counter++;
     return counter;
   }
-  
+
+  /*
   kvs::Real32 averaged_overlapweight( const local::YinYangVolumeObject* object ) const
   {
     const kvs::Vec3ui base_index = m_grid->baseIndex();
@@ -609,6 +620,7 @@ private:
     return ow;
 
   }
+  */
 
   kvs::Real32 averaged_scalar() const
   {
@@ -817,11 +829,11 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
 	    for ( size_t i = 0; i < dim_r - 1; i++ )
 	      {
 		sampler.bind( kvs::Vec3ui( i, j, k ) );
-		const size_t nparticles = sampler.numberOfParticles( volume );
+		
+		overlap_flag = sampler.checkOverlapFlag( volume );
+		const size_t nparticles = sampler.numberOfParticles( volume, overlap_flag );
 		const size_t max_loops = nparticles * 10;
 		if ( nparticles == 0 ) continue;
-
-		overlap_flag = sampler.checkOverlapFlag( volume );
 		
 		size_t nduplications = 0;
 		size_t counter = 0;
@@ -869,7 +881,7 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
 
 		else
 		  {
-		    //std::cout << "checkflag = " << overlap_flag << std::endl;
+		    std::cout << "checkflag = " << overlap_flag << std::endl;
 		    sample_stoper = 0;
 		    density =  sampler.sampleOverlap( max_loops, volume, sample_stoper );
 		    if( sample_stoper == 1 ) continue;
