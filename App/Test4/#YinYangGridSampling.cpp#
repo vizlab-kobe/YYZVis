@@ -492,7 +492,7 @@ private:
 
   kvs::Real32 calc_yinyang_overlap_weight( const local::YinYangVolumeObject* object, int j, int k ) const
   {
-    kvs::Real32 tht_n, tht_s, phi_w, phi_e;
+    kvs::Real32 tht_yin[4], phi_yin[4], tht_yang[4], phi_yang[4];
     std::string c11, c12, c21, c22;
 
     kvs::Real32 tht_ctr_max;
@@ -520,11 +520,20 @@ private:
     phi_ctr_max = range_phi.min + range_phi.d * ( kvs::Real32 )( ( dim_phi -1 ) - 2 );
     phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2.0f;
     phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2.0f;
+    
+    tht_yang[0] = range_theta.min + range_theta.d * ( kvs::Real32 )( j - 1 );
+    tht_yang[1] = range_theta.min + range_theta.d * ( kvs::Real32 )( j - 1 );
+    tht_yang[2] = range_theta.min + range_theta.d * ( kvs::Real32 )( ( j + 1 ) - 1 );
+    tht_yang[3] = range_theta.min + range_theta.d * ( kvs::Real32 )( ( j + 1 ) - 1 );
+    phi_yang[0] = range_phi.min + range_phi.d * ( kvs::Real32 )( ( k + 1 ) - 2 );
+    phi_yang[1] = range_phi.min + range_phi.d * ( kvs::Real32 )( k - 2 );
+    phi_yang[2] = range_phi.min + range_phi.d * ( kvs::Real32 )( ( k + 1 ) - 2 );
+    phi_yang[3] = range_phi.min + range_phi.d * ( kvs::Real32 )( k - 2 );    
 
-    tht_n = range_theta.min + range_theta.d * ( kvs::Real32 )( ( j - 1 ) - 1 );
-    tht_s = range_theta.min + range_theta.d * ( kvs::Real32 )( j - 1 );
-    phi_w = range_phi.min + range_phi.d * ( kvs::Real32 )( k - 1 );
-    phi_e = range_phi.min + range_phi.d * ( kvs::Real32 )( ( k - 1 ) - 1 );
+    for( int i = 0; i < 4; i++ )
+      {
+	rtp_self_to_othr( tht_yang[0]
+    
     //std::cout << "( n, s, w, e ) = " << tht_n << ", " << tht_s << ", " << phi_w << ", " << phi_e << std::endl;
     cv.f11 = pyramid( tht_n, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
     cv.f12 = pyramid( tht_n, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );

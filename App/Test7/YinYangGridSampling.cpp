@@ -96,8 +96,6 @@ public:
     const kvs::Real32 scalar = this->averaged_scalar();
     kvs::Real32 density;
     kvs::Real32 overlap_weight;
-    int j = m_grid->baseIndex().y();
-    int k = m_grid->baseIndex().z();
     if( overlap_flag == 0 )
       {
 	overlap_weight = 1.0f;
@@ -108,11 +106,11 @@ public:
       }
     else
       {
-	std::cout << "checkflag = " << overlap_flag << std::endl;
+	//std::cout << "checkflag = " << overlap_flag << std::endl;
 	//overlap_weight = 0.0f;
 	//overlap_weight = number_of_flags( checkOverlapFlag( object ) ) / 8.0f;
-	overlap_weight = calc_yinyang_overlap_weight( object, j, k );
-	std::cout << "overlap_weight = " << overlap_weight << std::endl;
+	overlap_weight = calc_yinyang_overlap_weight( object );
+	//std::cout << "overlap_weight = " << overlap_weight << std::endl;
       }
     density = m_density_map->at( scalar ) * overlap_weight;
     
@@ -232,9 +230,9 @@ public:
         m_current.normal = m_trial.normal;
         m_current.scalar = m_trial.scalar;
     }
-  
+
     
-  size_t checkOverlapFlag( const local::YinYangVolumeObject* object, int j, int k ) const
+  size_t checkOverlapFlag( const local::YinYangVolumeObject* object ) const
   {
     kvs::Real32 tht_max;
     kvs::Real32 tht_min;
@@ -246,10 +244,10 @@ public:
     //kvs::Real32 phi_halfspan;
     const size_t dim_theta = object->dimTheta();
     const size_t dim_phi = object->dimPhi();
-    
+
     RangeYY range_theta = { object->rangeTheta().min, object->rangeTheta().max, object->rangeTheta().d };
     RangeYY range_phi = { object->rangePhi().min, object->rangePhi().max, object->rangePhi().d };
-    
+
     tht_min = range_theta.min + range_theta.d * ( 0 - 1 );
     tht_max = range_theta.min + range_theta.d * ( ( dim_theta - 1 ) - 1 );
     //tht_middle = ( tht_max + tht_min ) / 2;
@@ -258,41 +256,29 @@ public:
     phi_max = range_phi.min + range_phi.d * ( ( dim_phi - 1 ) - 2 );
     //phi_middle = ( phi_max + phi_min ) / 2;
     //phi_halfspan = ( phi_max - phi_min ) / 2;
-    
-    kvs::Real32 tht[8], phi[8], tht_o[8], phi_o[8];
 
-    tht[0] = range_theta.min + range_theta.d * ( j - 1 );
-    tht[1] = range_theta.min + range_theta.d * ( j - 1 );
-    tht[2] = range_theta.min + range_theta.d * ( ( j + 1 ) - 1 );
-    tht[3] = range_theta.min + range_theta.d * ( ( j + 1 ) - 1 );
-    tht[4] = range_theta.min + range_theta.d * ( j - 1 );
-    tht[5] = range_theta.min + range_theta.d * ( j - 1 );
-    tht[6] = range_theta.min + range_theta.d * ( ( j + 1 ) - 1 );
-    tht[7] = range_theta.min + range_theta.d * ( ( j + 1 ) - 1 );
-
-    phi[0] = range_phi.min + range_phi.d * ( k - 1 );
-    phi[1] = range_phi.min + range_phi.d * ( k - 1 );
-    phi[2] = range_phi.min + range_phi.d * ( k - 1 );
-    phi[3] = range_phi.min + range_phi.d * ( k - 1 );
-    phi[4] = range_phi.min + range_phi.d * ( ( k + 1 ) - 1 );
-    phi[5] = range_phi.min + range_phi.d * ( ( k + 1 ) - 1 );
-    phi[6] = range_phi.min + range_phi.d * ( ( k + 1 ) - 1 );
-    phi[7] = range_phi.min + range_phi.d * ( ( k + 1 ) - 1 );
+    kvs::Real32 x, y, z;
+    kvs::Real32 r, tht, phi;
 
     size_t flag = 0;
     size_t cflag[8];
     for( int i = 0; i < 8; i++)
       {
+	x = m_grid->coord(i).x();
+	y = m_grid->coord(i).y();
+	z = m_grid->coord(i).z();
+	r = sqrt( x*x + y*y + z*z );
+	tht = acos( z / r );
+	phi = atan2( y, x );
+	//std::cout <<"tht, phi = " << tht << ", " << phi << std::endl;
+	std::cout << "normal[" << i << "]  =" << m_grid->coord(i).normalized() << std::endl;
 	/*
 	if( pyramid( tht, phi, tht_middle, phi_middle, tht_halfspan, phi_halfspan ) >= 0 )
 	  cflag[i] = 1;
 	else
 	  cflag[i] = 0;
 	*/
-	rtp_self_to_othr( tht[i], phi[i], tht_o[i], phi_o[i] );
-	//std::cout << "tht_min =	" << tht_min << ", phi_min = " << phi_min << ", tht_max = " << tht_max << ", phi_max = " << phi_max << std::endl;
-	//std::cout << "( tht, phi )[" << i << "] = " << tht_o[i] << ", " << phi_o[i] << std::endl;
-	if( tht_min > tht_o[i] || tht_o[i] > tht_max || phi_min > phi_o[i] || phi_o[i] > phi_max )
+	if( tht_min > tht || tht > tht_max || phi_min > phi || phi > phi_max )
 	  {
 	    cflag[i] = 0;
 	  }
@@ -384,13 +370,13 @@ private:
   {
     if( cv.pattern_flag == 0 ) //0000
       {
-	std::cout << "----" << std::endl;
+	//std::cout << "----" << std::endl;
 	return 1.0f;
       }
 
     if( cv.pattern_flag == 15 ) //1111
        {
-	 std::cout << "++++" << std::endl;
+	 //std::cout << "++++" << std::endl;
 	 return 0.0f;
        }
 
@@ -490,9 +476,9 @@ private:
     return st;
   }
 
-  kvs::Real32 calc_yinyang_overlap_weight( const local::YinYangVolumeObject* object, int j, int k ) const
+  kvs::Real32 calc_yinyang_overlap_weight( const local::YinYangVolumeObject* object ) const
   {
-    kvs::Real32 tht_n, tht_s, phi_w, phi_e;
+    kvs::Real32 r[5], tht[5], phi[5], x[5], y[5], z[5], tht_n, tht_s, phi_w, phi_e;
     std::string c11, c12, c21, c22;
 
     kvs::Real32 tht_ctr_max;
@@ -521,10 +507,20 @@ private:
     phi_middle = ( phi_ctr_max + phi_ctr_min ) / 2.0f;
     phi_halfspan = ( phi_ctr_max - phi_ctr_min ) / 2.0f;
 
-    tht_n = range_theta.min + range_theta.d * ( kvs::Real32 )( ( j - 1 ) - 1 );
-    tht_s = range_theta.min + range_theta.d * ( kvs::Real32 )( j - 1 );
-    phi_w = range_phi.min + range_phi.d * ( kvs::Real32 )( k - 1 );
-    phi_e = range_phi.min + range_phi.d * ( kvs::Real32 )( ( k - 1 ) - 1 );
+    for( int i = 0; i < 5; i++ )
+      {
+	x[i] = m_grid->coord(i).x();
+	y[i] = m_grid->coord(i).y();
+	z[i] = m_grid->coord(i).z();
+	r[i] = sqrt( x[i]*x[i] + y[i]*y[i] + z[i]*z[i] );
+	tht[i] = acos( z[i] / r[i] );
+	phi[i] = atan2( y[i], x[i] );
+      }
+    
+    tht_n = tht[0];
+    tht_s = tht[3];
+    phi_w = phi[4];
+    phi_e = phi[0];
     //std::cout << "( n, s, w, e ) = " << tht_n << ", " << tht_s << ", " << phi_w << ", " << phi_e << std::endl;
     cv.f11 = pyramid( tht_n, phi_w, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
     cv.f12 = pyramid( tht_n, phi_e, tht_middle, phi_middle, tht_halfspan, phi_halfspan );
@@ -535,7 +531,7 @@ private:
     cv.pattern_flag += overlap_flag( cv.f12 ) * 4; //0100
     cv.pattern_flag += overlap_flag( cv.f21 ) * 2; //0010
     cv.pattern_flag += overlap_flag( cv.f22 );     //0001
-    std::cout << "cvflag = " << cv.pattern_flag << std::endl;
+
     return overlap_weight( cv );
   }
 
@@ -604,12 +600,17 @@ private:
     else
       return 0;
     */
-    if( tht_min > tht || tht > tht_max || phi_min > phi || phi > phi_max )
-      return 0;
+    if( tht_min <= tht && tht <= tht_max ){
+      if( phi_min <= phi && phi <= phi_max ){
+	return 1;
+      }
+      else
+	return 0;
+    }
     else
-      return 1;
+      return 0;
   }
-  
+
   kvs::Real32 number_of_flags( size_t flag ) const
   {
     size_t counter = 0;
@@ -847,7 +848,7 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
 	      {
 		sampler.bind( kvs::Vec3ui( i, j, k ) );
 		
-		overlap_flag = sampler.checkOverlapFlag( volume, (int)j, (int)k );
+		overlap_flag = sampler.checkOverlapFlag( volume );
 		const size_t nparticles = sampler.numberOfParticles( volume, overlap_flag );
 		const size_t max_loops = nparticles * 10;
 		if ( nparticles == 0 ) continue;
@@ -898,7 +899,7 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
 
 		else
 		  {
-		    std::cout << "checkflag = " << overlap_flag << std::endl;
+		    //std::cout << "checkflag = " << overlap_flag << std::endl;
 		    sample_stoper = 0;
 		    density =  sampler.sampleOverlap( max_loops, volume, sample_stoper );
 		    if( sample_stoper == 1 ) continue;
@@ -977,7 +978,7 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
             {
                 sampler.bind( kvs::Vec3ui( i, j, k ) );
 
-		overlap_flag = sampler.checkOverlapFlag( volume, (int)j, (int)k );
+		overlap_flag = sampler.checkOverlapFlag( volume );
 
 		nparticles = sampler.numberOfParticles( volume );
                 if ( nparticles == 0 ) continue;
