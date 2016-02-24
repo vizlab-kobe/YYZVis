@@ -3,7 +3,7 @@
 import sys
 import os
 
-LIB_NAME = "YinTangVis"
+LIB_NAME = "YinYangVis"
 
 #=============================================================================
 #  Executes kvsmake command.
