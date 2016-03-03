@@ -33,7 +33,6 @@
 #include "YinYangGridSampling.h"
 #include "ZhongVolumeObject.h"
 #include "ZhongGridSampling.h"
-#include "CellByCellMetropolisSampling.h"
 
 class FrameRate : public kvs::PaintEventListener
 {
@@ -176,7 +175,7 @@ public:
   }
 };
 
-int main( int argc, char** argv )
+int main_read_kvsml( int argc, char** argv )
 {
     kvs::glut::Application app( argc, argv );
     kvs::glut::Screen screen( &app );

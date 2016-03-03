@@ -20,6 +20,10 @@
 #include <kvs/TargetChangeEvent>
 #include <kvs/Timer>
 #include <kvs/DivergingColorMap>
+#include <kvs/Xform>
+#include <kvs/XformControl>
+#include <kvs/ScreenCaptureEvent>
+#include <kvs/PaintEventListener>
 
 #include <iostream>
 #include <fstream>
@@ -29,56 +33,31 @@
 #include "YinYangGridSampling.h"
 #include "ZhongVolumeObject.h"
 #include "ZhongGridSampling.h"
-#include "CellByCellMetropolisSampling.h"
 
-
-void ExternalFaces( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume )
+class FrameRate : public kvs::PaintEventListener
 {
-    kvs::UnstructuredVolumeObject* temp = local::YinYangVolumeObject::ToUnstructuredVolumeObject( volume );
-    temp->print( std::cout << std::endl );
+  kvs::StochasticRenderingCompositor* m_compositor;
 
-    kvs::PolygonObject* object = new kvs::ExternalFaces( temp );
-    object->print( std::cout << std::endl );
-    delete temp;
+public:
+  FrameRate( kvs::StochasticRenderingCompositor* compositor ):
+    m_compositor( compositor ) {}
 
-    screen.registerObject( object, new kvs::PolygonRenderer() );
-    screen.registerObject( object, new kvs::Bounds() );
-}
+  void update()
+  {
+    const int n = 50;
 
-void ParticleBasedRendering( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume, size_t repeats = 1 )
-{
-    kvs::UnstructuredVolumeObject* temp = local::YinYangVolumeObject::ToUnstructuredVolumeObject( volume );
-    temp->print( std::cout << std::endl );
-
-    const size_t subpixels = 1; // fixed to '1'
-    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
-    const float step = 0.1f;
-
-    kvs::OpacityMap omap( 256 );
-    omap.addPoint( 0, 1.0 );
-    omap.addPoint( 90, 0.0 );
-    omap.addPoint( 180, 0.0 );
-    omap.addPoint( 255, 1.0 );
-    omap.create();
-        
-    const kvs::TransferFunction tfunc( 256 );
-    kvs::Timer timer( kvs::Timer::Start );
-    kvs::PointObject* object = new local::CellByCellMetropolisSampling( temp, level, step, tfunc );
-    timer.stop();
-    object->print( std::cout << std::endl );
-    std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
-    delete temp;
-
-    kvs::glsl::ParticleBasedRenderer* renderer = new kvs::glsl::ParticleBasedRenderer();
-    renderer->disableShading();
-
-    screen.registerObject( object, renderer );
-
-    kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
-    compositor->setRepetitionLevel( repeats );
-    compositor->enableLODControl();
-    screen.setEvent( compositor );
-}
+    static int counter = 1;
+    static float accum = 0.0f;
+    accum += m_compositor->timer().fps();
+    if ( counter++ == n )
+      {
+	const float fps = accum / n;
+	std::cout << fps << " [fps]" << std::endl;
+	counter = 1;
+	accum = 0.0f;
+      }
+  }
+};
 
 void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume, size_t repeats = 1 )
 {
@@ -92,19 +71,32 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
 
     kvs::OpacityMap omap( 256 );
     omap.addPoint( 0, 1.0 );
-    omap.addPoint( 140, 0.0 );
-    omap.addPoint( 160, 0.0 );
+    omap.addPoint( 90, 0.0 );
+    omap.addPoint( 180, 0.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
 
     const kvs::TransferFunction tfunc( cmap, omap );
     kvs::Timer timer( kvs::Timer::Start );
     kvs::PointObject* object = new local::YinYangGridSampling( volume, level, step, tfunc );
-    object->setName( volume->name() );
     timer.stop();
-    object->print( std::cout << std::endl );
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
-
+    object->setName( volume->name() );
+    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+    object->multiplyXform( x );
+    object->print( std::cout << std::endl );
+    bool ascii  = false;
+    if( volume->gridType() == volume->gridYin() )
+      {
+	object->write( "yin.kvsml", ascii );
+        std::cout << "Yin point object write succeeded." << std::endl;
+      }
+    else
+      {
+	object->write( "yang.kvsml", ascii );
+        std::cout << "Yang point object write succeeded." << std::endl;
+      }
+      
     kvs::glsl::ParticleBasedRenderer* renderer = new kvs::glsl::ParticleBasedRenderer();
     renderer->disableShading();
 
@@ -124,8 +116,8 @@ void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, local::ZhongVolumeO
 
     kvs::OpacityMap omap( 256 );
     omap.addPoint( 0, 1.0 );
-    omap.addPoint( 140, 0.0 );
-    omap.addPoint( 160, 0.0 );
+    omap.addPoint( 90, 0.0 );
+    omap.addPoint( 180, 0.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
 
@@ -133,9 +125,16 @@ void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, local::ZhongVolumeO
     kvs::Timer timer( kvs::Timer::Start );
     kvs::PointObject* object = new local::ZhongGridSampling( volume, level, step, tfunc );
     object->setName( volume->name() );
+    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+    object->multiplyXform( x );
+
     timer.stop();
     object->print( std::cout << std::endl );
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
+
+    bool ascii = false;
+    object->write( "zhong.kvsml", ascii );
+    std::cout << "Zhong point object write succeeded." << std::endl;
 
     kvs::glsl::ParticleBasedRenderer* renderer = new kvs::glsl::ParticleBasedRenderer();
     renderer->disableShading();
@@ -252,69 +251,64 @@ void SetVolumeZhong( local::ZhongVolumeObject* volume, size_t zhong_n, size_t ra
 }
 
 #include <kvs/KeyPressEventListener>
-#include <kvs/Xform>
-#include <kvs/XformControl>
 
 class KeyPress : public kvs::KeyPressEventListener
 {
-private:
-  kvs::Xform x;
-  
   void update( kvs::KeyEvent* event )
   {
     switch ( event->key() )
       {
       case kvs::Key::One:
 	{
-	  std::cout << "aaa" << std::endl;
 	  if ( !scene()->hasObject("Yin") ) break;
-	  if ( scene()->object("Yin")->isShown() ) scene()->object("Yin")->hide();
-	  else scene()->object("Yin")->show();
+	  if ( scene()->object("Yin")->isShown() )
+	    {
+	      std::cout << "Yin grid hide" << std::endl;
+	      scene()->object("Yin")->hide();
+	    }
+	  else
+	    {
+	      std::cout << "Yin grid show" << std::endl;
+	      scene()->object("Yin")->show();
+	    }
 	  break;
 	}
       case kvs::Key::Two:
 	{
-	  std::cout << "bbb" << std::endl;
 	  if ( !scene()->hasObject("Yang") ) break;
-	  if ( scene()->object("Yang")->isShown() ) scene()->object("Yang")->hide();
-	  else scene()->object("Yang")->show();
+	  if ( scene()->object("Yang")->isShown() )
+	    {
+	      std::cout << "Yang grid hide" << std::endl;
+	      scene()->object("Yang")->hide();
+	    }
+	  else
+	    {
+	      std::cout << "Yang grid show" << std::endl;
+	      scene()->object("Yang")->show();
+	    }
 	  break;
 	}
       case kvs::Key::Three:
 	{
-	  std::cout << "ccc" << std::endl;
 	  if ( !scene()->hasObject("Zhong") ) break;
-	  if ( scene()->object("Zhong")->isShown() ) scene()->object("Zhong")->hide();
-	  else scene()->object("Zhong")->show();
+	  if ( scene()->object("Zhong")->isShown() )
+	    {
+	      std::cout << "Zhong grid hide" << std::endl;
+	      scene()->object("Zhong")->hide();
+	    }
+	  else
+	    {
+	      std::cout << "Zhong grid show" << std::endl;
+	      scene()->object("Zhong")->show();
+	    }
 	  break;
-	}
-      case kvs::Key::Four:
-	{
-	  x = kvs::Xform::Rotation( kvs::Mat3::RotationX(45) );
-	  scene()->object("Yin")->multiplyXform( x );
-	  scene()->object("Yang")->multiplyXform( x );
-	  scene()->object("Zhogn")->multiplyXform( x );
-	}
-      case kvs::Key::Five:
-	{
-	  x = kvs::Xform::Rotation( kvs::Mat3::RotationY(45) );
-	  scene()->object("Yin")->multiplyXform( x );
-	  scene()->object("Yang")->multiplyXform( x );
-	  scene()->object("Zhogn")->multiplyXform( x );
-	}
-      case kvs::Key::Six:
-	{
-	  x = kvs::Xform::Rotation( kvs::Mat3::RotationZ(45) );
-	  scene()->object("Yin")->multiplyXform( x );
-	  scene()->object("Yang")->multiplyXform( x );
-	  scene()->object("Zhogn")->multiplyXform( x );
 	}
       default: break;
       }
   }
 };
 
-int main( int argc, char** argv )
+int main_write_kvsml( int argc, char** argv )
 {
     kvs::glut::Application app( argc, argv );
     kvs::glut::Screen screen( &app );
@@ -324,49 +318,57 @@ int main( int argc, char** argv )
     const size_t lat_n = 204;
     const size_t lon_n = 608;
     const size_t zhong_n = 222;
-
-    //const std::string filename_yang( argv[2] );
-    const std::string filename_yang( "../../../bx_vx/oct09b.011.wyng.vx.n000250000.t00302" );
-    local::YinYangVolumeObject* volume_yang = new local::YinYangVolumeObject();
-    volume_yang->setName("Yang");
-    SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
-
+    
     //const std::string filename_yin( argv[1] );
     const std::string filename_yin( "../../../bx_vx/oct09b.011.wyin.vx.n000250000.t00302" );
     local::YinYangVolumeObject* volume_yin = new local::YinYangVolumeObject();
     volume_yin->setName("Yin");
     SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
 
+    //const std::string filename_yang( argv[2] );
+    const std::string filename_yang( "../../../bx_vx/oct09b.011.wyng.vx.n000250000.t00302" );
+    local::YinYangVolumeObject* volume_yang = new local::YinYangVolumeObject();
+    volume_yang->setName("Yang");
+    SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
+    
     //const std::string filename_zhong( argv[3] );
     const std::string filename_zhong( "../../../bx_vx/oct09b.011.icore_3d.vx.n000250000.t00302" );
     local::ZhongVolumeObject* volume_zhong = new local::ZhongVolumeObject();
     volume_zhong->setName("Zhong");
     SetVolumeZhong( volume_zhong,zhong_n, rad_n, filename_zhong );
-    
-    SetMinMax( volume_yin, volume_yang, volume_zhong );
 
+    SetMinMax( volume_yin, volume_yang, volume_zhong );
+    
     size_t repeats = atoi(argv[1]);
 
-    //ParticleBasedRendering( screen, volume_yang, repeats );
-    ParticleBasedRenderingYinYang( screen, volume_yang, repeats );
-    delete volume_yang;
     ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
     delete volume_yin;
+    ParticleBasedRenderingYinYang( screen, volume_yang, repeats );
+    delete volume_yang;
     ParticleBasedRenderingZhong( screen, volume_zhong, repeats );
     delete volume_zhong;
-    
+
     kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
     compositor->setRepetitionLevel( repeats );
-    compositor->enableLODControl();
+    compositor->disableLODControl();
     screen.setEvent( compositor );
 
     KeyPress key_press;
     screen.addEvent( &key_press );
+
+    kvs::ScreenCaptureEvent capture;
+    capture.setKey( kvs::Key::s );
+    //capture.setFilename( "filename" );
+    capture.setBasename( "ParticleImage" );
+    screen.addEvent( &capture );
     
     kvs::TargetChangeEvent event;
     screen.addEvent( &event );
     screen.show();
     kvs::Light::SetModelTwoSide( true );
+
+    FrameRate frame_rate( compositor );
+    screen.addEvent( &frame_rate );
 
     return app.run();
 }

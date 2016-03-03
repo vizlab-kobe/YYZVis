@@ -651,12 +651,10 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
     const local::YinYangVolumeObject* yin_yang_object = local::YinYangVolumeObject::DownCast( volume );
     if ( yin_yang_object->gridType() == yin_yang_object->gridYin() )
       {
-	std::cout << "aaa1" << std::endl;
         this->mapping_metro_yin( local::YinYangVolumeObject::DownCast( volume ) );
       }
     else
       {
-	std::cout << "aaa2" << std::endl;
 	this->mapping_metro_yang( local::YinYangVolumeObject::DownCast( volume ) );
       }
 
