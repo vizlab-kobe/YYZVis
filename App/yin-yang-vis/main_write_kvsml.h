@@ -34,32 +34,7 @@
 #include "ZhongVolumeObject.h"
 #include "ZhongGridSampling.h"
 
-class FrameRate : public kvs::PaintEventListener
-{
-  kvs::StochasticRenderingCompositor* m_compositor;
-
-public:
-  FrameRate( kvs::StochasticRenderingCompositor* compositor ):
-    m_compositor( compositor ) {}
-
-  void update()
-  {
-    const int n = 50;
-
-    static int counter = 1;
-    static float accum = 0.0f;
-    accum += m_compositor->timer().fps();
-    if ( counter++ == n )
-      {
-	const float fps = accum / n;
-	std::cout << fps << " [fps]" << std::endl;
-	counter = 1;
-	accum = 0.0f;
-      }
-  }
-};
-
-void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVolumeObject* volume, size_t repeats = 1 )
+void CreateParticleObjectYinYang( local::YinYangVolumeObject* volume, size_t repeats = 1 )
 {
 
   std::cout << "repeats = " << repeats << std::endl;
@@ -82,8 +57,6 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
     timer.stop();
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
     object->setName( volume->name() );
-    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
-    object->multiplyXform( x );
     object->print( std::cout << std::endl );
     bool ascii  = false;
     if( volume->gridType() == volume->gridYin() )
@@ -96,15 +69,9 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, local::YinYangVol
 	object->write( "yang.kvsml", ascii );
         std::cout << "Yang point object write succeeded." << std::endl;
       }
-      
-    kvs::glsl::ParticleBasedRenderer* renderer = new kvs::glsl::ParticleBasedRenderer();
-    renderer->disableShading();
-
-    screen.registerObject( object, renderer );
-
 }
 
-void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, local::ZhongVolumeObject* volume, size_t repeats = 1 )
+void CreateParticleObjectZhong( local::ZhongVolumeObject* volume, size_t repeats = 1 )
 {
 
   std::cout << "repeats = " << repeats << std::endl;
@@ -125,9 +92,6 @@ void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, local::ZhongVolumeO
     kvs::Timer timer( kvs::Timer::Start );
     kvs::PointObject* object = new local::ZhongGridSampling( volume, level, step, tfunc );
     object->setName( volume->name() );
-    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
-    object->multiplyXform( x );
-
     timer.stop();
     object->print( std::cout << std::endl );
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
@@ -135,12 +99,6 @@ void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, local::ZhongVolumeO
     bool ascii = false;
     object->write( "zhong.kvsml", ascii );
     std::cout << "Zhong point object write succeeded." << std::endl;
-
-    kvs::glsl::ParticleBasedRenderer* renderer = new kvs::glsl::ParticleBasedRenderer();
-    renderer->disableShading();
-
-    screen.registerObject( object, renderer );
-
 }
 
 
@@ -178,37 +136,6 @@ void SetMinMax( local::YinYangVolumeObject* volume_yin, local::YinYangVolumeObje
     volume_yang->setMinMaxExternalCoords( min_coord, max_coord );
     volume_zhong->setMinMaxExternalCoords( min_coord, max_coord );
 }
-
-void SetMinMax( local::YinYangVolumeObject* volume_yin, local::YinYangVolumeObject* volume_yang )
-{
-    const float min_yyz_value  = kvs::Math::Min( volume_yin->minValue(), volume_yang->minValue() );
-    const float max_yyz_value  = kvs::Math::Max( volume_yin->maxValue(), volume_yang->maxValue() );
-
-    volume_yin->setMinMaxValues( min_yyz_value, max_yyz_value );
-    volume_yang->setMinMaxValues( min_yyz_value, max_yyz_value );
-
-    const kvs::Vec3 min_yin_coord = volume_yin->minObjectCoord();
-    const kvs::Vec3 min_yang_coord = volume_yang->minObjectCoord();
-    const kvs::Vec3 max_yin_coord = volume_yin->maxObjectCoord();
-    const kvs::Vec3 max_yang_coord = volume_yang->maxObjectCoord();
-
-    const float min_x_coord = kvs::Math::Min( min_yin_coord.x(), min_yang_coord.x() );
-    const float min_y_coord = kvs::Math::Min( min_yin_coord.y(), min_yang_coord.y() );
-    const float min_z_coord = kvs::Math::Min( min_yin_coord.z(), min_yang_coord.z() );
-    const kvs::Vec3 min_coord = kvs::Vec3( min_x_coord, min_y_coord, min_z_coord );
-
-    const float max_x_coord = kvs::Math::Max( max_yin_coord.x(), max_yang_coord.x() );
-    const float max_y_coord = kvs::Math::Max( max_yin_coord.y(), max_yang_coord.y() );
-    const float max_z_coord = kvs::Math::Max( max_yin_coord.z(), max_yang_coord.z() );
-    const kvs::Vec3 max_coord = kvs::Vec3( max_x_coord, max_y_coord, max_z_coord );
-    
-    volume_yin->setMinMaxObjectCoords( min_coord, max_coord );
-    volume_yang->setMinMaxObjectCoords( min_coord, max_coord );
-    
-    volume_yin->setMinMaxExternalCoords( min_coord, max_coord );
-    volume_yang->setMinMaxExternalCoords( min_coord, max_coord );
-    }
-
 
 void SetVolumeYin( local::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
 {
@@ -250,70 +177,8 @@ void SetVolumeZhong( local::ZhongVolumeObject* volume, size_t zhong_n, size_t ra
     volume->print( std::cout << std::endl );
 }
 
-#include <kvs/KeyPressEventListener>
-
-class KeyPress : public kvs::KeyPressEventListener
-{
-  void update( kvs::KeyEvent* event )
-  {
-    switch ( event->key() )
-      {
-      case kvs::Key::One:
-	{
-	  if ( !scene()->hasObject("Yin") ) break;
-	  if ( scene()->object("Yin")->isShown() )
-	    {
-	      std::cout << "Yin grid hide" << std::endl;
-	      scene()->object("Yin")->hide();
-	    }
-	  else
-	    {
-	      std::cout << "Yin grid show" << std::endl;
-	      scene()->object("Yin")->show();
-	    }
-	  break;
-	}
-      case kvs::Key::Two:
-	{
-	  if ( !scene()->hasObject("Yang") ) break;
-	  if ( scene()->object("Yang")->isShown() )
-	    {
-	      std::cout << "Yang grid hide" << std::endl;
-	      scene()->object("Yang")->hide();
-	    }
-	  else
-	    {
-	      std::cout << "Yang grid show" << std::endl;
-	      scene()->object("Yang")->show();
-	    }
-	  break;
-	}
-      case kvs::Key::Three:
-	{
-	  if ( !scene()->hasObject("Zhong") ) break;
-	  if ( scene()->object("Zhong")->isShown() )
-	    {
-	      std::cout << "Zhong grid hide" << std::endl;
-	      scene()->object("Zhong")->hide();
-	    }
-	  else
-	    {
-	      std::cout << "Zhong grid show" << std::endl;
-	      scene()->object("Zhong")->show();
-	    }
-	  break;
-	}
-      default: break;
-      }
-  }
-};
-
 int main_write_kvsml( int argc, char** argv )
 {
-    kvs::glut::Application app( argc, argv );
-    kvs::glut::Screen screen( &app );
-    screen.setBackgroundColor( kvs::RGBColor::White() );
-
     const size_t rad_n = 201;
     const size_t lat_n = 204;
     const size_t lon_n = 608;
@@ -341,34 +206,12 @@ int main_write_kvsml( int argc, char** argv )
     
     size_t repeats = atoi(argv[1]);
 
-    ParticleBasedRenderingYinYang( screen, volume_yin, repeats );
+    CreateParticleObjectYinYang( volume_yin, repeats );
     delete volume_yin;
-    ParticleBasedRenderingYinYang( screen, volume_yang, repeats );
+    CreateParticleObjectYinYang( volume_yang, repeats );
     delete volume_yang;
-    ParticleBasedRenderingZhong( screen, volume_zhong, repeats );
+    CreateParticleObjectZhong( volume_zhong, repeats );
     delete volume_zhong;
-
-    kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
-    compositor->setRepetitionLevel( repeats );
-    compositor->disableLODControl();
-    screen.setEvent( compositor );
-
-    KeyPress key_press;
-    screen.addEvent( &key_press );
-
-    kvs::ScreenCaptureEvent capture;
-    capture.setKey( kvs::Key::s );
-    //capture.setFilename( "filename" );
-    capture.setBasename( "ParticleImage" );
-    screen.addEvent( &capture );
     
-    kvs::TargetChangeEvent event;
-    screen.addEvent( &event );
-    screen.show();
-    kvs::Light::SetModelTwoSide( true );
-
-    FrameRate frame_rate( compositor );
-    screen.addEvent( &frame_rate );
-
-    return app.run();
+    return 0;
 }
