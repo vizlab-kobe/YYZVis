@@ -280,31 +280,34 @@ int main_yin_yang_vis( int argc, char** argv )
     kvs::glut::Screen screen( &app );
     screen.setBackgroundColor( kvs::RGBColor::White() );
 
-    const size_t rad_n = 201;
-    const size_t lat_n = 204;
-    const size_t lon_n = 608;
-    const size_t zhong_n = 222;
+    const size_t rad_n = atoi( argv[1] );
+    const size_t lat_n = atoi( argv[2] );
+    const size_t lon_n = atoi( argv[3] );
+    const size_t zhong_n = atoi( argv[4] );
     
-    const std::string filename_yin( argv[2] );
-    //const std::string filename_yin( "../../../bx_vx/oct09b.011.wyin.vx.n000250000.t00302" );
+    /* const size_t rad_n = 201; */
+    /* const size_t lat_n = 204; */
+    /* const size_t lon_n = 608; */
+    /* const size_t zhong_n = 222; */
+
+    size_t repeats = atoi(argv[5]);
+    
+    const std::string filename_yin( argv[6] );
     local::YinYangVolumeObject* volume_yin = new local::YinYangVolumeObject();
     volume_yin->setName("Yin");
     SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
 
-    const std::string filename_yang( argv[3] );
-    //const std::string filename_yang( "../../../bx_vx/oct09b.011.wyng.vx.n000250000.t00302" );
+    const std::string filename_yang( argv[7] );
     local::YinYangVolumeObject* volume_yang = new local::YinYangVolumeObject();
     volume_yang->setName("Yang");
     SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
     
-    const std::string filename_zhong( argv[4] );
-    //const std::string filename_zhong( "../../../bx_vx/oct09b.011.icore_3d.vx.n000250000.t00302" );
+    const std::string filename_zhong( argv[8] );
     local::ZhongVolumeObject* volume_zhong = new local::ZhongVolumeObject();
     volume_zhong->setName("Zhong");
     SetVolumeZhong( volume_zhong,zhong_n, rad_n, filename_zhong );
 
     SetMinMax( volume_yin, volume_yang, volume_zhong );
-
     
     kvs::ColorMap cmap = kvs::DivergingColorMap::CoolWarm( 256 );
 
@@ -314,8 +317,6 @@ int main_yin_yang_vis( int argc, char** argv )
     omap.addPoint( 180, 0.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
-
-    size_t repeats = atoi(argv[1]);
 
     ParticleBasedRenderingYinYang( screen, volume_yin, cmap, omap, repeats );
     delete volume_yin;
