@@ -29,11 +29,6 @@
 #include <fstream>
 #include <cstdlib>
 
-#include "YinYangVolumeObject.h"
-#include "YinYangGridSampling.h"
-#include "ZhongVolumeObject.h"
-#include "ZhongGridSampling.h"
-
 class FrameRate : public kvs::PaintEventListener
 {
   kvs::StochasticRenderingCompositor* m_compositor;
