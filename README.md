@@ -3,18 +3,18 @@ Yin-Yang Grid Data Visualization.
 This program requires that KVS has been installed.
 
 
-###compiling Library
+###Compiling Library
 ```
 cd YinYangVis/Lib
 ./kvsmake.py
 ```
-###compiling Application
+###Compiling Application
 ```
 cd YinYangVis/App/yin-yang-vis
 kvsmake -G
 kvsmake 
 ```
-###run Application
+###Run Application
 ```
 sh run.sh
 ```
