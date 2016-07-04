@@ -1,0 +1,307 @@
+#include "Edge.h"
+#include "YinYangVolumeObject.h"
+#include "ZhongVolumeObject.h"
+#include <kvs/Xform>
+#include <kvs/XformControl>
+#include <kvs/LineObject>
+
+namespace YinYangVis
+{
+
+namespace Edge
+{
+
+kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume )
+{
+  const size_t dim_r = volume->dimR(); // radius
+  const size_t dim_theta = volume->dimTheta(); // latitude
+  const size_t dim_phi = volume->dimPhi(); // longitude
+
+  const YinYangVis::YinYangVolumeObject::Range range_r = volume->rangeR();
+  const YinYangVis::YinYangVolumeObject::Range range_theta = volume->rangeTheta();
+  const YinYangVis::YinYangVolumeObject::Range range_phi = volume->rangePhi();
+
+  float dim_step = 10;
+  float step_r = ( dim_r - 1 ) / dim_step;
+  float step_theta = ( dim_theta - 1 ) / dim_step;
+  float step_phi = ( dim_phi - 1 ) / dim_step;
+
+  const size_t nnodes = dim_theta * 22 + dim_phi * 22 + dim_theta * 18 + dim_phi * 18;
+  kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
+  kvs::Real32* pcoords = coords.data();
+
+  size_t nstep;
+  for ( int k = 0; k < dim_phi; k += dim_phi - 1 )
+  {
+    const float phi = range_phi.min + range_phi.d * ( k - 2 );
+    const float sin_phi = std::sin( phi );
+    const float cos_phi = std::cos( phi );
+    for ( int j = 0, nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
+    {
+      const float r = range_r.min + range_r.d * j;
+      for ( int i = 0; i < dim_theta; i++ )
+      {
+        const float theta = range_theta.min + range_theta.d * ( i - 1 );
+        const float sin_theta = std::sin( theta );
+        const float cos_theta = std::cos( theta );
+
+        const float x = r * sin_theta * cos_phi;
+        const float y = r * sin_theta * sin_phi;
+        const float z = r * cos_theta;
+
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? x : -x;
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y : z;
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z : y;
+      }
+    }
+  }
+
+  for ( int k = 0; k < dim_theta; k += dim_theta - 1 )
+  {
+    const float theta = range_theta.min + range_theta.d * ( k - 1 );
+    const float sin_theta = std::sin( theta );
+    const float cos_theta = std::cos( theta );
+    for ( int j = 0, nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
+    {
+      const float r = range_r.min + range_r.d * j;
+      for ( int i = 0; i < dim_phi; i++ )
+      {
+        const float phi = range_phi.min + range_phi.d * ( i - 2 );
+        const float sin_phi = std::sin( phi );
+        const float cos_phi = std::cos( phi );
+
+        const float x = r * sin_theta * cos_phi;
+        const float y = r * sin_theta * sin_phi;
+        const float z = r * cos_theta;
+
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? x : -x;
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y : z;
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z : y;
+      }
+    }
+  }
+
+  for ( int k = 0; k < dim_r; k += dim_r - 1 )
+  {
+    const float r = range_r.min + range_r.d * k;
+    for ( int j = step_phi, nstep = 2; j < dim_phi - step_phi + 1; j = step_phi * nstep, nstep++ )
+    {
+      const float phi = range_phi.min + range_phi.d * ( j - 2 );
+      const float sin_phi = std::sin( phi );
+      const float cos_phi = std::cos( phi );
+      for ( int i = 0; i < dim_theta; i++ )
+      {
+        const float theta = range_theta.min + range_theta.d * ( i - 1 );
+        const float sin_theta = std::sin( theta );
+        const float cos_theta = std::cos( theta );
+
+        const float x = r * sin_theta * cos_phi;
+        const float y = r * sin_theta * sin_phi;
+        const float z = r * cos_theta;
+
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? x : -x;
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y : z;
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z : y;
+      }
+    }
+  }
+
+  for ( int k = 0; k < dim_r; k += dim_r - 1 )
+  {
+    const float r = range_r.min + range_r.d * k;
+    for ( int j = step_theta, nstep = 2; j < dim_theta - step_theta + 1; j = step_theta * nstep, nstep++ )
+    {
+      const float theta = range_theta.min + range_theta.d * ( j - 1 );
+      const float sin_theta = std::sin( theta );
+      const float cos_theta = std::cos( theta );
+      for ( int i = 0; i < dim_phi; i++ )
+      {
+        const float phi = range_phi.min + range_phi.d * ( i - 2 );
+        const float sin_phi = std::sin( phi );
+        const float cos_phi = std::cos( phi );
+
+        const float x = r * sin_theta * cos_phi;
+        const float y = r * sin_theta * sin_phi;
+        const float z = r * cos_theta;
+
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? x : -x;
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y : z;
+        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z : y;
+      }
+    }
+  }
+
+  const size_t nconnections = ( dim_theta - 1 ) * 22 + ( dim_phi - 1 ) * 22 + ( dim_theta - 1 ) * 18 + ( dim_phi - 1 ) * 18 + 44;
+  kvs::ValueArray<kvs::UInt32> connections( nconnections * 2 );
+  kvs::UInt32* pconnections = connections.data();
+	      std::cout << nconnections << std::endl;
+
+  size_t index;
+  size_t index2;
+
+  for ( int j = 0; j < dim_theta * 21 + 1; j += dim_theta, index = j )
+  {
+    for ( int i = 0; i < dim_theta - 1; i++ )
+    {
+      *(pconnections++) = i + j;
+      *(pconnections++) = (i + 1) + j;
+    }
+  }
+
+  index2 = index;
+  for ( int j = index; j < dim_phi * 21 + 1 + index2; j += dim_phi, index = j )
+  {
+    for ( int i = 0; i < dim_phi - 1; i++ )
+    {
+      *(pconnections++) = i + j;
+      *(pconnections++) = (i + 1) + j;
+    }
+  }
+
+  index2 = index;
+  for ( int j = index; j < dim_theta * 17 + 1 + index2; j += dim_theta, index = j )
+  {
+    for ( int i = 0; i < dim_theta - 1; i++ )
+    {
+      *(pconnections++) = i + j;
+      *(pconnections++) = (i + 1) + j;
+    }
+  }
+
+  index2 = index;
+  for ( int j = index; j < dim_phi * 17 + 1 + index2; j += dim_phi, index = j )
+  {
+    for ( int i = 0; i < dim_phi - 1; i++ )
+    {
+      *(pconnections++) = i + j;
+      *(pconnections++) = (i + 1) + j;
+    }
+  }
+
+  for ( int j = 0; j < 2 * dim_theta * ( dim_step + 1 ); j += dim_theta * ( dim_step + 1 ), index = j )
+  {
+    for ( int i = 0; i < dim_step + 1; i++ )
+    {
+      *(pconnections++) = step_theta * i + j;
+      *(pconnections++) = dim_theta * dim_step + step_theta * i + j;
+    }
+  }
+
+  index2 = index;
+  for ( int j = index; j < 2 * dim_phi * ( dim_step + 1 ) + index2; j += dim_phi * ( dim_step + 1 ) )
+  {
+    for ( int i = 0; i < dim_step + 1; i++ )
+    {
+      *(pconnections++) = step_phi * i + j;
+      *(pconnections++) = dim_phi * dim_step + step_phi * i + j;
+    }
+  }
+
+  kvs::ValueArray<kvs::UInt8> colors( nnodes * 3 );
+  kvs::UInt8* pcolors = colors.data();
+  for ( int i = 0; i < nnodes; i++ )
+  {
+    *(pcolors++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? 255 : 0;
+    *(pcolors++) = 0;
+    *(pcolors++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? 0 : 255;
+  }
+
+  kvs::LineObject* object = new kvs::LineObject();
+  object->setCoords( coords );
+  object->setColors( colors );
+  object->setConnections( connections );
+  object->setLineType( kvs::LineObject::Segment );
+  object->setColorType( kvs::LineObject::VertexColor );
+
+  kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+  object->multiplyXform( x );
+  
+  return object;
+}
+
+kvs::LineObject* CreateLineObject( const YinYangVis::ZhongVolumeObject* volume )
+{
+  const size_t dim = volume->dim();
+  const float r_min = volume->rangeR().min;
+  const float r_d = volume->rangeR().d;
+
+  //ix(= iy, iz),dix(= diy, diz)
+  const float r_i = r_min + r_d * 2;
+  const float ix_max = r_i;
+  const float ix_min = -r_i;
+  const float dix = ( ix_max - ix_min ) / ( dim - 1 );
+
+  const size_t nnodes = volume->numberOfNodes();
+  kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
+  kvs::Real32* pcoords = coords.data();
+  for ( size_t k = 0; k < dim; k += dim - 1 )
+  {
+      const float z = ix_min + dix * k;
+      for ( size_t j = 0; j < dim; j += dim - 1 )
+      {
+          const float y = ix_min + dix * j;
+          for ( size_t i = 0; i < dim; i += dim - 1 )
+          {
+              const float x = ix_min + dix * i;
+              *(pcoords++) = x;
+              *(pcoords++) = y;
+              *(pcoords++) = z;
+          }
+      }
+  }
+
+  const size_t nconnections = 12;
+  kvs::ValueArray<kvs::UInt32> connections( nconnections * 2 );
+  kvs::UInt32* pconnections = connections.data();
+
+  //size_t index;
+  *(pconnections++) = 0;
+  *(pconnections++) = 1;
+  *(pconnections++) = 0;
+  *(pconnections++) = 2;
+  *(pconnections++) = 0;
+  *(pconnections++) = 4;
+  *(pconnections++) = 1;
+  *(pconnections++) = 3;
+  *(pconnections++) = 1;
+  *(pconnections++) = 5;
+  *(pconnections++) = 2;
+  *(pconnections++) = 3;
+  *(pconnections++) = 2;
+  *(pconnections++) = 6;
+  *(pconnections++) = 3;
+  *(pconnections++) = 7;
+  *(pconnections++) = 4;
+  *(pconnections++) = 5;
+  *(pconnections++) = 4;
+  *(pconnections++) = 6;
+  *(pconnections++) = 5;
+  *(pconnections++) = 7;
+  *(pconnections++) = 6;
+  *(pconnections++) = 7;
+
+  kvs::ValueArray<kvs::UInt8> colors( nnodes * 3 );
+  kvs::UInt8* pcolors = colors.data();
+  for ( int i = 0; i < nnodes; i++ )
+  {
+    *(pcolors++) = 0;
+    *(pcolors++) = 0;
+    *(pcolors++) = 0;
+  }
+
+  kvs::LineObject* object = new kvs::LineObject();
+  object->setCoords( coords );
+  object->setColors( colors );
+  object->setConnections( connections );
+  object->setLineType( kvs::LineObject::Segment );
+  object->setColorType( kvs::LineObject::VertexColor );
+
+  kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+  object->multiplyXform( x );
+  
+  return object;
+}
+
+}
+
+} // end of namespace YinYangVis

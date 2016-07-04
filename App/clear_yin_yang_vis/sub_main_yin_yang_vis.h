@@ -219,31 +219,27 @@ void SetVolumeZhong( YinYangVis::ZhongVolumeObject* volume, size_t zhong_n, size
     volume->print( std::cout << std::endl );
 }
 
-kvs::LineObject* CreateLineObject( YinYangVis::YinYangVolumeObject* volume )
+kvs::LineObject* CreateLineObject( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n )
 {
-  const size_t dim_r = volume->dimR(); // radius
-  const size_t dim_theta = volume->dimTheta(); // latitude
-  const size_t dim_phi = volume->dimPhi(); // longitude
-
   const YinYangVis::YinYangVolumeObject::Range range_r = volume->rangeR();
   const YinYangVis::YinYangVolumeObject::Range range_theta = volume->rangeTheta();
   const YinYangVis::YinYangVolumeObject::Range range_phi = volume->rangePhi();
 
-  const size_t nnodes = dim_theta * 4 + dim_phi * 4;
+  const size_t nnodes = ( lat_n - 2 ) * 4 + ( lon_n - 4 - 2 ) * 4;
   kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
   kvs::Real32* pcoords = coords.data();
 
-  for ( int k = 0; k < dim_phi; k += dim_phi - 1 )
+  for ( int k = 0; k < lon_n; k += lon_n - 5 )
   {
     const float phi = range_phi.min + range_phi.d * ( k - 2 );
     const float sin_phi = std::sin( phi );
     const float cos_phi = std::cos( phi );
-    for ( int j = 0; j < dim_r; j += dim_r - 1 )
+    for ( int j = 0; j < rad_n; j += rad_n - 1 )
     {
-      const float r = range_r.min + range_r.d * j;
-      for ( int i = 0; i < dim_theta; i++ )
+      const float r = range_r.min + range_r.d * ( j - 1 );
+      for ( int i = 0; i < lat_n - 2; i++ )
       {
-        const float theta = range_theta.min + range_theta.d * ( i - 1 );
+        const float theta = range_theta.min + range_theta.d * i;
         const float sin_theta = std::sin( theta );
         const float cos_theta = std::cos( theta );
 
@@ -258,17 +254,17 @@ kvs::LineObject* CreateLineObject( YinYangVis::YinYangVolumeObject* volume )
     }
   }
 
-  for ( int k = 0; k < dim_theta; k += dim_theta - 1 )
+  for ( int k = 0; k < lat_n; k += lat_n - 3)
   {
-    const float theta = range_theta.min + range_theta.d * ( k - 1 );
+    const float theta = range_theta.min + range_theta.d * ( k - 2 );
     const float sin_theta = std::sin( theta );
     const float cos_theta = std::cos( theta );
-    for ( int j = 0; j < dim_r; j += dim_r - 1 )
+    for ( int j = 0; j < rad_n; j += rad_n - 1)
     {
-      const float r = range_r.min + range_r.d * j;
-      for ( int i = 0; i < dim_phi; i++ )
+      const float r = range_r.min + range_r.d * ( j - 1 );
+      for ( int i = 1; i < lon_n - 5; i++ )
       {
-        const float phi = range_phi.min + range_phi.d * ( i - 2 );
+        const float phi = range_phi.min + range_phi.d * i;
         const float sin_phi = std::sin( phi );
         const float cos_phi = std::cos( phi );
 
@@ -283,126 +279,79 @@ kvs::LineObject* CreateLineObject( YinYangVis::YinYangVolumeObject* volume )
     }
   }
 
-  const size_t nconnections = ( dim_theta - 1 ) * 4 + ( dim_phi - 1 ) * 4 + 4;
+  const size_t nconnections = ( lat_n - 3 ) * 4 + ( lon_n - 5 ) * 4 + 4;
   kvs::ValueArray<kvs::UInt32> connections( nconnections * 2 );
   kvs::UInt32* pconnections = connections.data();
 
   size_t index;
-  for ( int j = 0; j < dim_theta * 3 + 1; j += dim_theta, index = j )
+  for ( int j = 0; j < lat_n * 3; j += lat_n - 2, index = j )
   {
-    for ( int i = 0; i < dim_theta - 1; i++ )
+    for ( int i = 0; i < lat_n - 3; i++ )
     {
       *(pconnections++) = i + j;
       *(pconnections++) = (i + 1) + j;
     }
   }
 
-  for ( int j = index; j < dim_phi * 3 + 1 + index; j += dim_phi )
+  size_t index2 = index;
+  *(pconnections++) = 0;
+  *(pconnections++) = index;
+  for ( int i = index; i < index2 + lon_n - 7; i++, index = i )
   {
-    for ( int i = 0; i < dim_phi - 1; i++ )
-    {
-      *(pconnections++) = i + j;
-      *(pconnections++) = (i + 1) + j;
-    }
+    *(pconnections++) = i;
+    *(pconnections++) = i + 1;
   }
+  *(pconnections++) = index;
+  *(pconnections++) = 404;
+  index++;
+  *(pconnections++) = 202;
+  *(pconnections++) = index;
+  index2 = index;
+  for ( int i = index; i < index2 + lon_n - 7; i++, index = i )
+  {
+    *(pconnections++) = i;
+    *(pconnections++) = i + 1;
+  }
+  *(pconnections++) = index;
+  *(pconnections++) = 606;
+  index++;
+
+  *(pconnections++) = 0 + 201;
+  *(pconnections++) = index;
+  index2 = index;
+  for ( int i = index; i < index2 + lon_n - 7; i++, index = i )
+  {
+    *(pconnections++) = i;
+    *(pconnections++) = i + 1;
+  }
+  *(pconnections++) = index;
+  *(pconnections++) = 404 + 201;
+  index++;
+  *(pconnections++) = 202 + 201;
+  *(pconnections++) = index;
+  index2 = index;
+  for ( int i = index; i < index2 + lon_n - 7; i++, index = i )
+  {
+    *(pconnections++) = i;
+    *(pconnections++) = i + 1;
+  }
+  *(pconnections++) = index;
+  *(pconnections++) = 605 + 201;
 
   *(pconnections++) = 0;
-  *(pconnections++) = dim_theta;
-  *(pconnections++) = dim_theta - 1;
-  *(pconnections++) = dim_theta * 2 - 1;
-  *(pconnections++) = dim_theta * 2;
-  *(pconnections++) = dim_theta * 3;
-  *(pconnections++) = dim_theta * 3 - 1;
-  *(pconnections++) = dim_theta * 4 - 1;
+  *(pconnections++) = 202;
+  *(pconnections++) = 201;
+  *(pconnections++) = 403;
+  *(pconnections++) = 404;
+  *(pconnections++) = 606;
+  *(pconnections++) = 605;
+  *(pconnections++) = 807;
 
   kvs::ValueArray<kvs::UInt8> colors( nnodes * 3 );
   kvs::UInt8* pcolors = colors.data();
   for ( int i = 0; i < nnodes; i++ )
   {
-    *(pcolors++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? 255 : 0;
-    *(pcolors++) = 0;
     *(pcolors++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? 0 : 255;
-  }
-
-  kvs::LineObject* object = new kvs::LineObject();
-  object->setCoords( coords );
-  object->setColors( colors );
-  object->setConnections( connections );
-  object->setLineType( kvs::LineObject::Segment );
-  object->setColorType( kvs::LineObject::VertexColor );
-
-  kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
-  object->multiplyXform( x );
-  
-  return object;
-}
-
-kvs::LineObject* CreateLineObject( YinYangVis::ZhongVolumeObject* volume )
-{
-  const size_t dim = volume->dim();
-  const float r_min = volume->rangeR().min;
-  const float r_d = volume->rangeR().d;
-
-  //ix(= iy, iz),dix(= diy, diz)
-  const float r_i = r_min + r_d * 2;
-  const float ix_max = r_i;
-  const float ix_min = -r_i;
-  const float dix = ( ix_max - ix_min ) / ( dim - 1 );
-
-  const size_t nnodes = volume->numberOfNodes();
-  kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
-  kvs::Real32* pcoords = coords.data();
-  for ( size_t k = 0; k < dim; k += dim - 1 )
-  {
-      const float z = ix_min + dix * k;
-      for ( size_t j = 0; j < dim; j += dim - 1 )
-      {
-          const float y = ix_min + dix * j;
-          for ( size_t i = 0; i < dim; i += dim - 1 )
-          {
-              const float x = ix_min + dix * i;
-              *(pcoords++) = x;
-              *(pcoords++) = y;
-              *(pcoords++) = z;
-          }
-      }
-  }
-
-  const size_t nconnections = 12;
-  kvs::ValueArray<kvs::UInt32> connections( nconnections * 2 );
-  kvs::UInt32* pconnections = connections.data();
-
-  //size_t index;
-  *(pconnections++) = 0;
-  *(pconnections++) = 1;
-  *(pconnections++) = 0;
-  *(pconnections++) = 2;
-  *(pconnections++) = 0;
-  *(pconnections++) = 4;
-  *(pconnections++) = 1;
-  *(pconnections++) = 3;
-  *(pconnections++) = 1;
-  *(pconnections++) = 5;
-  *(pconnections++) = 2;
-  *(pconnections++) = 3;
-  *(pconnections++) = 2;
-  *(pconnections++) = 6;
-  *(pconnections++) = 3;
-  *(pconnections++) = 7;
-  *(pconnections++) = 4;
-  *(pconnections++) = 5;
-  *(pconnections++) = 4;
-  *(pconnections++) = 6;
-  *(pconnections++) = 5;
-  *(pconnections++) = 7;
-  *(pconnections++) = 6;
-  *(pconnections++) = 7;
-
-  kvs::ValueArray<kvs::UInt8> colors( nnodes * 3 );
-  kvs::UInt8* pcolors = colors.data();
-  for ( int i = 0; i < nnodes; i++ )
-  {
-    *(pcolors++) = 0;
     *(pcolors++) = 0;
     *(pcolors++) = 0;
   }
@@ -419,6 +368,156 @@ kvs::LineObject* CreateLineObject( YinYangVis::ZhongVolumeObject* volume )
   
   return object;
 }
+
+//kvs::LineObject* CreateLineObject( YinYangVis::ZhongVolumeObject* volume )
+//{
+  //const size_t dim_r = volume->dim();
+  //const float r_min = volume->rangeR().min;
+  //const float r_d = volume->rangeR().d;
+
+//  const size_t nnodes = ( lat_n - 2 ) * 4 + ( lon_n - 4 - 2 ) * 4;
+//  kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
+//  kvs::Real32* pcoords = coords.data();
+//
+//  for ( int k = 0; k < lon_n; k += lon_n - 5 )
+//  {
+//    const float phi = range_phi.min + range_phi.d * (k-2);
+//    const float sin_phi = std::sin( phi );
+//    const float cos_phi = std::cos( phi );
+//    for ( int j = 0; j < rad_n; j += rad_n - 1 )
+//    {
+//      const float r = range_r.min + range_r.d * (j-1);
+//      for ( int i = 0; i < lat_n - 2; i++ )
+//      {
+//        const float theta = range_theta.min + range_theta.d * i;
+//        const float sin_theta = std::sin( theta );
+//        const float cos_theta = std::cos( theta );
+//
+//        const float x = r * sin_theta * cos_phi;
+//        const float y = r * sin_theta * sin_phi;
+//        const float z = r * cos_theta;
+//
+//        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? x : -x;
+//        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y : z;
+//        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z : y;
+//      }
+//    }
+//  }
+//
+//  for ( int k = 0; k < lat_n; k += lat_n - 3)
+//  {
+//    const float theta = range_theta.min + range_theta.d * k;
+//    const float sin_theta = std::sin( theta );
+//    const float cos_theta = std::cos( theta );
+//    for ( int j = 0; j < rad_n; j += rad_n - 1)
+//    {
+//      const float r = range_r.min + range_r.d * j;
+//      for ( int i = 1; i < lon_n - 5; i++ )
+//      {
+//        const float phi = range_phi.min + range_phi.d * i;
+//        const float sin_phi = std::sin( phi );
+//        const float cos_phi = std::cos( phi );
+//
+//        const float x = r * sin_theta * cos_phi;
+//        const float y = r * sin_theta * sin_phi;
+//        const float z = r * cos_theta;
+//
+//        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? x : -x;
+//        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y : z;
+//        *(pcoords++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z : y;
+//      }
+//    }
+//  }
+//
+//  const size_t nconnections = ( lat_n - 3 ) * 4 + ( lon_n - 5 ) * 4 + 4;
+//  kvs::ValueArray<kvs::UInt32> connections( nconnections * 2 );
+//  kvs::UInt32* pconnections = connections.data();
+//
+//  size_t index;
+//  for ( int j = 0; j < lat_n * 3; j += lat_n - 2, index = j )
+//  {
+//    for ( int i = 0; i < lat_n - 3; i++ )
+//    {
+//      *(pconnections++) = i + j;
+//      *(pconnections++) = (i + 1) + j;
+//    }
+//  }
+//
+//  size_t index2 = index;
+//  *(pconnections++) = 0;
+//  *(pconnections++) = index;
+//  for ( int i = index; i < index2 + lon_n - 7; i++, index = i )
+//  {
+//    *(pconnections++) = i;
+//    *(pconnections++) = i + 1;
+//  }
+//  *(pconnections++) = index;
+//  *(pconnections++) = 404;
+//  index++;
+//  *(pconnections++) = 202;
+//  *(pconnections++) = index;
+//  index2 = index;
+//  for ( int i = index; i < index2 + lon_n - 7; i++, index = i )
+//  {
+//    *(pconnections++) = i;
+//    *(pconnections++) = i + 1;
+//  }
+//  *(pconnections++) = index;
+//  *(pconnections++) = 606;
+//  index++;
+//
+//  *(pconnections++) = 0 + 201;
+//  *(pconnections++) = index;
+//  index2 = index;
+//  for ( int i = index; i < index2 + lon_n - 7; i++, index = i )
+//  {
+//    *(pconnections++) = i;
+//    *(pconnections++) = i + 1;
+//  }
+//  *(pconnections++) = index;
+//  *(pconnections++) = 404 + 201;
+//  index++;
+//  *(pconnections++) = 202 + 201;
+//  *(pconnections++) = index;
+//  index2 = index;
+//  for ( int i = index; i < index2 + lon_n - 7; i++, index = i )
+//  {
+//    *(pconnections++) = i;
+//    *(pconnections++) = i + 1;
+//  }
+//  *(pconnections++) = index;
+//  *(pconnections++) = 605 + 201;
+//
+//  *(pconnections++) = 0;
+//  *(pconnections++) = 202;
+//  *(pconnections++) = 201;
+//  *(pconnections++) = 403;
+//  *(pconnections++) = 404;
+//  *(pconnections++) = 606;
+//  *(pconnections++) = 605;
+//  *(pconnections++) = 807;
+//
+//  kvs::ValueArray<kvs::UInt8> colors( nnodes * 3 );
+//  kvs::UInt8* pcolors = colors.data();
+//  for ( int i = 0; i < nnodes; i++ )
+//  {
+//    *(pcolors++) = 0;
+//    *(pcolors++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? 0 : 128;
+//    *(pcolors++) = 0;
+//  }
+//
+//  kvs::LineObject* object = new kvs::LineObject();
+//  object->setCoords( coords );
+//  object->setColors( colors );
+//  object->setConnections( connections );
+//  object->setLineType( kvs::LineObject::Segment );
+//  object->setColorType( kvs::LineObject::VertexColor );
+//
+//  kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+//  object->multiplyXform( x );
+//  
+//  return object;
+//}
 
 #include <kvs/KeyPressEventListener>
 
@@ -503,21 +602,6 @@ class KeyPress : public kvs::KeyPressEventListener
 	    }
 	  break;
 	}
-      case kvs::Key::Six:
-	{
-	  if ( !scene()->hasObject("ZhongLine") ) break;
-	  if ( scene()->object("ZhongLine")->isShown() )
-	    {
-	      std::cout << "Zhong line hide" << std::endl;
-	      scene()->object("ZhongLine")->hide();
-	    }
-	  else
-	    {
-	      std::cout << "Zhong line show" << std::endl;
-	      scene()->object("ZhongLine")->show();
-	    }
-	  break;
-	}
       default: break;
       }
   }
@@ -567,26 +651,21 @@ int main_yin_yang_vis( int argc, char** argv )
     omap.addPoint( 255, 1.0 );
     omap.create();
 
-    kvs::LineObject* yinLineObject = CreateLineObject( volume_yin );
+    kvs::LineObject* yinLineObject = CreateLineObject( volume_yin, rad_n, lat_n, lon_n );
     yinLineObject->setName("YinLine");
     kvs::StochasticLineRenderer* yinLineRenderer = new kvs::StochasticLineRenderer();
     screen.registerObject( yinLineObject, yinLineRenderer );
-    
-    kvs::LineObject* yangLineObject = CreateLineObject( volume_yang );
+
+    kvs::LineObject* yangLineObject = CreateLineObject( volume_yang, rad_n, lat_n, lon_n );
     yangLineObject->setName("YangLine");
     kvs::StochasticLineRenderer* yangLineRenderer = new kvs::StochasticLineRenderer();
     screen.registerObject( yangLineObject, yangLineRenderer );
 
-    kvs::LineObject* zhongLineObject = CreateLineObject( volume_zhong );
-    zhongLineObject->setName("ZhongLine");
-    kvs::StochasticLineRenderer* zhongLineRenderer = new kvs::StochasticLineRenderer();
-    screen.registerObject( zhongLineObject, zhongLineRenderer );
-
-    //ParticleBasedRenderingYinYang( screen, volume_yin, cmap, omap, repeats );
+    ParticleBasedRenderingYinYang( screen, volume_yin, cmap, omap, repeats );
     delete volume_yin;
-    //ParticleBasedRenderingYinYang( screen, volume_yang, cmap, omap, repeats );
+    ParticleBasedRenderingYinYang( screen, volume_yang, cmap, omap, repeats );
     delete volume_yang;
-    //ParticleBasedRenderingZhong( screen, volume_zhong, cmap, omap, repeats );
+    ParticleBasedRenderingZhong( screen, volume_zhong, cmap, omap, repeats );
     delete volume_zhong;
 
     

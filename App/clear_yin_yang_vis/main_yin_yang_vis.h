@@ -229,7 +229,7 @@ kvs::LineObject* CreateLineObject( YinYangVis::YinYangVolumeObject* volume )
   const YinYangVis::YinYangVolumeObject::Range range_theta = volume->rangeTheta();
   const YinYangVis::YinYangVolumeObject::Range range_phi = volume->rangePhi();
 
-  const size_t nnodes = dim_theta * 4 + dim_phi * 4;
+  const size_t nnodes = dim_theta * 4 + ( dim_phi - 2 ) * 4;
   kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
   kvs::Real32* pcoords = coords.data();
 
@@ -266,7 +266,7 @@ kvs::LineObject* CreateLineObject( YinYangVis::YinYangVolumeObject* volume )
     for ( int j = 0; j < dim_r; j += dim_r - 1 )
     {
       const float r = range_r.min + range_r.d * j;
-      for ( int i = 0; i < dim_phi; i++ )
+      for ( int i = 1; i < dim_phi - 1; i++ )
       {
         const float phi = range_phi.min + range_phi.d * ( i - 2 );
         const float sin_phi = std::sin( phi );
@@ -297,31 +297,66 @@ kvs::LineObject* CreateLineObject( YinYangVis::YinYangVolumeObject* volume )
     }
   }
 
-  for ( int j = index; j < dim_phi * 3 + 1 + index; j += dim_phi )
+  size_t index2 = index;
+  *(pconnections++) = 0;
+  *(pconnections++) = index;
+  for ( int i = index; i < index2 + dim_phi - 3; i++, index = i )
   {
-    for ( int i = 0; i < dim_phi - 1; i++ )
-    {
-      *(pconnections++) = i + j;
-      *(pconnections++) = (i + 1) + j;
-    }
+    *(pconnections++) = i;
+    *(pconnections++) = i + 1;
   }
+  *(pconnections++) = index;
+  *(pconnections++) = 408;
+  index++;
+  *(pconnections++) = 204;
+  *(pconnections++) = index;
+  index2 = index;
+  for ( int i = index; i < index2 + dim_phi - 3; i++, index = i )
+  {
+    *(pconnections++) = i;
+    *(pconnections++) = i + 1;
+  }
+  *(pconnections++) = index;
+  *(pconnections++) = 612;
+  index++;
+  *(pconnections++) = 203;
+  *(pconnections++) = index;
+  index2 = index;
+  for ( int i = index; i < index2 + dim_phi - 3; i++, index = i )
+  {
+    *(pconnections++) = i;
+    *(pconnections++) = i + 1;
+  }
+  *(pconnections++) = index;
+  *(pconnections++) = 611;
+  index++;
+  *(pconnections++) = 407;
+  *(pconnections++) = index;
+  index2 = index;
+  for ( int i = index; i < index2 + dim_phi - 3; i++, index = i )
+  {
+    *(pconnections++) = i;
+    *(pconnections++) = i + 1;
+  }
+  *(pconnections++) = index;
+  *(pconnections++) = 815;
 
   *(pconnections++) = 0;
-  *(pconnections++) = dim_theta;
-  *(pconnections++) = dim_theta - 1;
-  *(pconnections++) = dim_theta * 2 - 1;
-  *(pconnections++) = dim_theta * 2;
-  *(pconnections++) = dim_theta * 3;
-  *(pconnections++) = dim_theta * 3 - 1;
-  *(pconnections++) = dim_theta * 4 - 1;
+  *(pconnections++) = 204;
+  *(pconnections++) = 203;
+  *(pconnections++) = 407;
+  *(pconnections++) = 408;
+  *(pconnections++) = 612;
+  *(pconnections++) = 611;
+  *(pconnections++) = 815;
 
   kvs::ValueArray<kvs::UInt8> colors( nnodes * 3 );
   kvs::UInt8* pcolors = colors.data();
   for ( int i = 0; i < nnodes; i++ )
   {
-    *(pcolors++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? 255 : 0;
-    *(pcolors++) = 0;
     *(pcolors++) = ( volume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? 0 : 255;
+    *(pcolors++) = 0;
+    *(pcolors++) = 0;
   }
 
   kvs::LineObject* object = new kvs::LineObject();
@@ -404,7 +439,7 @@ kvs::LineObject* CreateLineObject( YinYangVis::ZhongVolumeObject* volume )
   {
     *(pcolors++) = 0;
     *(pcolors++) = 0;
-    *(pcolors++) = 0;
+    *(pcolors++) = 255;
   }
 
   kvs::LineObject* object = new kvs::LineObject();
@@ -582,11 +617,11 @@ int main_yin_yang_vis( int argc, char** argv )
     kvs::StochasticLineRenderer* zhongLineRenderer = new kvs::StochasticLineRenderer();
     screen.registerObject( zhongLineObject, zhongLineRenderer );
 
-    //ParticleBasedRenderingYinYang( screen, volume_yin, cmap, omap, repeats );
+    ParticleBasedRenderingYinYang( screen, volume_yin, cmap, omap, repeats );
     delete volume_yin;
-    //ParticleBasedRenderingYinYang( screen, volume_yang, cmap, omap, repeats );
+    ParticleBasedRenderingYinYang( screen, volume_yang, cmap, omap, repeats );
     delete volume_yang;
-    //ParticleBasedRenderingZhong( screen, volume_zhong, cmap, omap, repeats );
+    ParticleBasedRenderingZhong( screen, volume_zhong, cmap, omap, repeats );
     delete volume_zhong;
 
     
