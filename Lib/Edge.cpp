@@ -26,7 +26,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   float step_theta = ( dim_theta - 1 ) / dim_step;
   float step_phi = ( dim_phi - 1 ) / dim_step;
 
-  const size_t nnodes = dim_theta * 22 + dim_phi * 22 + dim_theta * 18 + dim_phi * 18;
+  const size_t nnodes = dim_theta * ( dim_step * 2 + 2 ) + dim_phi * ( dim_step * 2 + 2 ) + dim_theta * ( dim_step * 2 - 2 ) + dim_phi * ( dim_step * 2 - 2 );
   kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
   kvs::Real32* pcoords = coords.data();
 
@@ -131,7 +131,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
     }
   }
 
-  const size_t nconnections = ( dim_theta - 1 ) * 22 + ( dim_phi - 1 ) * 22 + ( dim_theta - 1 ) * 18 + ( dim_phi - 1 ) * 18 + 44;
+  const size_t nconnections = ( dim_theta - 1 ) * ( dim_step * 2 + 2 ) + ( dim_phi - 1 ) * ( dim_step * 2 + 2 ) + ( dim_theta - 1 ) * ( dim_step * 2 - 2 ) + ( dim_phi - 1 ) * ( dim_step * 2 - 2 ) + ( dim_step * 4 + 4 );
   kvs::ValueArray<kvs::UInt32> connections( nconnections * 2 );
   kvs::UInt32* pconnections = connections.data();
 	      std::cout << nconnections << std::endl;
@@ -139,7 +139,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   size_t index;
   size_t index2;
 
-  for ( int j = 0; j < dim_theta * 21 + 1; j += dim_theta, index = j )
+  for ( int j = 0; j < dim_theta * ( dim_step * 2 + 1 ) + 1; j += dim_theta, index = j )
   {
     for ( int i = 0; i < dim_theta - 1; i++ )
     {
@@ -149,7 +149,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   }
 
   index2 = index;
-  for ( int j = index; j < dim_phi * 21 + 1 + index2; j += dim_phi, index = j )
+  for ( int j = index; j < dim_phi * ( dim_step * 2 + 1 ) + 1 + index2; j += dim_phi, index = j )
   {
     for ( int i = 0; i < dim_phi - 1; i++ )
     {
@@ -159,7 +159,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   }
 
   index2 = index;
-  for ( int j = index; j < dim_theta * 17 + 1 + index2; j += dim_theta, index = j )
+  for ( int j = index; j < dim_theta * ( dim_step * 2 - 3 ) + 1 + index2; j += dim_theta, index = j )
   {
     for ( int i = 0; i < dim_theta - 1; i++ )
     {
@@ -169,7 +169,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   }
 
   index2 = index;
-  for ( int j = index; j < dim_phi * 17 + 1 + index2; j += dim_phi, index = j )
+  for ( int j = index; j < dim_phi * ( dim_step * 2 - 3 ) + 1 + index2; j += dim_phi, index = j )
   {
     for ( int i = 0; i < dim_phi - 1; i++ )
     {
