@@ -11,7 +11,7 @@ namespace YinYangVis
 namespace Edge
 {
 
-kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume )
+kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume, const float dim_edge )
 {
   const size_t dim_r = volume->dimR(); // radius
   const size_t dim_theta = volume->dimTheta(); // latitude
@@ -21,22 +21,20 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   const YinYangVis::YinYangVolumeObject::Range range_theta = volume->rangeTheta();
   const YinYangVis::YinYangVolumeObject::Range range_phi = volume->rangePhi();
 
-  float dim_step = 10;
-  float step_r = ( dim_r - 1 ) / dim_step;
-  float step_theta = ( dim_theta - 1 ) / dim_step;
-  float step_phi = ( dim_phi - 1 ) / dim_step;
+  float step_r = ( dim_r - 1 ) / dim_edge;
+  float step_theta = ( dim_theta - 1 ) / dim_edge;
+  float step_phi = ( dim_phi - 1 ) / dim_edge;
 
-  const size_t nnodes = dim_theta * ( dim_step * 2 + 2 ) + dim_phi * ( dim_step * 2 + 2 ) + dim_theta * ( dim_step * 2 - 2 ) + dim_phi * ( dim_step * 2 - 2 );
+  const size_t nnodes = dim_theta * ( dim_edge * 2 + 2 ) + dim_phi * ( dim_edge * 2 + 2 ) + dim_theta * ( dim_edge * 2 - 2 ) + dim_phi * ( dim_edge * 2 - 2 );
   kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
   kvs::Real32* pcoords = coords.data();
 
-  size_t nstep;
   for ( int k = 0; k < dim_phi; k += dim_phi - 1 )
   {
     const float phi = range_phi.min + range_phi.d * ( k - 2 );
     const float sin_phi = std::sin( phi );
     const float cos_phi = std::cos( phi );
-    for ( int j = 0, nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
+    for ( int j = 0, int nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
     {
       const float r = range_r.min + range_r.d * j;
       for ( int i = 0; i < dim_theta; i++ )
@@ -61,7 +59,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
     const float theta = range_theta.min + range_theta.d * ( k - 1 );
     const float sin_theta = std::sin( theta );
     const float cos_theta = std::cos( theta );
-    for ( int j = 0, nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
+    for ( int j = 0, int nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
     {
       const float r = range_r.min + range_r.d * j;
       for ( int i = 0; i < dim_phi; i++ )
@@ -84,7 +82,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   for ( int k = 0; k < dim_r; k += dim_r - 1 )
   {
     const float r = range_r.min + range_r.d * k;
-    for ( int j = step_phi, nstep = 2; j < dim_phi - step_phi + 1; j = step_phi * nstep, nstep++ )
+    for ( int j = step_phi, int nstep = 2; j < dim_phi - step_phi + 1; j = step_phi * nstep, nstep++ )
     {
       const float phi = range_phi.min + range_phi.d * ( j - 2 );
       const float sin_phi = std::sin( phi );
@@ -109,7 +107,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   for ( int k = 0; k < dim_r; k += dim_r - 1 )
   {
     const float r = range_r.min + range_r.d * k;
-    for ( int j = step_theta, nstep = 2; j < dim_theta - step_theta + 1; j = step_theta * nstep, nstep++ )
+    for ( int j = step_theta, int nstep = 2; j < dim_theta - step_theta + 1; j = step_theta * nstep, nstep++ )
     {
       const float theta = range_theta.min + range_theta.d * ( j - 1 );
       const float sin_theta = std::sin( theta );
@@ -131,7 +129,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
     }
   }
 
-  const size_t nconnections = ( dim_theta - 1 ) * ( dim_step * 2 + 2 ) + ( dim_phi - 1 ) * ( dim_step * 2 + 2 ) + ( dim_theta - 1 ) * ( dim_step * 2 - 2 ) + ( dim_phi - 1 ) * ( dim_step * 2 - 2 ) + ( dim_step * 4 + 4 );
+  const size_t nconnections = ( dim_theta - 1 ) * ( dim_edge * 2 + 2 ) + ( dim_phi - 1 ) * ( dim_edge * 2 + 2 ) + ( dim_theta - 1 ) * ( dim_edge * 2 - 2 ) + ( dim_phi - 1 ) * ( dim_edge * 2 - 2 ) + ( dim_edge * 4 + 4 );
   kvs::ValueArray<kvs::UInt32> connections( nconnections * 2 );
   kvs::UInt32* pconnections = connections.data();
 	      std::cout << nconnections << std::endl;
@@ -139,7 +137,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   size_t index;
   size_t index2;
 
-  for ( int j = 0; j < dim_theta * ( dim_step * 2 + 1 ) + 1; j += dim_theta, index = j )
+  for ( int j = 0; j < dim_theta * ( dim_edge * 2 + 1 ) + 1; j += dim_theta, index = j )
   {
     for ( int i = 0; i < dim_theta - 1; i++ )
     {
@@ -149,7 +147,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   }
 
   index2 = index;
-  for ( int j = index; j < dim_phi * ( dim_step * 2 + 1 ) + 1 + index2; j += dim_phi, index = j )
+  for ( int j = index; j < dim_phi * ( dim_edge * 2 + 1 ) + 1 + index2; j += dim_phi, index = j )
   {
     for ( int i = 0; i < dim_phi - 1; i++ )
     {
@@ -159,7 +157,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   }
 
   index2 = index;
-  for ( int j = index; j < dim_theta * ( dim_step * 2 - 3 ) + 1 + index2; j += dim_theta, index = j )
+  for ( int j = index; j < dim_theta * ( dim_edge * 2 - 3 ) + 1 + index2; j += dim_theta, index = j )
   {
     for ( int i = 0; i < dim_theta - 1; i++ )
     {
@@ -169,7 +167,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   }
 
   index2 = index;
-  for ( int j = index; j < dim_phi * ( dim_step * 2 - 3 ) + 1 + index2; j += dim_phi, index = j )
+  for ( int j = index; j < dim_phi * ( dim_edge * 2 - 3 ) + 1 + index2; j += dim_phi, index = j )
   {
     for ( int i = 0; i < dim_phi - 1; i++ )
     {
@@ -178,22 +176,22 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
     }
   }
 
-  for ( int j = 0; j < 2 * dim_theta * ( dim_step + 1 ); j += dim_theta * ( dim_step + 1 ), index = j )
+  for ( int j = 0; j < 2 * dim_theta * ( dim_edge + 1 ); j += dim_theta * ( dim_edge + 1 ), index = j )
   {
-    for ( int i = 0; i < dim_step + 1; i++ )
+    for ( int i = 0; i < dim_edge + 1; i++ )
     {
       *(pconnections++) = step_theta * i + j;
-      *(pconnections++) = dim_theta * dim_step + step_theta * i + j;
+      *(pconnections++) = dim_theta * dim_edge + step_theta * i + j;
     }
   }
 
   index2 = index;
-  for ( int j = index; j < 2 * dim_phi * ( dim_step + 1 ) + index2; j += dim_phi * ( dim_step + 1 ) )
+  for ( int j = index; j < 2 * dim_phi * ( dim_edge + 1 ) + index2; j += dim_phi * ( dim_edge + 1 ) )
   {
-    for ( int i = 0; i < dim_step + 1; i++ )
+    for ( int i = 0; i < dim_edge + 1; i++ )
     {
       *(pconnections++) = step_phi * i + j;
-      *(pconnections++) = dim_phi * dim_step + step_phi * i + j;
+      *(pconnections++) = dim_phi * dim_edge + step_phi * i + j;
     }
   }
 
