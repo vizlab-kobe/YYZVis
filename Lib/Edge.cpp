@@ -34,7 +34,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
     const float phi = range_phi.min + range_phi.d * ( k - 2 );
     const float sin_phi = std::sin( phi );
     const float cos_phi = std::cos( phi );
-    for ( int j = 0, int nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
+    for ( int j = 0, nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
     {
       const float r = range_r.min + range_r.d * j;
       for ( int i = 0; i < dim_theta; i++ )
@@ -59,7 +59,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
     const float theta = range_theta.min + range_theta.d * ( k - 1 );
     const float sin_theta = std::sin( theta );
     const float cos_theta = std::cos( theta );
-    for ( int j = 0, int nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
+    for ( int j = 0, nstep = 1; j < dim_r; j = step_r * nstep, nstep++ )
     {
       const float r = range_r.min + range_r.d * j;
       for ( int i = 0; i < dim_phi; i++ )
@@ -82,7 +82,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   for ( int k = 0; k < dim_r; k += dim_r - 1 )
   {
     const float r = range_r.min + range_r.d * k;
-    for ( int j = step_phi, int nstep = 2; j < dim_phi - step_phi + 1; j = step_phi * nstep, nstep++ )
+    for ( int j = step_phi, nstep = 2; j < dim_phi - step_phi + 1; j = step_phi * nstep, nstep++ )
     {
       const float phi = range_phi.min + range_phi.d * ( j - 2 );
       const float sin_phi = std::sin( phi );
@@ -107,7 +107,7 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   for ( int k = 0; k < dim_r; k += dim_r - 1 )
   {
     const float r = range_r.min + range_r.d * k;
-    for ( int j = step_theta, int nstep = 2; j < dim_theta - step_theta + 1; j = step_theta * nstep, nstep++ )
+    for ( int j = step_theta, nstep = 2; j < dim_theta - step_theta + 1; j = step_theta * nstep, nstep++ )
     {
       const float theta = range_theta.min + range_theta.d * ( j - 1 );
       const float sin_theta = std::sin( theta );
