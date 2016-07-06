@@ -11,7 +11,7 @@ namespace YinYangVis
 namespace Edge
 {
 
-kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume, const float dim_edge )
+kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume, const size_t dim_edge )
 {
   const size_t dim_r = volume->dimR(); // radius
   const size_t dim_theta = volume->dimTheta(); // latitude
@@ -21,9 +21,9 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   const YinYangVis::YinYangVolumeObject::Range range_theta = volume->rangeTheta();
   const YinYangVis::YinYangVolumeObject::Range range_phi = volume->rangePhi();
 
-  float step_r = ( dim_r - 1 ) / dim_edge;
-  float step_theta = ( dim_theta - 1 ) / dim_edge;
-  float step_phi = ( dim_phi - 1 ) / dim_edge;
+  float step_r = ( dim_r - 1.0f ) / dim_edge;
+  float step_theta = ( dim_theta - 1.0f ) / dim_edge;
+  float step_phi = ( dim_phi - 1.0f ) / dim_edge;
 
   const size_t nnodes = dim_theta * ( dim_edge * 2 + 2 ) + dim_phi * ( dim_edge * 2 + 2 ) + dim_theta * ( dim_edge * 2 - 2 ) + dim_phi * ( dim_edge * 2 - 2 );
   kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
