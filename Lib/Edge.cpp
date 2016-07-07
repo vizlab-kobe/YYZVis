@@ -132,7 +132,6 @@ kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume
   const size_t nconnections = ( dim_theta - 1 ) * ( dim_edge * 2 + 2 ) + ( dim_phi - 1 ) * ( dim_edge * 2 + 2 ) + ( dim_theta - 1 ) * ( dim_edge * 2 - 2 ) + ( dim_phi - 1 ) * ( dim_edge * 2 - 2 ) + ( dim_edge * 4 + 4 );
   kvs::ValueArray<kvs::UInt32> connections( nconnections * 2 );
   kvs::UInt32* pconnections = connections.data();
-	      std::cout << nconnections << std::endl;
 
   size_t index;
   size_t index2;
