@@ -24,6 +24,8 @@
 #include <kvs/XformControl>
 #include <kvs/ScreenCaptureEvent>
 #include <kvs/PaintEventListener>
+#include <kvs/LineObject>
+#include <kvs/StochasticLineRenderer>
 
 #include <iostream>
 #include <fstream>
@@ -33,6 +35,7 @@
 #include <Lib/YinYangGridSampling.h>
 #include <Lib/ZhongVolumeObject.h>
 #include <Lib/ZhongGridSampling.h>
+#include <Lib/Edge.h>
 
 class FrameRate : public kvs::PaintEventListener
 {
@@ -260,12 +263,88 @@ class KeyPress : public kvs::KeyPressEventListener
 	  if ( scene()->object("Zhong")->isShown() )
 	    {
 	      std::cout << "Zhong grid hide" << std::endl;
+
 	      scene()->object("Zhong")->hide();
 	    }
 	  else
 	    {
 	      std::cout << "Zhong grid show" << std::endl;
 	      scene()->object("Zhong")->show();
+	    }
+	  break;
+	}
+      case kvs::Key::Four:
+	{
+	  if ( !scene()->hasObject("YinMesh") ) break;
+	  if ( scene()->object("YinMesh")->isShown() )
+	    {
+	      std::cout << "Yin mesh hide" << std::endl;
+	      scene()->object("YinMesh")->hide();
+	    }
+	  else
+	    {
+	      std::cout << "Yin mesh show" << std::endl;
+	      scene()->object("YinMesh")->show();
+	    }
+	  break;
+	}
+      case kvs::Key::Five:
+	{
+	  if ( !scene()->hasObject("YangMesh") ) break;
+	  if ( scene()->object("YangMesh")->isShown() )
+	    {
+	      std::cout << "Yang mesh hide" << std::endl;
+	      scene()->object("YangMesh")->hide();
+	    }
+	  else
+	    {
+	      std::cout << "Yang mesh show" << std::endl;
+	      scene()->object("YangMesh")->show();
+	    }
+	  break;
+	}
+      case kvs::Key::Six:
+	{
+	  if ( !scene()->hasObject("YinEdge") ) break;
+	  if ( scene()->object("YinEdge")->isShown() )
+	    {
+	      std::cout << "Yin edge hide" << std::endl;
+	      scene()->object("YinEdge")->hide();
+	    }
+	  else
+	    {
+	      std::cout << "Yin edge show" << std::endl;
+	      scene()->object("YinEdge")->show();
+	    }
+	  break;
+	}
+      case kvs::Key::Seven:
+	{
+	  if ( !scene()->hasObject("YangEdge") ) break;
+	  if ( scene()->object("YangEdge")->isShown() )
+	    {
+	      std::cout << "Yang edge hide" << std::endl;
+	      scene()->object("YangEdge")->hide();
+	    }
+	  else
+	    {
+	      std::cout << "Yang edge show" << std::endl;
+	      scene()->object("YangEdge")->show();
+	    }
+	  break;
+	}
+      case kvs::Key::Eight:
+	{
+	  if ( !scene()->hasObject("ZhongEdge") ) break;
+	  if ( scene()->object("ZhongEdge")->isShown() )
+	    {
+	      std::cout << "Zhong edge hide" << std::endl;
+	      scene()->object("ZhongEdge")->hide();
+	    }
+	  else
+	    {
+	      std::cout << "Zhong edge show" << std::endl;
+	      scene()->object("ZhongEdge")->show();
 	    }
 	  break;
 	}
@@ -317,6 +396,31 @@ int main_yin_yang_vis( int argc, char** argv )
     omap.addPoint( 180, 0.0 );
     omap.addPoint( 255, 1.0 );
     omap.create();
+
+    kvs::LineObject* mesh_yin = YinYangVis::Edge::CreateLineMeshObject( volume_yin );
+    mesh_yin->setName("YinMesh");
+    kvs::StochasticLineRenderer* mesh_yin_renderer = new kvs::StochasticLineRenderer();
+    screen.registerObject( mesh_yin, mesh_yin_renderer);
+
+    kvs::LineObject* mesh_yang = YinYangVis::Edge::CreateLineMeshObject( volume_yang );
+    mesh_yang->setName("YangMesh");
+    kvs::StochasticLineRenderer* mesh_yang_renderer = new kvs::StochasticLineRenderer();
+    screen.registerObject( mesh_yang, mesh_yang_renderer);
+
+    kvs::LineObject* edge_yin = YinYangVis::Edge::CreateLineEdgeObject( volume_yin );
+    edge_yin->setName("YinEdge");
+    kvs::StochasticLineRenderer* edge_yin_renderer = new kvs::StochasticLineRenderer();
+    screen.registerObject( edge_yin, edge_yin_renderer);
+
+    kvs::LineObject* edge_yang = YinYangVis::Edge::CreateLineEdgeObject( volume_yang );
+    edge_yang->setName("YangEdge");
+    kvs::StochasticLineRenderer* edge_yang_renderer = new kvs::StochasticLineRenderer();
+    screen.registerObject( edge_yang, edge_yang_renderer);
+    
+    kvs::LineObject* edge_zhong = YinYangVis::Edge::CreateLineEdgeObject( volume_zhong );
+    edge_zhong->setName("ZhongEdge");
+    kvs::StochasticLineRenderer* edge_zhong_renderer = new kvs::StochasticLineRenderer();
+    screen.registerObject( edge_zhong, edge_zhong_renderer);
 
     ParticleBasedRenderingYinYang( screen, volume_yin, cmap, omap, repeats );
     delete volume_yin;
