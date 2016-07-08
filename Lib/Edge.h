@@ -9,9 +9,9 @@ namespace YinYangVis
 namespace Edge
 {
 
-    kvs::LineObject* CreateLineObject( const YinYangVis::YinYangVolumeObject* volume, const size_t dim_edge = 10 );
-    kvs::LineObject* CreateLineObject( const YinYangVis::ZhongVolumeObject* volume );
-
+    kvs::LineObject* CreateLineMeshObject( const YinYangVis::YinYangVolumeObject* volume, const size_t dim_edge = 10 );
+    kvs::LineObject* CreateLineEdgeObject( const YinYangVis::YinYangVolumeObject* volume);
+    kvs::LineObject* CreateLineEdgeObject( const YinYangVis::ZhongVolumeObject* volume );
 }
 
 } // end of namespace YinYangVis
