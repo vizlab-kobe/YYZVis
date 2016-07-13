@@ -76,8 +76,8 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, YinYangVis::YinYa
     timer.stop();
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
     object->setName( volume->name() );
-    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
-    object->multiplyXform( x );
+//    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+//    object->multiplyXform( x );
     object->print( std::cout << std::endl );
       
     kvs::glsl::ParticleBasedRenderer* renderer = new kvs::glsl::ParticleBasedRenderer();
@@ -98,8 +98,8 @@ void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, YinYangVis::ZhongVo
     kvs::Timer timer( kvs::Timer::Start );
     kvs::PointObject* object = new YinYangVis::ZhongGridSampling( volume, level, step, tfunc );
     object->setName( volume->name() );
-    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
-    object->multiplyXform( x );
+//    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+//    object->multiplyXform( x );
 
     timer.stop();
     object->print( std::cout << std::endl );

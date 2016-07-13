@@ -211,8 +211,8 @@ kvs::LineObject* CreateLineMeshObject( const YinYangVis::YinYangVolumeObject* vo
   object->setLineType( kvs::LineObject::Segment );
   object->setColorType( kvs::LineObject::VertexColor );
 
-  kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
-  object->multiplyXform( x );
+//  kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+//  object->multiplyXform( x );
   
   return object;
 }
@@ -328,8 +328,8 @@ kvs::LineObject* CreateLineMeshObject( const YinYangVis::YinYangVolumeObject* vo
     object->setLineType( kvs::LineObject::Segment );
     object->setColorType( kvs::LineObject::VertexColor );
 
-    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
-    object->multiplyXform( x );
+//    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+//    object->multiplyXform( x );
   
     return object;
   }
@@ -412,8 +412,8 @@ kvs::LineObject* CreateLineMeshObject( const YinYangVis::YinYangVolumeObject* vo
     object->setLineType( kvs::LineObject::Segment );
     object->setColorType( kvs::LineObject::VertexColor );
 
-    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
-    object->multiplyXform( x );
+//    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
+//    object->multiplyXform( x );
   
     return object;
   }
