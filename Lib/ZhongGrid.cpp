@@ -108,9 +108,9 @@ ZhongGrid::ZhongGrid( const YinYangVis::ZhongVolumeObject* volume ):
 
 void ZhongGrid::bind( const kvs::Vec3ui& base_index )
 {
-    KVS_ASSERT( base_index.x() < m_reference_volume->dimR() - 1 );
-    KVS_ASSERT( base_index.y() < m_reference_volume->dimTheta() - 1 );
-    KVS_ASSERT( base_index.z() < m_reference_volume->dimPhi() - 1 );
+    KVS_ASSERT( base_index.x() < m_reference_volume->dim() - 1 );
+    KVS_ASSERT( base_index.y() < m_reference_volume->dim() - 1 );
+    KVS_ASSERT( base_index.z() < m_reference_volume->dim() - 1 );
 
     m_base_index = base_index;
     const YinYangVis::ZhongVolumeObject* volume = m_reference_volume;
