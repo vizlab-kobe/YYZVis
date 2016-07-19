@@ -89,8 +89,11 @@ kvs::StructuredVolumeObject* YinYangVolumeObject::ToStructuredVolumeObject( cons
     volume->setResolution( kvs::Vec3ui( object->dimR(), object->dimTheta(), object->dimPhi() ) );
     volume->setCoords( object->coords().size() == 0 ? ::CalculateCoords( object ) : object->coords() );
     volume->setValues( object->values() );
-    volume->updateMinMaxValues();
-    volume->updateMinMaxCoords();
+    volume->setMinMaxValues( object->minValue(), object->maxValue() );
+    volume->setMinMaxObjectCoords( object->minObjectCoord(), object->maxObjectCoord() );
+    volume->setMinMaxExternalCoords( object->minExternalCoord(), object->maxExternalCoord() );
+//    volume->updateMinMaxValues();
+//    volume->updateMinMaxCoords();
     return volume;
 }
 
@@ -104,8 +107,11 @@ kvs::UnstructuredVolumeObject* YinYangVolumeObject::ToUnstructuredVolumeObject( 
     volume->setCoords( object->coords().size() == 0 ? ::CalculateCoords( object ) : object->coords() );
     volume->setConnections( ::CalculateConnections( object ) );
     volume->setValues( object->values() );
-    volume->updateMinMaxValues();
-    volume->updateMinMaxCoords();
+    volume->setMinMaxValues( object->minValue(), object->maxValue() );
+    volume->setMinMaxObjectCoords( object->minObjectCoord(), object->maxObjectCoord() );
+    volume->setMinMaxExternalCoords( object->minExternalCoord(), object->maxExternalCoord() );
+//    volume->updateMinMaxValues();
+//    volume->updateMinMaxCoords();
     return volume;
 }
 

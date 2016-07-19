@@ -12,6 +12,8 @@
 #include <kvs/StochasticPolygonRenderer>
 #include <kvs/StochasticTetrahedraRenderer>
 #include <kvs/StochasticRenderingCompositor>
+#include <kvs/ExternalFaces>
+#include <kvs/CellByCellMetropolisSampling>
 
 #include <Lib/YinYangVolumeObject.h>
 #include <Lib/YinYangGridSampling.h>
@@ -61,6 +63,8 @@ public:
         m_command.addOption( "yang", "Filename of yang volume data.", 1, true );
         m_command.addOption( "zhong", "Filename of zhong volume data.", 1, true );
         m_command.addOption( "repeat", "Number of repetitions for PBVR. (defulat: 1)", 1, false );
+        m_command.addOption( "prev", "Use previous particle generation technique." );
+        m_command.addOption( "shading", "Enable shading." );
         m_command.addHelpOption();
     }
 
@@ -71,9 +75,11 @@ public:
 
         kvs::glut::Application app( argc, argv );
         kvs::glut::Screen screen( &app );
+        screen.setSize( 800, 600 );
         screen.setBackgroundColor( kvs::RGBColor::White() );
 
         // Read volumes.
+        std::cout << "READ VOLUMES ..." << std::endl;
         const std::string filename_yin = m_command.optionValue<std::string>("yin");
         YinYangObject* yin = this->import_yin( filename_yin );
         yin->setName("Yin");
@@ -92,15 +98,10 @@ public:
         this->update_min_max( yin, yang, zhong );
 
         // Create objects.
+//        this->create_faces( screen, yin, yang, zhong );
         this->create_meshes( screen, yin, yang );
         this->create_edges( screen, yin, yang, zhong );
         this->create_particles( screen, yin, yang, zhong );
-
-        std::cout << screen.scene()->numberOfObjects() << std::endl;
-        for ( size_t i = 0; i < screen.scene()->numberOfObjects() - 1; i++ )
-        {
-            std::cout << screen.scene()->object(i+1)->name() << std::endl;
-        }
 
         delete yin;
         delete yang;
@@ -110,7 +111,8 @@ public:
         const size_t repeats = m_command.hasOption("repeat") ? m_command.optionValue<size_t>("repeat") : 1;
         kvs::StochasticRenderingCompositor* compositor = new kvs::StochasticRenderingCompositor( screen.scene() );
         compositor->setRepetitionLevel( repeats );
-        compositor->disableLODControl();
+//        compositor->disableLODControl();
+        compositor->enableLODControl();
         screen.setEvent( compositor );
 
         // Check box.
@@ -170,6 +172,27 @@ public:
         check_zhong_edge.setState( true );
         check_zhong_edge.setCaption( "Edge (Zhong)" );
 
+        CheckBox check_yin_face( &screen, "YinFace" );
+        check_yin_face.setX( check_zhong_edge.x() );
+        check_yin_face.setY( check_zhong_edge.y() + 20 );
+        check_yin_face.setMargin( 10 );
+        check_yin_face.setState( true );
+        check_yin_face.setCaption( "Face (Yin)" );
+
+        CheckBox check_yang_face( &screen, "YangFace" );
+        check_yang_face.setX( check_yin_face.x() );
+        check_yang_face.setY( check_yin_face.y() + 20 );
+        check_yang_face.setMargin( 10 );
+        check_yang_face.setState( true );
+        check_yang_face.setCaption( "Face (Yang)" );
+
+        CheckBox check_zhong_face( &screen, "ZhongFace" );
+        check_zhong_face.setX( check_yang_face.x() );
+        check_zhong_face.setY( check_yang_face.y() + 20 );
+        check_zhong_face.setMargin( 10 );
+        check_zhong_face.setState( true );
+        check_zhong_face.setCaption( "Face (Zhong)" );
+
         kvs::glut::CheckBoxGroup group;
         group.add( &check_yin_volume );
         group.add( &check_yang_volume );
@@ -179,9 +202,14 @@ public:
         group.add( &check_yin_edge );
         group.add( &check_yang_edge );
         group.add( &check_zhong_edge );
+        group.add( &check_yin_face );
+        group.add( &check_yang_face );
+        group.add( &check_zhong_face );
 
         group.show();
         screen.show();
+
+        kvs::Light::SetModelTwoSide( true );
 
         return app.run();
     }
@@ -272,41 +300,121 @@ private:
         zhong->setMinMaxExternalCoords( min_coord, max_coord );
     }
 
-    void create_meshes( kvs::glut::Screen& screen, const YinYangObject* yin, const YinYangObject* yang )
+    void create_meshes(
+        kvs::glut::Screen& screen,
+        const YinYangObject* yin,
+        const YinYangObject* yang )
     {
+        std::cout << "CREATE MESHES ..." << std::endl;
+
         kvs::LineObject* yin_mesh = YinYangVis::Edge::CreateLineMeshObject( yin );
         yin_mesh->setName("YinMesh");
-        screen.registerObject( yin_mesh, new kvs::StochasticLineRenderer() );
+        yin_mesh->setColor( kvs::RGBColor::Black() );
+        yin_mesh->print( std::cout << "YIN MESH DATA" << std::endl, kvs::Indent(2) );
+        this->register_object( screen, yin_mesh, new kvs::StochasticLineRenderer() );
 
         kvs::LineObject* yang_mesh = YinYangVis::Edge::CreateLineMeshObject( yang );
         yang_mesh->setName("YangMesh");
-        screen.registerObject( yang_mesh, new kvs::StochasticLineRenderer() );
+        yang_mesh->setColor( kvs::RGBColor::Black() );
+        yang_mesh->print( std::cout << "YANG MESH DATA" << std::endl, kvs::Indent(2) );
+        this->register_object( screen, yang_mesh, new kvs::StochasticLineRenderer() );
     }
 
-    void create_edges( kvs::glut::Screen& screen, const YinYangObject* yin, const YinYangObject* yang, const ZhongObject* zhong )
+    void create_edges(
+        kvs::glut::Screen& screen,
+        const YinYangObject* yin,
+        const YinYangObject* yang,
+        const ZhongObject* zhong )
     {
+        std::cout << "CREATE EDGES ..." << std::endl;
+
         kvs::LineObject* yin_edge = YinYangVis::Edge::CreateLineEdgeObject( yin );
         yin_edge->setName("YinEdge");
-        screen.registerObject( yin_edge, new kvs::StochasticLineRenderer() );
+        yin_edge->setColor( kvs::RGBColor::Black() );
+        yin_edge->setSize( 2 );
+        yin_edge->print( std::cout << "YIN EDGE DATA" << std::endl, kvs::Indent(2) );
+        this->register_object( screen, yin_edge, new kvs::StochasticLineRenderer() );
 
         kvs::LineObject* yang_edge = YinYangVis::Edge::CreateLineEdgeObject( yang );
         yang_edge->setName("YangEdge");
-        screen.registerObject( yang_edge, new kvs::StochasticLineRenderer() );
+        yang_edge->setColor( kvs::RGBColor::Black() );
+        yang_edge->setSize( 2 );
+        yang_edge->print( std::cout << "YANG EDGE DATA" << std::endl, kvs::Indent(2) );
+        this->register_object( screen, yang_edge, new kvs::StochasticLineRenderer() );
 
         kvs::LineObject* zhong_edge = YinYangVis::Edge::CreateLineEdgeObject( zhong );
         zhong_edge->setName("ZhongEdge");
-        screen.registerObject( zhong_edge, new kvs::StochasticLineRenderer() );
+        zhong_edge->setColor( kvs::RGBColor::Black() );
+        zhong_edge->setSize( 2 );
+        zhong_edge->print( std::cout << "ZHONG EDGE DATA" << std::endl, kvs::Indent(2) );
+        this->register_object( screen, zhong_edge, new kvs::StochasticLineRenderer() );
     }
 
-    void create_particles( kvs::glut::Screen& screen, const YinYangObject* yin, const YinYangObject* yang, const ZhongObject* zhong )
+    void create_faces(
+        kvs::glut::Screen& screen,
+        const YinYangObject* yin,
+        const YinYangObject* yang,
+        const ZhongObject* zhong )
     {
+        std::cout << "CREATE FACES ..." << std::endl;
+
+        kvs::UnstructuredVolumeObject* yin_volume = YinYangObject::ToUnstructuredVolumeObject( yin );
+        kvs::PolygonObject* yin_face = new kvs::ExternalFaces( yin_volume );
+        yin_face->setName("YinFace");
+        yin_face->setColor( kvs::RGBColor( 250, 150, 150 ) );
+        yin_face->print( std::cout << "YIN FACE DATA" << std::endl, kvs::Indent(2) );
+        kvs::StochasticPolygonRenderer* yin_renderer = new kvs::StochasticPolygonRenderer();
+        yin_renderer->setPolygonOffset( -0.001 );
+        this->register_object( screen, yin_face, yin_renderer );
+        delete yin_volume;
+
+        kvs::UnstructuredVolumeObject* yang_volume = YinYangObject::ToUnstructuredVolumeObject( yang );
+        kvs::PolygonObject* yang_face = new kvs::ExternalFaces( yang_volume );
+        yang_face->setName("YangFace");
+        yang_face->setColor( kvs::RGBColor( 150, 150, 250 ) );
+        yang_face->print( std::cout << "YANG FACE DATA" << std::endl, kvs::Indent(2) );
+        kvs::StochasticPolygonRenderer* yang_renderer = new kvs::StochasticPolygonRenderer();
+        yang_renderer->setPolygonOffset( -0.001 );
+        this->register_object( screen, yang_face, yang_renderer );
+        delete yang_volume;
+
+        kvs::UnstructuredVolumeObject* zhong_volume = ZhongObject::ToUnstructuredVolumeObject( zhong );
+        kvs::PolygonObject* zhong_face = new kvs::ExternalFaces( zhong_volume );
+        zhong_face->setName("ZhongFace");
+        zhong_face->setColor( kvs::RGBColor( 150, 250, 150 ) );
+        zhong_face->print( std::cout << "ZHONG FACE DATA" << std::endl, kvs::Indent(2) );
+        kvs::StochasticPolygonRenderer* zhong_renderer = new kvs::StochasticPolygonRenderer();
+        zhong_renderer->setPolygonOffset( -0.001 );
+        this->register_object( screen, zhong_face, zhong_renderer );
+        delete zhong_volume;
+    }
+
+    void create_particles(
+        kvs::glut::Screen& screen,
+        const YinYangObject* yin,
+        const YinYangObject* yang,
+        const ZhongObject* zhong )
+    {
+        bool previous_method = m_command.hasOption("prev");
+        bool enable_shading = m_command.hasOption("shading");
+
         // Transfer function.
         kvs::ColorMap cmap = kvs::DivergingColorMap::CoolWarm( 256 );
         kvs::OpacityMap omap( 256 );
+        omap.addPoint(   0, 1.0 );
+        omap.addPoint( 150, 0.0 );
+        omap.addPoint( 160, 0.0 );
+        omap.addPoint( 255, 1.0 );
+/*
+        omap.addPoint( 0, 0.9 );
+        omap.addPoint( 255, 0.9 );
+*/
+/*
         omap.addPoint( 0, 1.0 );
         omap.addPoint( 90, 0.0 );
         omap.addPoint( 180, 0.0 );
         omap.addPoint( 255, 1.0 );
+*/
         omap.create();
         const kvs::TransferFunction tfunc( cmap, omap );
 
@@ -319,41 +427,100 @@ private:
         // Generate particles.
         std::cout << "PARTICLE GENERATION..." << std::endl;
 
+        if ( previous_method )
+        {
+            std::cout << "with previous technique" << std::endl;
+        }
+        else
+        {
+            std::cout << "with proposed technique" << std::endl;
+        }
+
         // Yin
         kvs::Timer timer( kvs::Timer::Start );
-        kvs::PointObject* yin_particle = new YinYangVis::YinYangGridSampling( yin, level, step, tfunc );
+        kvs::PointObject* yin_particle = NULL;
+        if ( previous_method )
+        {
+            kvs::UnstructuredVolumeObject* yin_volume = YinYangObject::ToUnstructuredVolumeObject( yin );
+            yin_particle = new kvs::CellByCellMetropolisSampling( yin_volume, level, step, tfunc );
+            delete yin_volume;
+        }
+        else
+        {
+            yin_particle = new YinYangVis::YinYangGridSampling( yin, level, step, tfunc );
+        }
         timer.stop();
         std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
         yin_particle->setName( yin->name() );
         yin_particle->print( std::cout << "YIN PARTICLE DATA" << std::endl, kvs::Indent(2) );
 
         kvs::glsl::ParticleBasedRenderer* yin_particle_renderer = new kvs::glsl::ParticleBasedRenderer();
-        yin_particle_renderer->disableShading();
-        screen.registerObject( yin_particle, yin_particle_renderer );
+//        yin_particle_renderer->disableShading();
+        yin_particle_renderer->setEnabledShading( enable_shading );
+        this->register_object( screen, yin_particle, yin_particle_renderer );
 
         // Ynag
         timer.start();
-        kvs::PointObject* yang_particle = new YinYangVis::YinYangGridSampling( yang, level, step, tfunc );
+        kvs::PointObject* yang_particle = NULL;
+        if ( previous_method )
+        {
+            kvs::UnstructuredVolumeObject* yang_volume = YinYangObject::ToUnstructuredVolumeObject( yang );
+            yang_particle = new kvs::CellByCellMetropolisSampling( yang_volume, level, step, tfunc );
+            delete yang_volume;
+        }
+        else
+        {
+            yang_particle = new YinYangVis::YinYangGridSampling( yang, level, step, tfunc );
+        }
         timer.stop();
         std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
         yang_particle->setName( yang->name() );
         yang_particle->print( std::cout << "YANG PARTICLE DATA" << std::endl, kvs::Indent(2) );
 
         kvs::glsl::ParticleBasedRenderer* yang_particle_renderer = new kvs::glsl::ParticleBasedRenderer();
-        yang_particle_renderer->disableShading();
-        screen.registerObject( yang_particle, yang_particle_renderer );
+//        yang_particle_renderer->disableShading();
+        yang_particle_renderer->setEnabledShading( enable_shading );
+        this->register_object( screen, yang_particle, yang_particle_renderer );
 
         // Zhong
         timer.start();
-        kvs::PointObject* zhong_particle = new YinYangVis::ZhongGridSampling( zhong, level, step, tfunc );
+        kvs::PointObject* zhong_particle = NULL;
+        if ( previous_method )
+        {
+            kvs::UnstructuredVolumeObject* zhong_volume = ZhongObject::ToUnstructuredVolumeObject( zhong );
+            zhong_particle = new kvs::CellByCellMetropolisSampling( zhong_volume, level, step, tfunc );
+            delete zhong_volume;
+        }
+        else
+        {
+            zhong_particle = new YinYangVis::ZhongGridSampling( zhong, level, step, tfunc );
+        }
         timer.stop();
         std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
         zhong_particle->setName( zhong->name() );
         zhong_particle->print( std::cout << "ZHONG PARTICLE DATA" << std::endl, kvs::Indent(2) );
 
         kvs::glsl::ParticleBasedRenderer* zhong_particle_renderer = new kvs::glsl::ParticleBasedRenderer();
-        zhong_particle_renderer->disableShading();
-        screen.registerObject( zhong_particle, zhong_particle_renderer );
+//        zhong_particle_renderer->disableShading();
+        zhong_particle_renderer->setEnabledShading( enable_shading );
+        this->register_object( screen, zhong_particle, zhong_particle_renderer );
+    }
+
+    void register_object( kvs::glut::Screen& screen, kvs::ObjectBase* object, kvs::RendererBase* renderer )
+    {
+        kvs::Xform x = kvs::Xform::Rotation(
+//            kvs::Mat3::RotationY( -30 ) *
+//            kvs::Mat3::RotationZ( 180 ) *
+//            kvs::Mat3::RotationX( -135 ) );
+            kvs::Mat3::RotationY( 30 ) );
+/*
+        kvs::Xform x = kvs::Xform::Rotation(
+            kvs::Mat3::RotationY( -30 ) *
+            kvs::Mat3::RotationZ( 180 ) *
+            kvs::Mat3::RotationX( -135 ) );
+*/
+        object->multiplyXform( x );
+        screen.registerObject( object, renderer );
     }
 };
 

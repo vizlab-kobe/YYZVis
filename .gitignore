@@ -30,3 +30,5 @@
 App/Test/Test
 
 *.kvs
+
+App/ParticleBasedRendering/ParticleBasedRendering

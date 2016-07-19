@@ -80,8 +80,11 @@ kvs::StructuredVolumeObject* ZhongVolumeObject::ToStructuredVolumeObject( const 
     volume->setVeclen( object->veclen() );
     volume->setResolution( kvs::Vec3ui( object->dim(), object->dim(), object->dim() ) );
     volume->setValues( object->values() );
-    volume->updateMinMaxValues();
-    volume->updateMinMaxCoords();
+    volume->setMinMaxValues( object->minValue(), object->maxValue() );
+    volume->setMinMaxObjectCoords( object->minObjectCoord(), object->maxObjectCoord() );
+    volume->setMinMaxExternalCoords( object->minExternalCoord(), object->maxExternalCoord() );
+//    volume->updateMinMaxValues();
+//    volume->updateMinMaxCoords();
     return volume;
 }
 
@@ -95,8 +98,11 @@ kvs::UnstructuredVolumeObject* ZhongVolumeObject::ToUnstructuredVolumeObject( co
     volume->setCoords( ::CalculateCoords( object ) );
     volume->setConnections( ::CalculateConnections( object ) );
     volume->setValues( object->values() );
-    volume->updateMinMaxValues();
-    volume->updateMinMaxCoords();
+    volume->setMinMaxValues( object->minValue(), object->maxValue() );
+    volume->setMinMaxObjectCoords( object->minObjectCoord(), object->maxObjectCoord() );
+    volume->setMinMaxExternalCoords( object->minExternalCoord(), object->maxExternalCoord() );
+//    volume->updateMinMaxValues();
+//    volume->updateMinMaxCoords();
     return volume;
 }
 
