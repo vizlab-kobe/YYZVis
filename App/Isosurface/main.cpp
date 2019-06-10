@@ -346,9 +346,7 @@ private:
        const kvs::PolygonObject::NormalType n = kvs::PolygonObject::VertexNormal;
        const bool d = true;
        const kvs::TransferFunction t( 256 );
-
-        std::cout << yin_volume->numberOfNodes() << std::endl;
-	
+       
        kvs::PolygonObject* yin_isosurface = new kvs::Isosurface( yin_volume, i, n, d, t );
        yin_isosurface->setName("YinIsosurface");
        yin_isosurface->setPolygonType(kvs::PolygonObject::Triangle);
