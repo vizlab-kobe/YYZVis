@@ -25,8 +25,6 @@
 #include <Lib/ZhongVolumeObject.h>
 #include <Lib/ZhongGridSampling.h>
 #include <Lib/Edge.h>
-#include <Lib/MarchingCubes.h>
-#include <Lib/MarchingCubesTable.h>
 #include <Lib/MarchingHexahedra.h>
 #include <Lib/MarchingHexahedraTable.h>
 
