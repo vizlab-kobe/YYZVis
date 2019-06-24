@@ -1,4 +1,5 @@
 #pragma once
+#include <ostream>
 #include <kvs/Module>
 #include <kvs/VolumeObjectBase>
 #include <kvs/StructuredVolumeObject>
@@ -42,6 +43,11 @@ private:
 
 public:
     YinYangVolumeObject();
+    YinYangVolumeObject( const YinYangVolumeObject& object ) { this->shallowCopy( object ); }
+
+    void shallowCopy( const YinYangVolumeObject& object );
+    void deepCopy( const YinYangVolumeObject& object );
+    void print( std::ostream& os, const kvs::Indent& indent = kvs::Indent(0) ) const;
 
     void setGridType( const GridType grid_type ) { m_grid_type = grid_type; }
     void setGridTypeToYin() { this->setGridType( Yin ); }

@@ -118,7 +118,37 @@ ZhongVolumeObject::ZhongVolumeObject():
     m_range_r.d = 0.0f;
 }
 
-  void ZhongVolumeObject::setDimR( const size_t dim_r, const float range_min, const float range_max )
+void ZhongVolumeObject::shallowCopy( const ZhongVolumeObject& object )
+{
+    BaseClass::shallowCopy( object );
+    m_dim = object.m_dim;
+    m_dim_r = object.m_dim_r;
+    m_range_r = object.m_range_r;
+}
+
+void ZhongVolumeObject::deepCopy( const ZhongVolumeObject& object )
+{
+    BaseClass::deepCopy( object );
+    m_dim = object.m_dim;
+    m_dim_r = object.m_dim_r;
+    m_range_r = object.m_range_r;
+}
+
+void ZhongVolumeObject::print( std::ostream& os, const kvs::Indent& indent ) const
+{
+    if ( !this->hasMinMaxValues() ) this->updateMinMaxValues();
+    os << indent << "Object type : " << "zhong volume object" << std::endl;
+    BaseClass::print( os, indent );
+    os << indent << "Dimension : " << this->dim() << std::endl;
+    os << indent << "Dimension (R) : " << this->dimR() << std::endl;
+    os << indent << "Range (R): " << "[" << this->rangeR().min << ", " << this->rangeR().max << "]" << std::endl;
+    os << indent << "Number of nodes : " << this->numberOfNodes() << std::endl;
+    os << indent << "Number of cells : " << this->numberOfCells() << std::endl;
+    os << indent << "Min. value : " << this->minValue() << std::endl;
+    os << indent << "Max. value : " << this->maxValue() << std::endl;
+}
+
+void ZhongVolumeObject::setDimR( const size_t dim_r, const float range_min, const float range_max )
 {
     KVS_ASSERT( dim_r > 1 );
 

@@ -1,3 +1,29 @@
+#if 1
+
+#include <kvs/glut/Application>
+#include "Input.h"
+#include "Model.h"
+#include "View.h"
+#include "Controller.h"
+
+
+int main( int argc, char** argv )
+{
+    kvs::glut::Application app( argc, argv );
+
+    local::Input input( argc, argv );
+    if ( !input.parse() ) { return 1; }
+
+    local::Model model( input );
+    local::View view( &app, &model );
+    local::Controller controller( &model, &view );
+
+    return app.run();
+}
+
+#else
+
+
 #include <string>
 #include <kvs/glut/Application>
 #include <kvs/glut/Screen>
@@ -101,7 +127,7 @@ public:
 //        this->create_faces( screen, yin, yang, zhong );
         this->create_meshes( screen, yin, yang );
         this->create_edges( screen, yin, yang, zhong );
-        this->create_particles( screen, yin, yang, zhong );
+//        this->create_particles( screen, yin, yang, zhong );
 
         delete yin;
         delete yang;
@@ -529,3 +555,5 @@ int main( int argc, char** argv )
     Program p;
     return p.start( argc, argv );
 }
+
+#endif

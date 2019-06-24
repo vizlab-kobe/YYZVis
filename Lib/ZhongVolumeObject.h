@@ -1,4 +1,5 @@
 #pragma once
+#include <ostream>
 #include <kvs/Module>
 #include <kvs/VolumeObjectBase>
 #include <kvs/StructuredVolumeObject>
@@ -32,6 +33,11 @@ private:
 
 public:
     ZhongVolumeObject();
+    ZhongVolumeObject( const ZhongVolumeObject& object ) { this->shallowCopy( object ); }
+
+    void shallowCopy( const ZhongVolumeObject& object );
+    void deepCopy( const ZhongVolumeObject& object );
+    void print( std::ostream& os, const kvs::Indent& indent = kvs::Indent(0) ) const;
 
     void setDim( const size_t dim ) { m_dim = dim; }
     void setDimR( const size_t dim_r, const float range_min = 0.35f, const float range_max = 1.0f );

@@ -6,6 +6,11 @@
 namespace
 {
 
+const std::string GridTypeName[2] = {
+    "yin",
+    "yang"
+};
+
 kvs::ValueArray<kvs::Real32> CalculateCoords( const YinYangVis::YinYangVolumeObject* object )
 {
     const size_t dim_r = object->dimR(); // radius
@@ -26,7 +31,7 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const YinYangVis::YinYangVolumeObj
         const float cos_phi = std::cos( phi );
         for ( int j = 0; j < (int)dim_theta; j++ )
         {
-	    const float theta = range_theta.min + range_theta.d * ( j - 1 );
+            const float theta = range_theta.min + range_theta.d * ( j - 1 );
             const float sin_theta = std::sin( theta );
             const float cos_theta = std::cos( theta );
             for ( int i = 0; i < (int)dim_r; i++ )
@@ -135,6 +140,46 @@ YinYangVolumeObject::YinYangVolumeObject():
     m_range_phi.min = 0.0f;
     m_range_phi.max = 0.0f;
     m_range_phi.d = 0.0f;
+}
+
+void YinYangVolumeObject::shallowCopy( const YinYangVolumeObject& object )
+{
+    BaseClass::shallowCopy( object );
+    m_grid_type = object.m_grid_type;
+    m_dim_r = object.m_dim_r;
+    m_dim_theta = object.m_dim_theta;
+    m_dim_phi = object.m_dim_phi;
+    m_range_r = object.m_range_r;
+    m_range_theta = object.m_range_theta;
+    m_range_phi = object.m_range_phi;
+}
+
+void YinYangVolumeObject::deepCopy( const YinYangVolumeObject& object )
+{
+    BaseClass::deepCopy( object );
+    m_grid_type = object.m_grid_type;
+    m_dim_r = object.m_dim_r;
+    m_dim_theta = object.m_dim_theta;
+    m_dim_phi = object.m_dim_phi;
+    m_range_r = object.m_range_r;
+    m_range_theta = object.m_range_theta;
+    m_range_phi = object.m_range_phi;
+}
+
+void YinYangVolumeObject::print( std::ostream& os, const kvs::Indent& indent ) const
+{
+    if ( !this->hasMinMaxValues() ) this->updateMinMaxValues();
+    os << indent << "Object type : " << "yin-yang volume object" << std::endl;
+    BaseClass::print( os, indent );
+    os << indent << "Grid type : " << ::GridTypeName[ this->gridType() ] << std::endl;
+    os << indent << "Dimension : " << kvs::Vec3ui( this->dimR(), this->dimTheta(), this->dimPhi() ) << std::endl;
+    os << indent << "Range (R): " << "[" << this->rangeR().min << ", " << this->rangeR().max << "]" << std::endl;
+    os << indent << "Range (Theta): " << "[" << this->rangeTheta().min << ", " << this->rangeTheta().max << "]" << std::endl;
+    os << indent << "Range (Phi): " << "[" << this->rangePhi().min << ", " << this->rangePhi().max << "]" << std::endl;
+    os << indent << "Number of nodes : " << this->numberOfNodes() << std::endl;
+    os << indent << "Number of cells : " << this->numberOfCells() << std::endl;
+    os << indent << "Min. value : " << this->minValue() << std::endl;
+    os << indent << "Max. value : " << this->maxValue() << std::endl;
 }
 
 void YinYangVolumeObject::setDimR( const size_t dim_r, const float range_min, const float range_max )
