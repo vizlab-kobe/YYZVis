@@ -2,7 +2,6 @@
 #include "Input.h"
 #include <YinYangVis/Lib/YinYangVolumeObject.h>
 #include <YinYangVis/Lib/ZhongVolumeObject.h>
-#include <kvs/PointObject>
 #include <kvs/LineObject>
 #include <kvs/PolygonObject>
 #include <kvs/UnstructuredVolumeObject>
@@ -50,13 +49,10 @@ public:
     kvs::PolygonObject* newZhongFaces() const;
     kvs::PolygonObject* newFaces( const kvs::UnstructuredVolumeObject* volume ) const;
 
-    kvs::PointObject* newYinParticles() const;
-    kvs::PointObject* newYangParticles() const;
-    kvs::PointObject* newZhongParticles( ) const;
-    kvs::PointObject* newYinParticles( const YinVolume* volume ) const;
-    kvs::PointObject* newYangParticles( const YangVolume* volume ) const;
-    kvs::PointObject* newZhongParticles( const ZhongVolume* volume ) const;
-    kvs::PointObject* newParticles( const kvs::UnstructuredVolumeObject* volume ) const;
+    kvs::PolygonObject* newYinIsosurfaces() const;
+    kvs::PolygonObject* newYangIsosurfaces() const;
+    kvs::PolygonObject* newZhongIsosurfaces() const;
+    kvs::PolygonObject* newIsosurfaces( const kvs::UnstructuredVolumeObject* volume ) const;
 
 private:
     void import_yin_volume();

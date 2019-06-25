@@ -3,8 +3,9 @@
 #include <YinYangVis/Lib/YinYangGridSampling.h>
 #include <YinYangVis/Lib/ZhongGridSampling.h>
 #include <kvs/ExternalFaces>
+#include <kvs/SlicePlane>
 #include <kvs/SmartPointer>
-#include <kvs/CellByCellMetropolisSampling>
+#include <kvs/Indent>
 
 
 namespace
@@ -20,11 +21,18 @@ namespace local
 Model::Model( const local::Input& input ):
     m_input( input )
 {
+    std::cout << "IMPORT VOLUMES ..." << std::endl;
+
     this->import_yin_volume();
     this->import_yang_volume();
     this->import_zhong_volume();
     this->update_min_max_values();
     this->update_min_max_coords();
+
+    const kvs::Indent indent( 4 );
+    m_yin_volume.print( std::cout << "YIN VOLUME DATA" << std::endl, indent );
+    m_yang_volume.print( std::cout << "YANG VOLUME DATA" << std::endl, indent );
+    m_zhong_volume.print( std::cout << "ZHONG VOLUME DATA" << std::endl, indent );
 }
 
 kvs::LineObject* Model::newYinMeshes( const size_t dim_edge ) const
@@ -75,66 +83,30 @@ kvs::PolygonObject* Model::newFaces( const kvs::UnstructuredVolumeObject* volume
     return new kvs::ExternalFaces( volume );
 }
 
-kvs::PointObject* Model::newYinParticles() const
+kvs::PolygonObject* Model::newYinSlice() const
 {
-    if ( m_input.previous_method )
-    {
-        ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
-        return this->newParticles( volume.get() );
-    }
-    return this->newYinParticles( &m_yin_volume );
+    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
+    return this->newSlice( volume.get() );
 }
 
-kvs::PointObject* Model::newYangParticles() const
+kvs::PolygonObject* Model::newYangSlice() const
 {
-    if ( m_input.previous_method )
-    {
-        ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
-        return this->newParticles( volume.get() );
-    }
-    return this->newYangParticles( &m_yang_volume );
+    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
+    return this->newSlice( volume.get() );
 }
 
-kvs::PointObject* Model::newZhongParticles() const
+kvs::PolygonObject* Model::newZhongSlice() const
 {
-    if ( m_input.previous_method )
-    {
-        ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
-        return this->newParticles( volume.get() );
-    }
-    return this->newZhongParticles( &m_zhong_volume );
+    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
+    return this->newSlice( volume.get() );
 }
 
-kvs::PointObject* Model::newYinParticles( const YinVolume* volume ) const
+kvs::PolygonObject* Model::newSlice( const kvs::UnstructuredVolumeObject* volume ) const
 {
-    return this->newYangParticles( volume );
-}
-
-kvs::PointObject* Model::newYangParticles( const YangVolume* volume ) const
-{
-    const size_t repeats = m_input.repeats;
-    const size_t subpixels = 1; // fixed to '1'
-    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
-    const float step = 0.1f;
-    return new YinYangVis::YinYangGridSampling( volume, level, step, m_input.tfunc );
-}
-
-kvs::PointObject* Model::newZhongParticles( const ZhongVolume* volume ) const
-{
-    const size_t repeats = m_input.repeats;
-    const size_t subpixels = 1; // fixed to '1'
-    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
-    const float step = 0.1f;
-    return new YinYangVis::ZhongGridSampling( volume, level, step, m_input.tfunc );
-}
-
-kvs::PointObject* Model::newParticles( const kvs::UnstructuredVolumeObject* volume ) const
-{
-    const size_t repeats = m_input.repeats;
-    const size_t subpixels = 1; // fixed to '1'
-    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
-    const float step = 0.1f;
-    return new kvs::CellByCellMetropolisSampling( volume, level, step, m_input.tfunc );
+    const kvs::Vec3 point( 0, 0, 0 );
+    const kvs::Vec3 normal( -1, 0, -1 );
+    const kvs::TransferFunction& tfunc = m_input.tfunc;
+    return new kvs::SlicePlane( volume, point, normal, tfunc );
 }
 
 void Model::import_yin_volume()
