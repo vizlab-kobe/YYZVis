@@ -79,7 +79,7 @@ kvs::PolygonObject* Model::newZhongFaces() const
 
 kvs::PolygonObject* Model::newFaces( const kvs::UnstructuredVolumeObject* volume ) const
 {
-    return new kvs::ExternalFaces( volume );
+    return new kvs::ExternalFaces( volume, m_input.tfunc );
 }
 
 void Model::import_yin_volume()
