@@ -1,4 +1,6 @@
 #!/bin/sh
+PROGRAM=${PWD##*/}
+
 DIM_RAD=201
 DIM_LAT=204
 DIM_LON=608
@@ -27,4 +29,4 @@ then
 OPT_ENABLE_SHADING="-shading"
 fi
 
-./ParticleBasedRendering -dim_rad ${DIM_RAD} -dim_lat ${DIM_LAT} -dim_lon ${DIM_LON} -dim_zhong ${DIM_ZHONG} -repeat ${REPEAT} -yin ${YIN_DATA} -yang ${YANG_DATA} -zhong ${ZHONG_DATA} ${OPT_PREV_METHOD} ${OPT_ENABLE_SHADING}
+./$PROGRAM -dim_rad ${DIM_RAD} -dim_lat ${DIM_LAT} -dim_lon ${DIM_LON} -dim_zhong ${DIM_ZHONG} -repeat ${REPEAT} -yin ${YIN_DATA} -yang ${YANG_DATA} -zhong ${ZHONG_DATA} ${OPT_PREV_METHOD} ${OPT_ENABLE_SHADING}
