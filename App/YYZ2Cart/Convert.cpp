@@ -9,6 +9,9 @@ kvs::StructuredVolumeObject Convert(
     YinYangVis::YinYangVolumeObject& yang_volume,
     YinYangVis::ZhongVolumeObject& zhong_volume )
 {
+    // Vector length
+    //const int veclen = 1;
+
     // Grid resolution (rx, ry, rz)
     //const kvs::Vec3u resolution( rx, ry, rz );
 
@@ -17,7 +20,7 @@ kvs::StructuredVolumeObject Convert(
 
     kvs::StructuredVolumeObject object;
     //object.setGridTypeToUniform();
-    //object.setVeclen( 1 );
+    //object.setVeclen( veclen );
     //object.setResolution( resolution );
     //object.setValues( values );
     return object;
