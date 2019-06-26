@@ -1,8 +1,10 @@
 #pragma once
 #include "View.h"
+#include "Model.h"
 #include <kvs/CheckBox>
 #include <kvs/CheckBoxGroup>
 #include <kvs/Label>
+#include <kvs/Slider>
 #include <kvs/Font>
 #include <kvs/FontMetrics>
 #include <string>
@@ -109,6 +111,77 @@ public:
         {
             m_zhong_checkbox.setPosition( p.x(), m_yang_checkbox.y() + m_yang_checkbox.height() - m_yang_checkbox.margin() );
         }
+    }
+};
+
+class Slider : public kvs::Slider
+{
+private:
+    local::Model* m_model;
+    local::View* m_view;
+    kvs::Label m_label;
+
+public:
+    Slider( local::Model* model, local::View* view ):
+        kvs::Slider( &view->screen() ),
+        m_model( model ),
+        m_view( view ),
+        m_label( &view->screen() )
+    {
+        const float min_value = m_model->constYinVolume().minValue();
+        const float max_value = m_model->constYinVolume().maxValue();
+        kvs::Slider::setRange( min_value, max_value );
+        kvs::Slider::setValue( m_model->isovalue() );
+        kvs::Slider::setCaption( "" );
+        kvs::Slider::setWidth( 180 );
+
+        m_label.setFont( kvs::Font( kvs::Font::Sans, kvs::Font::Bold, 24 ) );
+        m_label.setText( "Isovalue" );
+    }
+
+    void setMargin( const int margin )
+    {
+        kvs::Slider::setMargin( margin );
+        m_label.setMargin( margin );
+    }
+
+    void show()
+    {
+        kvs::Slider::show();
+        m_label.show();
+    }
+
+    void sliderReleased()
+    {
+        m_model->setIsovalue( this->value() );
+
+        // Yin
+        {
+            kvs::PolygonObject* object = m_model->newYinIsosurfaces();
+            object->setName( "YinIso" );
+            m_view->screen().scene()->replaceObject( "YinIso", object );
+        }
+
+        // Yang
+        {
+            kvs::PolygonObject* object = m_model->newYangIsosurfaces();
+            object->setName( "YangIso" );
+            m_view->screen().scene()->replaceObject( "YangIso", object );
+        }
+
+        // Zhong
+        {
+            kvs::PolygonObject* object = m_model->newZhongIsosurfaces();
+            object->setName( "ZhongIso" );
+            m_view->screen().scene()->replaceObject( "ZhongIso", object );
+        }
+    }
+
+    void screenUpdated()
+    {
+        const kvs::Vec2 p( m_view->screen().width() - this->width() - this->margin(), 0 );
+        m_label.setPosition( p.x(), p.y() );
+        kvs::Slider::setPosition( p.x(), p.y() + 8 );
     }
 };
 

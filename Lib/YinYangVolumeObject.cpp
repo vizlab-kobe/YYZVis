@@ -26,7 +26,7 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const YinYangVis::YinYangVolumeObj
     kvs::Real32* pcoords = coords.data();
     for ( int k = 0; k < (int)dim_phi; k++ )
     {
-      const float phi = range_phi.min + range_phi.d * ( k - 2 );
+        const float phi = range_phi.min + range_phi.d * ( k - 2 );
         const float sin_phi = std::sin( phi );
         const float cos_phi = std::cos( phi );
         for ( int j = 0; j < (int)dim_theta; j++ )

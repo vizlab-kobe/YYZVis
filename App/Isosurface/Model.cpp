@@ -18,17 +18,25 @@ typedef kvs::SharedPointer<kvs::UnstructuredVolumeObject> VolumePointer;
 namespace local
 {
 
-Model::Model( const local::Input& input ):
+Model::Model( local::Input& input ):
     m_input( input )
 {
     std::cout << "IMPORT VOLUMES ..." << std::endl;
 
+    // Import volume dataset.
     this->import_yin_volume();
     this->import_yang_volume();
     this->import_zhong_volume();
     this->update_min_max_values();
     this->update_min_max_coords();
 
+    // Initial value of isovalue.
+    const float min_value = m_yin_volume.minValue();
+    const float max_value = m_yin_volume.maxValue();
+    const float ratio = 0.5f;
+    m_isovalue = kvs::Math::Mix( min_value, max_value, ratio );
+
+    // Output information of volume dataset.
     const kvs::Indent indent( 4 );
     m_yin_volume.print( std::cout << "YIN VOLUME DATA" << std::endl, indent );
     m_yang_volume.print( std::cout << "YANG VOLUME DATA" << std::endl, indent );
@@ -103,7 +111,7 @@ kvs::PolygonObject* Model::newZhongIsosurfaces() const
 
 kvs::PolygonObject* Model::newIsosurfaces( const kvs::UnstructuredVolumeObject* volume ) const
 {
-    const double isovalue = kvs::Math::Mix( volume->maxValue(), volume->minValue(), 0.8 );
+    const double isovalue = m_isovalue;
     const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
     const bool d = true;
     const kvs::TransferFunction& tfunc = m_input.tfunc;
@@ -201,4 +209,3 @@ void Model::update_min_max_coords()
 }
 
 } // end of namespace local
-

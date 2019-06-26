@@ -24,15 +24,23 @@ public:
     typedef YinYangVis::ZhongVolumeObject ZhongVolume;
 
 private:
-    const local::Input& m_input; ///< input information from commandline arguments
+    local::Input& m_input; ///< input information from commandline arguments
     YinVolume m_yin_volume; ///< yin volume data
     YangVolume m_yang_volume; ///< yang volume data
     ZhongVolume m_zhong_volume; ///< zhong volume data
+    float m_isovalue; ///< value for isosurface extraction
 
 public:
-    Model( const local::Input& input );
+    Model( local::Input& input );
 
     const local::Input& input() const { return m_input; }
+    const YinVolume& constYinVolume() const { return m_yin_volume; }
+    const YangVolume& constYangVolume() const { return m_yang_volume; }
+    const ZhongVolume& constZhongVolume() const { return m_zhong_volume; }
+
+    float isovalue() const { return m_isovalue; }
+    void setIsovalue( const float value ) { m_isovalue = value; }
+
     YinVolume* newYinVolume() const { return new YinVolume( m_yin_volume ); }
     YangVolume* newYangVolume() const { return new YangVolume( m_yang_volume ); }
     ZhongVolume* newZhongVolume() const { return new ZhongVolume( m_zhong_volume ); }

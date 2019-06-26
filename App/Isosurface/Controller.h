@@ -14,6 +14,7 @@ private:
     local::UI::CheckBoxGroup m_isosurface_checkbox;
     local::UI::CheckBoxGroup m_mesh_checkbox;
     local::UI::CheckBoxGroup m_edge_checkbox;
+    local::UI::Slider m_isovalue_slider;
 
 public:
     Controller( local::Model* model, local::View* view );
