@@ -119,6 +119,7 @@ void View::setup_faces()
 
         Renderer* renderer = new Renderer();
         renderer->setEnabledShading( enable_shading );
+        renderer->setPolygonOffset( -0.001f );
         m_screen.registerObject( object, renderer );
     }
 
@@ -130,6 +131,7 @@ void View::setup_faces()
 
         Renderer* renderer = new Renderer();
         renderer->setEnabledShading( enable_shading );
+        renderer->setPolygonOffset( -0.001f );
         m_screen.registerObject( object, renderer );
     }
 
@@ -141,6 +143,7 @@ void View::setup_faces()
 
         Renderer* renderer = new Renderer();
         renderer->setEnabledShading( enable_shading );
+        renderer->setPolygonOffset( -0.001f );
         m_screen.registerObject( object, renderer );
     }
 }
