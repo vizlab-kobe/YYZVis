@@ -36,3 +36,5 @@ App/ExternalFace/ExternalFace
 App/Isosurface/Isosurface
 App/YYZ2Cart/YYZ2Cart
 App/YYZ2Cart/output.kvsml
+App/YYZ2Polar/YYZ2Polar
+App/YYZ2Polar/output.kvsml
