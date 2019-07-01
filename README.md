@@ -10,7 +10,7 @@ Clone the repository.
 $ git clone https://github.com/vizlab-kobe/YinYangVis.git
 ```
 
-Build the YinYangVis library required to compile each application in App.
+Build YinYangVis library required to compile each application in App.
 ```bash
 $ cd Lib
 $ ./kvsmake.py
