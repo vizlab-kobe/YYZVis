@@ -4,7 +4,7 @@ YinYangVis is a visualization toolkit based on KVS for Yin-Yang-Zhong volume dat
 ## Requirements
 * [KVS](https://github.com/naohisas/KVS)
 
-## Building from sources
+## Compiling
 Clone the repository.
 ```bash
 $ git clone https://github.com/vizlab-kobe/YinYangVis.git
@@ -23,3 +23,5 @@ $ kvsmake -G
 $ kvsmake
 $ ./run.sh
 ```
+
+## Publications
