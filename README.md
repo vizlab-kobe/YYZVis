@@ -1,5 +1,5 @@
 # YinYangVis
-YinYangVis ia a set of visualization modues based on KVS for Yin-Yang-Zhong volume dataset.
+YinYangVis is a visualization toolkit based on KVS for Yin-Yang-Zhong volume dataset.
 
 ## Requirements
 * [KVS](https://github.com/naohisas/KVS)
