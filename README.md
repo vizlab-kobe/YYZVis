@@ -18,6 +18,7 @@ $ ./kvsmake.py
 
 Build applications with kvsmake in each application directory.
 ```bash
+e.g.) App/Isosurface
 $ cd App/Isosurface
 $ kvsmake -G
 $ kvsmake
