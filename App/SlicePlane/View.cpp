@@ -141,6 +141,7 @@ void View::setup_slices()
 
         Renderer* renderer = new Renderer();
         renderer->setEnabledShading( enable_shading );
+        renderer->setPolygonOffset( -0.001 );
         m_screen.registerObject( object, renderer );
     }
 }
