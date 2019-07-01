@@ -1,14 +1,13 @@
 # YinYangVis
-Yin-Yang Grid Data Visualization.
-This program requires that KVS has been installed.
+YinYangVis ia a set of visualization modues based on KVS for Yin-Yang-Zhong volume dataset.
 
-
-###Compiling Library
+## Compiling Library
 ```
 cd YinYangVis/Lib
 ./kvsmake.py
 ```
-###Compiling Application
+
+## Compiling Application
 ```
 cd YinYangVis/App/yin-yang-vis
 kvsmake -G
