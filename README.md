@@ -1,22 +1,25 @@
 # YinYangVis
 YinYangVis ia a set of visualization modues based on KVS for Yin-Yang-Zhong volume dataset.
 
-## Compiling Library
-```
-cd YinYangVis/Lib
-./kvsmake.py
+## Requirements
+* [KVS](https://github.com/naohisas/KVS)
+
+## Building from sources
+Clone the repository.
+```bash
+$ git clone https://github.com/vizlab-kobe/YinYangVis.git
 ```
 
-## Compiling Application
+Build the YinYangVis library required to compile each application in App.
+```bash
+$ cd Lib
+$ ./kvsmake.py
 ```
-cd YinYangVis/App/yin-yang-vis
-kvsmake -G
-kvsmake 
+
+Build applications with kvsmake in each application directory.
+```bash
+$ cd App/Isosurface
+$ kvsmake -G
+$ kvsmake
+$ ./run.sh
 ```
-###Run Application
-```
-sh run.sh
-```
-+ Put data in the YinYangVis directory with the same height.
-+ In run.sh "YIN_DATA_FILE,YANG_DATA_FILE,ZHONG_DATA_FILE",you write the data name.
-+ You can decide the repeat count by changing run.sh "NUMBER_OF_REPETITIONS".
