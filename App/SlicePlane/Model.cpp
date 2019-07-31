@@ -23,12 +23,20 @@ Model::Model( const local::Input& input ):
 {
     std::cout << "IMPORT VOLUMES ..." << std::endl;
 
+    // Import volume dataset.
     this->import_yin_volume();
     this->import_yang_volume();
     this->import_zhong_volume();
     this->update_min_max_values();
     this->update_min_max_coords();
 
+    // Initial slice plane.
+    const kvs::Vec3 point( 0, 0, 0 );
+    const kvs::Vec3 normal( 0, 0, 1 );
+    m_plane_point = point;
+    m_plane_normal = normal;
+
+    // Output information of volume dataset.
     const kvs::Indent indent( 4 );
     m_yin_volume.print( std::cout << "YIN VOLUME DATA" << std::endl, indent );
     m_yang_volume.print( std::cout << "YANG VOLUME DATA" << std::endl, indent );
@@ -103,10 +111,8 @@ kvs::PolygonObject* Model::newZhongSlice() const
 
 kvs::PolygonObject* Model::newSlice( const kvs::UnstructuredVolumeObject* volume ) const
 {
-    const kvs::Vec3 point( 0, 0, 0 );
-    const kvs::Vec3 normal( -1, 0, -1 );
     const kvs::TransferFunction& tfunc = m_input.tfunc;
-    return new kvs::SlicePlane( volume, point, normal, tfunc );
+    return new kvs::SlicePlane( volume, m_plane_point, m_plane_normal, tfunc );
 }
 
 void Model::import_yin_volume()

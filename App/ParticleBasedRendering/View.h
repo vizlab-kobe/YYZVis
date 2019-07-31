@@ -24,6 +24,7 @@ public:
     View( kvs::glut::Application* app, local::Model* model );
 
     kvs::glut::Screen& screen() { return m_screen; }
+    kvs::StochasticRenderingCompositor& compositor() { return m_compositor; }
     void setup();
     void show();
     void redraw();

@@ -2,7 +2,44 @@
 #include <kvs/StochasticLineRenderer>
 #include <kvs/ParticleBasedRenderer>
 #include <kvs/Light>
+#include <kvs/Math>
 
+#if defined( JSST2019_TEST )
+#include <kvs/PaintEventListener>
+namespace
+{
+
+class FPSTimer : public kvs::PaintEventListener
+{
+private:
+    local::View* m_view;
+
+public:
+    FPSTimer( local::View* view ):
+        m_view( view )
+    {
+    }
+
+    void update()
+    {
+        static int counter = 0;
+        static float elapse_time = 0.0f;
+        const int N = 50;
+        if ( counter == N )
+        {
+            std::cout << "FPS: " << counter / elapse_time << std::endl;
+            elapse_time = 0.0f;
+            counter = 0;
+        }
+        else
+        {
+            elapse_time += m_view->compositor().timer().sec();
+            counter++;
+        }
+    }
+};
+}
+#endif
 
 namespace local
 {
@@ -14,6 +51,21 @@ View::View( kvs::glut::Application* app, local::Model* model ):
 {
     this->setup();
     this->show();
+
+#if defined( JSST2019_TEST )
+    const kvs::Xform S = kvs::Xform::Scaling( kvs::Vec3::All( 1.3 ) );
+    const kvs::Xform R = kvs::Xform::Rotation( kvs::Mat3::RotationX( 30 ) * kvs::Mat3::RotationY( -40 ) );
+    const kvs::Xform x = S * R;
+    m_screen.scene()->object("YinMesh")->multiplyXform( x );
+    m_screen.scene()->object("YangMesh")->multiplyXform( x );
+    m_screen.scene()->object("YinEdge")->multiplyXform( x );
+    m_screen.scene()->object("YangEdge")->multiplyXform( x );
+    m_screen.scene()->object("ZhongEdge")->multiplyXform( x );
+    m_screen.scene()->object("YinVolume")->multiplyXform( x );
+    m_screen.scene()->object("YangVolume")->multiplyXform( x );
+    m_screen.scene()->object("ZhongVolume")->multiplyXform( x );
+    m_screen.addEvent( new FPSTimer( this ) );
+#endif
 }
 
 void View::setup()
@@ -27,7 +79,7 @@ void View::setup()
 
     const size_t repeats = m_model->input().repeats;
     m_compositor.setRepetitionLevel( repeats );
-    m_compositor.enableLODControl();
+//    m_compositor.enableLODControl();
     m_screen.setEvent( &m_compositor );
 }
 
@@ -124,6 +176,7 @@ void View::setup_particles()
         object->print( std::cout << "YIN PARTICLE DATA" << std::endl, indent );
 
         Renderer* renderer = new Renderer();
+        renderer->setName( "YinVolume" );
         renderer->setEnabledShading( enable_shading );
         m_screen.registerObject( object, renderer );
     }
@@ -135,6 +188,7 @@ void View::setup_particles()
         object->print( std::cout << "YANG PARTICLE DATA" << std::endl, indent );
 
         Renderer* renderer = new Renderer();
+        renderer->setName( "YangVolume" );
         renderer->setEnabledShading( enable_shading );
         m_screen.registerObject( object, renderer );
     }
@@ -146,6 +200,7 @@ void View::setup_particles()
         object->print( std::cout << "ZHONG PARTICLE DATA" << std::endl, indent );
 
         Renderer* renderer = new Renderer();
+        renderer->setName( "ZhongVolume" );
         renderer->setEnabledShading( enable_shading );
         m_screen.registerObject( object, renderer );
     }

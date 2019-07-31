@@ -39,6 +39,36 @@ public:
         {
             if ( state() ) { m_view->screen().scene()->object( m_name )->show(); }
             else { m_view->screen().scene()->object( m_name )->hide(); }
+
+#if defined( JSST2019_TEST )
+            if ( m_name == "YinIso" )
+            {
+                if ( state() ) { m_view->screen().scene()->object( "YinIso2" )->show(); }
+                else { m_view->screen().scene()->object( "YinIso2" )->hide(); }
+
+                if ( state() ) { m_view->screen().scene()->object( "YinIso3" )->show(); }
+                else { m_view->screen().scene()->object( "YinIso3" )->hide(); }
+            }
+
+            if ( m_name == "YangIso" )
+            {
+                if ( state() ) { m_view->screen().scene()->object( "YangIso2" )->show(); }
+                else { m_view->screen().scene()->object( "YangIso2" )->hide(); }
+
+                if ( state() ) { m_view->screen().scene()->object( "YangIso3" )->show(); }
+                else { m_view->screen().scene()->object( "YangIso3" )->hide(); }
+            }
+
+            if ( m_name == "ZhongIso" )
+            {
+                if ( state() ) { m_view->screen().scene()->object( "ZhongIso2" )->show(); }
+                else { m_view->screen().scene()->object( "ZhongIso2" )->hide(); }
+
+                if ( state() ) { m_view->screen().scene()->object( "ZhongIso3" )->show(); }
+                else { m_view->screen().scene()->object( "ZhongIso3" )->hide(); }
+            }
+#endif
+
         }
     }
 };
@@ -149,6 +179,12 @@ public:
     {
         kvs::Slider::show();
         m_label.show();
+    }
+
+    void hide()
+    {
+        kvs::Slider::hide();
+        m_label.hide();
     }
 
     void sliderReleased()

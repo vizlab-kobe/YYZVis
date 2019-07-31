@@ -4,6 +4,7 @@
 #include <YinYangVis/Lib/ZhongGridSampling.h>
 #include <kvs/ExternalFaces>
 #include <kvs/Isosurface>
+#include <kvs/PolygonToPolygon>
 #include <kvs/SmartPointer>
 #include <kvs/Indent>
 
@@ -115,7 +116,16 @@ kvs::PolygonObject* Model::newIsosurfaces( const kvs::UnstructuredVolumeObject* 
     const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
     const bool d = true;
     const kvs::TransferFunction& tfunc = m_input.tfunc;
+#if defined( JSST2019_TEST )
+    kvs::PolygonObject* temp = new kvs::Isosurface( volume, isovalue, n, d, tfunc );
+    kvs::PolygonObject* object = new kvs::PolygonToPolygon( temp );
+    object->setMinMaxObjectCoords( temp->minObjectCoord(), temp->maxObjectCoord() );
+    object->setMinMaxExternalCoords( temp->minExternalCoord(), temp->maxExternalCoord() );
+    delete temp;
+    return object;
+#else
     return new kvs::Isosurface( volume, isovalue, n, d, tfunc );
+#endif
 }
 
 void Model::import_yin_volume()

@@ -28,11 +28,21 @@ private:
     YinVolume m_yin_volume; ///< yin volume data
     YangVolume m_yang_volume; ///< yang volume data
     ZhongVolume m_zhong_volume; ///< zhong volume data
+    kvs::Vec3 m_plane_point; ///< point on the slice plane
+    kvs::Vec3 m_plane_normal; ///< normal vector of the slice plane
 
 public:
     Model( const local::Input& input );
 
     const local::Input& input() const { return m_input; }
+    const YinVolume& constYinVolume() const { return m_yin_volume; }
+    const YangVolume& constYangVolume() const { return m_yang_volume; }
+    const ZhongVolume& constZhongVolume() const { return m_zhong_volume; }
+
+    const kvs::Vec3& planePoint() const { return m_plane_point; }
+    const kvs::Vec3& planeNormal() const { return m_plane_normal; }
+    void setPlane( const kvs::Vec3& p, const kvs::Vec3& n ) { m_plane_point = p; m_plane_normal = n; }
+
     YinVolume* newYinVolume() const { return new YinVolume( m_yin_volume ); }
     YangVolume* newYangVolume() const { return new YangVolume( m_yang_volume ); }
     ZhongVolume* newZhongVolume() const { return new ZhongVolume( m_zhong_volume ); }
