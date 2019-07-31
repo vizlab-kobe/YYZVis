@@ -37,6 +37,35 @@ public:
         {
             if ( state() ) { m_view->screen().scene()->object( m_name )->show(); }
             else { m_view->screen().scene()->object( m_name )->hide(); }
+
+#if defined( JSST2019_TEST )
+            if ( m_name == "YinSlice" )
+            {
+                if ( state() ) { m_view->screen().scene()->object( "YinSlice2" )->show(); }
+                else { m_view->screen().scene()->object( "YinSlice2" )->hide(); }
+
+                if ( state() ) { m_view->screen().scene()->object( "YinSlice3" )->show(); }
+                else { m_view->screen().scene()->object( "YinSlice3" )->hide(); }
+            }
+
+            if ( m_name == "YangSlice" )
+            {
+                if ( state() ) { m_view->screen().scene()->object( "YangSlice2" )->show(); }
+                else { m_view->screen().scene()->object( "YangSlice2" )->hide(); }
+
+                if ( state() ) { m_view->screen().scene()->object( "YangSlice3" )->show(); }
+                else { m_view->screen().scene()->object( "YangSlice3" )->hide(); }
+            }
+
+            if ( m_name == "ZhongSlice" )
+            {
+                if ( state() ) { m_view->screen().scene()->object( "ZhongSlice2" )->show(); }
+                else { m_view->screen().scene()->object( "ZhongSlice2" )->hide(); }
+
+                if ( state() ) { m_view->screen().scene()->object( "ZhongSlice3" )->show(); }
+                else { m_view->screen().scene()->object( "ZhongSlice3" )->hide(); }
+            }
+#endif
         }
     }
 };

@@ -68,7 +68,6 @@ public:
                 else { m_view->screen().scene()->object( "ZhongIso3" )->hide(); }
             }
 #endif
-
         }
     }
 };
