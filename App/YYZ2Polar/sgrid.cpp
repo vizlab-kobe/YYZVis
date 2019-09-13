@@ -7,11 +7,11 @@
 namespace local
 {
   Sgrid::Sgrid( const YinYangVis::YinYangVolumeObject& object )
-  {
+  { 
     this->ogrid__make( object );
     this->sgrid__make();
     this->sgrid__localize();
-    this->mapping__localize();
+  // this->mapping__localize();
   }
 
   void Sgrid::ogrid__make( const YinYangVis::YinYangVolumeObject& object )
@@ -32,7 +32,6 @@ namespace local
     ogrid__range_r = object.rangeR();
     ogrid__range_theta = object.rangeTheta();
     ogrid__range_phi = object.rangePhi();
-    
   }
 
   void Sgrid::set_o_nrtp( const YinYangVis::YinYangVolumeObject& object )
@@ -40,24 +39,31 @@ namespace local
     ogrid__size.nr = object.dimR();
     ogrid__size.nt = object.dimTheta();
     ogrid__size.np = object.dimPhi();
+  
+      ogrid__rad.allocate(ogrid__size.nr);
+      ogrid__theta.allocate(ogrid__size.nt);
+      ogrid__phi.allocate(ogrid__size.np);
   }
 
   void Sgrid::set_o_metric()
   {
     int i, j, k;
-
+      
     for ( i = 0; i < ogrid__size.nr; i++ )
       {
-	ogrid__rad[i] = ogrid__range_r.min + ogrid__range_r.d * i;
+	  ogrid__rad[i] = ogrid__range_r.min + ogrid__range_r.d * i;
       }
+     
     for ( j = 0; j < ogrid__size.nt; j++ )
       {
 	ogrid__theta[j] = OGRID__THETA_FROM + ogrid__range_theta.d * j; 
       }
+     
     for ( k = 0; k < ogrid__size.np; k++ )
       {
 	ogrid__phi[k] = OGRID__PHI_FROM + ogrid__range_phi.d * k;
       }
+      
   }
   void Sgrid::set_minmax()
   {
@@ -118,6 +124,14 @@ namespace local
 	sgrid__size%nr,              &
 	sgrid__size%nt,              &
 	sgrid__size%np)*/
+
+    sgrid__rad.allocate(sgrid__size.nr);
+    sgrid__theta.allocate(sgrid__size.nt);
+    sgrid__phi.allocate(sgrid__size.np);
+    sgrid__sintht.allocate(sgrid__size.nt);
+    sgrid__sinphi.allocate(sgrid__size.np);
+    sgrid__costht.allocate(sgrid__size.nt);
+    sgrid__cosphi.allocate(sgrid__size.np);
   }
     
   void Sgrid::set_drtp()
@@ -125,16 +139,16 @@ namespace local
     sgrid__drad = ( sgrid__rad_max - sgrid__rad_min ) / sgrid__size.nr - 1;
     sgrid__dtht = ( sgrid__tht_max - sgrid__tht_min ) / sgrid__size.nt - 1;
     sgrid__dphi = ( sgrid__phi_max - sgrid__phi_min ) / sgrid__size.np - 1;
+
   }
     
   void Sgrid::set_metric()
   {
     int i, j, k;
     float tht, phi;
-    //   size_t nr = sgrid__size.nr;
-    //kvs::ValueArray<float> sgrid__rad( nr );
-    //kvs::ValueArray<float> sgrid__theta( sgrid__size.nt );
-	
+    //  size_t nr = sgrid__size.nr;
+    //  kvs::ValueArray<float> sgrid__rad( nr );
+    //  kvs::ValueArray<float> sgrid__theta( sgrid__size.nt );
     for ( i = 0; i < sgrid__size.nr; i++ )
       {
 	sgrid__rad[i] = sgrid__rad_min + sgrid__drad * i;

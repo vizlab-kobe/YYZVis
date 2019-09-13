@@ -8,10 +8,8 @@ kvs::StructuredVolumeObject Convert(
     YinYangVis::YinYangVolumeObject& yin_volume,
     YinYangVis::YinYangVolumeObject& yang_volume,
     YinYangVis::ZhongVolumeObject& zhong_volume )
-{
-    
+{   
     local::Sgrid sgrid( yin_volume );
-    
     // Vector length
     //const int veclen = 1;
 
