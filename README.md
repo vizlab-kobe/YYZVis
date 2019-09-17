@@ -25,3 +25,5 @@ $ ./run.sh
 ```
 
 ## Publications
+
+1. Kaoru Uemori, Naohisa Sakamoto, Nobuaki Ohno, Akira Kageyama, An Interactive Visualization Toolkit for Yin-Yang-Zhong Grid Dataset, The 38th JSST Annual International Conference on Simulation Technology (JSST2019), (Accepted), 2019. [[repo](https://github.com/vizlab-kobe-paper/2019_JSST__KaoruUemori)]
