@@ -1,4 +1,5 @@
 #include <kvs/ValueArray>
+#include <vector>
 #include <kvs/AnyValueArray>
 #include <YinYangVis/Lib/YinYangVolumeObject.h>
 
@@ -18,10 +19,11 @@ namespace local
      Ogrid__size ogrid__size;
      
   public:
+    
     kvs::ValueArray<float> sgrid__cosphi, sgrid__costht, sgrid__sinphi, sgrid__sintht;
     kvs::ValueArray<float> sgrid__rad, sgrid__theta, sgrid__phi;
 
-    kvs::ValueArray<float> sgrid__value;
+    std::vector<float> sgrid__value;
 
     kvs::ValueArray<float> ogrid__rad, ogrid__theta, ogrid__phi;
 
@@ -65,11 +67,11 @@ namespace local
     void set_o_metric( const YinYangVis::YinYangVolumeObject& object );
 
     void mapping__localize();
-    void iFind(float rad, float tht, float phi, int i, int j, int k );
+    void iFind( float rad, float tht, float phi, int index );
     void sgrid__rtp2xyz ( float rad, float tht, float phi, float cart[3] );
     void sgrid__xyz2rtp(float cart[3], float polar[3]);
-    void ogrid__find_near_corner(float rad,float theta,float phi);
-    void ogrid_to_sgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1);
+    void ogrid__find_near_corner( float rad, float theta, float phi, int index );
+    void ogrid_to_sgrid_localize( int i1, int j1, int k1, float wr1, float wt1, float wp1, float rad, float tht, float phi, int index );
   };
 }  // end of namespace local
 

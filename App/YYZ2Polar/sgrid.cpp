@@ -2,6 +2,7 @@
 #include <YinYangVis/Lib/YinYangVolumeObject.h>
 #include <kvs/ValueArray>
 #include <kvs/AnyValueArray>
+#include <vector>
 #include <math.h>
 
 namespace local
@@ -12,7 +13,6 @@ namespace local
     this->sgrid__make();
     this->sgrid__localize();
     this->mapping__localize();
-    std::cout << "finish" << std::endl;
   }
 
   void Sgrid::ogrid__make( const YinYangVis::YinYangVolumeObject& object )
@@ -137,8 +137,13 @@ namespace local
     sgrid__sinphi.allocate(sgrid__size.np);
     sgrid__costht.allocate(sgrid__size.nt);
     sgrid__cosphi.allocate(sgrid__size.np);
-
-    sgrid__value.allocate(sgrid__size.nr * sgrid__size.nt * sgrid__size.np);
+   
+    sgrid__value.reserve(sgrid__size.nr*sgrid__size.nt*sgrid__size.np);
+    for(int i = 0; i<sgrid__size.nr*sgrid__size.nt*sgrid__size.np; i++)
+      {
+	sgrid__value.push_back(0);
+      }
+    //    sgrid__value.allocate(sgrid__size.nr * sgrid__size.nt * sgrid__size.np);
   }
     
   void Sgrid::set_drtp()
@@ -204,7 +209,7 @@ namespace local
   {
     int i, j, k;
     float rad, tht, phi;
-
+    int index = 0;
     for( k = 0; k < sgrid__size.np; k++ )
       {
         phi = sgrid__phi[k];
@@ -220,19 +225,19 @@ namespace local
 		std::cout << tht << std::endl;
 		std::cout << "phi=";
 		std::cout << phi << std::endl;*/
-	        this->iFind( rad, tht, phi, i, j, k );
+	        this->iFind( rad, tht, phi, index );
+		index++;
 	      }
 	  }
       }
   }
 
-  void Sgrid::iFind(float rad, float tht, float phi, int i, int j, int k )
+  void Sgrid::iFind(float rad, float tht, float phi, int index )
   {
     float cart[3];     //{ x, y, z }
     int i1, j1, k1;
 
     float polar[3];    //{ r, t, p }
-    float wr1, wt1, wp1;
     float wx1, wy1, wz1;
 
 
@@ -259,13 +264,8 @@ namespace local
 	  }
     
     this->sgrid__xyz2rtp( cart, polar );
-    /*	std::cout << "polar[0]=";
-    std::cout << polar[0] << std::endl;
-    std::cout << "polar[1]=";
-    std::cout << polar[1] << std::endl;
-    std::cout << "polar[2]=";
-    std::cout << polar[2] << std::endl;*/
-      this->ogrid__find_near_corner( polar[0], polar[1], polar[2] );
+   
+    this->ogrid__find_near_corner( polar[0], polar[1], polar[2], index);
       //std::cout << "finish" << std::endl;
       }
  
@@ -318,12 +318,12 @@ namespace local
 
   }
 
-  void Sgrid::ogrid__find_near_corner( float rad,float theta,float phi )
+  void Sgrid::ogrid__find_near_corner( float rad,float theta,float phi,int index  )
   {                            
     int i1, j1, k1;                         
     float wr1, wt1, wp1;          
-     
-    int nr, nt, np, i, j, k;
+    int i, j, k; 
+    int nr, nt, np;
       //real(DP), parameter :: ERROR_MARK = -2007.0605_DP
 
     nr = ogrid__size.nr;
@@ -358,47 +358,48 @@ namespace local
 	    wp1 = (ogrid__phi[k+1]-phi)/ogrid__range_phi.d;
 	    break;
 	  }
-      } 
-    /*std::cout << "i1=";
-    std::cout <<i1 << std::endl;
-    std::cout << "j1=";
-    std::cout << j1 << std::endl;
-    std::cout << "k1]=";
-    std::cout <<k1 << std::endl;*/
-     this-> ogrid_to_sgrid_localize( i1, j1, k1, wr1, wt1, wp1 );
-    
       }
-  void Sgrid::ogrid_to_sgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1)
+   
+    this-> ogrid_to_sgrid_localize( i1, j1, k1, wr1, wt1, wp1, rad, theta, phi,index );
+   
+      }
+  void Sgrid::ogrid_to_sgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1, float rad, float tht, float phi, int index )
    {
-     float w;
+     float wr2, wt2, wp2;
+     float w[8];
      float v[8];
+     float value;
      size_t a = k1*ogrid__size.nr*ogrid__size.nt + j1*ogrid__size.nr + i1 ;
      
+     wr2 = 1 - wr1;
+     wt2 = 1 - wt1;
+     wp2 = 1 - wp1;
+
      v[0] = ogrid__value.at<float>( a );   
      v[1] = ogrid__value.at<float>( a + 1 );
-     v[2] = ogrid__value.at<float>( a + (ogrid__size.nr*ogrid__size.nt) );
-     v[3] = ogrid__value.at<float>( a + (ogrid__size.nr*ogrid__size.nt) + 1);
-     v[4] = ogrid__value.at<float>( a + ogrid__size.nr );
-     v[5] = ogrid__value.at<float>( a + ogrid__size.nr + 1 );
+     v[2] = ogrid__value.at<float>( a + ogrid__size.nr );
+     v[3] = ogrid__value.at<float>( a + ogrid__size.nr + 1 );
+     v[4] = ogrid__value.at<float>( a + (ogrid__size.nr*ogrid__size.nt) );
+     v[5] = ogrid__value.at<float>( a + (ogrid__size.nr*ogrid__size.nt) + 1 );
      v[6] = ogrid__value.at<float>( a + ogrid__size.nr + (ogrid__size.nr*ogrid__size.nt) );
      v[7] = ogrid__value.at<float>( a + ogrid__size.nr + (ogrid__size.nr*ogrid__size.nt) + 1 );
 
-     /*std::cout << "v[0]=";
-    std::cout << v[0] << std::endl;
-    std::cout << "v[1]=";
-    std::cout << v[1] << std::endl;
-    std::cout << "v[2]=";
-    std::cout << v[2] << std::endl;
-     std::cout << "v[3]=";
-    std::cout << v[3] << std::endl;
-    std::cout << "v[4]=";
-    std::cout << v[4] << std::endl;
-    std::cout << "v[5]=";
-    std::cout << v[5] << std::endl;
-     std::cout << "v[6]=";
-    std::cout << v[6] << std::endl;
-    std::cout << "v[7]=";
-    std::cout << v[7] << std::endl;*/
+     
+     w[0] = wr1 * wt1 * wp1;
+     w[1] = wr2 * wt1 * wp1;
+     w[2] = wr1 * wt2 * wp1;
+     w[3] = wr2 * wt2 * wp1;
+     w[4] = wr1 * wt1 * wp2;
+     w[5] = wr2 * wt1 * wp2;
+     w[6] = wr1 * wt2 * wp2;
+     w[7] = wr2 * wt2 * wp2;
 
+     value = v[0] * w[0] + v[1] * w[1]
+           + v[2] * w[2] + v[3] * w[3]
+           + v[4] * w[4] + v[5] * w[5]
+           + v[6] * w[6] + v[7] * w[7];
+
+     sgrid__value[index] = value;
+   
    }
 }  // end of namespace local

@@ -26,7 +26,7 @@ kvs::StructuredVolumeObject Convert(
     //object.setGridTypeToCurvilinear();
     //object.setVeclen( veclen );
     //object.setResolution( resolution );
-    //object.setValues( values );
+    //    object.setValues( sgrid.sgrid__value );
     return object;
 }
 
