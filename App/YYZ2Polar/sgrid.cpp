@@ -1,7 +1,7 @@
 #include "sgrid.h"
 #include <YinYangVis/Lib/YinYangVolumeObject.h>
 #include <kvs/ValueArray>
-//#include <bits/stdc++.h>
+#include <kvs/AnyValueArray>
 #include <math.h>
 
 namespace local
@@ -11,7 +11,8 @@ namespace local
     this->ogrid__make( object );
     this->sgrid__make();
     this->sgrid__localize();
-  // this->mapping__localize();
+    this->mapping__localize();
+    std::cout << "finish" << std::endl;
   }
 
   void Sgrid::ogrid__make( const YinYangVis::YinYangVolumeObject& object )
@@ -19,7 +20,7 @@ namespace local
     this->set_o_minmax( object );
     this->set_o_nrtp( object );
     //  this->set_o_drtp();
-    this->set_o_metric();
+    this->set_o_metric( object );
     
   }
   void Sgrid::set_o_minmax( const YinYangVis::YinYangVolumeObject& object )
@@ -43,9 +44,10 @@ namespace local
       ogrid__rad.allocate(ogrid__size.nr);
       ogrid__theta.allocate(ogrid__size.nt);
       ogrid__phi.allocate(ogrid__size.np);
+      //  ogrid__value.allocate( ogrid__size.nr * ogrid__size.nt * ogrid__size.np );
   }
 
-  void Sgrid::set_o_metric()
+  void Sgrid::set_o_metric( const YinYangVis::YinYangVolumeObject& object )
   {
     int i, j, k;
       
@@ -63,6 +65,9 @@ namespace local
       {
 	ogrid__phi[k] = OGRID__PHI_FROM + ogrid__range_phi.d * k;
       }
+   
+    ogrid__value = object.values();
+
       
   }
   void Sgrid::set_minmax()
@@ -132,13 +137,15 @@ namespace local
     sgrid__sinphi.allocate(sgrid__size.np);
     sgrid__costht.allocate(sgrid__size.nt);
     sgrid__cosphi.allocate(sgrid__size.np);
+
+    sgrid__value.allocate(sgrid__size.nr * sgrid__size.nt * sgrid__size.np);
   }
     
   void Sgrid::set_drtp()
   {
-    sgrid__drad = ( sgrid__rad_max - sgrid__rad_min ) / sgrid__size.nr - 1;
-    sgrid__dtht = ( sgrid__tht_max - sgrid__tht_min ) / sgrid__size.nt - 1;
-    sgrid__dphi = ( sgrid__phi_max - sgrid__phi_min ) / sgrid__size.np - 1;
+    sgrid__drad = ( sgrid__rad_max - sgrid__rad_min ) / (sgrid__size.nr - 1);
+    sgrid__dtht = ( sgrid__tht_max - sgrid__tht_min ) / (sgrid__size.nt - 1);
+    sgrid__dphi = ( sgrid__phi_max - sgrid__phi_min ) / (sgrid__size.np - 1);
 
   }
     
@@ -207,6 +214,12 @@ namespace local
 	    for( i = 0; i < sgrid__size.nr; i++ )
 	      {
 		rad = sgrid__rad[i];
+		/*		std::cout << "rad=";
+				std::cout << rad << std::endl;*/
+		/*std::cout << "the=";
+		std::cout << tht << std::endl;
+		std::cout << "phi=";
+		std::cout << phi << std::endl;*/
 	        this->iFind( rad, tht, phi, i, j, k );
 	      }
 	  }
@@ -224,7 +237,7 @@ namespace local
 
 
     this->sgrid__rtp2xyz( rad, tht, phi, cart );
-    
+   
     if ( cart[0]*cart[0] + cart[1]*cart[1] + cart[2]*cart[2] >= ogrid__range_r.max )
       {
 	return;
@@ -246,10 +259,14 @@ namespace local
 	  }
     
     this->sgrid__xyz2rtp( cart, polar );
-
-    //this->ogrid__find_near_corner(r,t,p,i1,j1,k1,wr1,wt1,wp1);
-    // this->ogrid_to_sgrid_localize(i, j, k,i1, j1, k1,wr1,wt1,wp1);
-
+    /*	std::cout << "polar[0]=";
+    std::cout << polar[0] << std::endl;
+    std::cout << "polar[1]=";
+    std::cout << polar[1] << std::endl;
+    std::cout << "polar[2]=";
+    std::cout << polar[2] << std::endl;*/
+      this->ogrid__find_near_corner( polar[0], polar[1], polar[2] );
+      //std::cout << "finish" << std::endl;
       }
  
   void Sgrid::sgrid__rtp2xyz( float rad, float tht, float phi, float cart[3] )
@@ -257,12 +274,10 @@ namespace local
     cart[0] = rad*sin(tht)*cos(phi);
     cart[1] = rad*sin(tht)*sin(phi);
     cart[2] = rad*cos(tht);
-
   }
 
   void Sgrid::sgrid__xyz2rtp( float cart[3],float polar[3] )
   {
-    float rad;
     float x, y, z;
     float r, t, p;
 
@@ -271,9 +286,9 @@ namespace local
     x = cart[0];
     y = cart[1];
     z = cart[2];
-
-    rad = sqrt( x*x + y*y + z*z );
-
+  
+    r = sqrt(  x*x + y*y + z*z );
+ 
     t = acos( z/r );
 
     flag = "YANG";   //default
@@ -303,10 +318,10 @@ namespace local
 
   }
 
-  void Sgrid::ogrid__find_near_corner(float rad,float theta,float phi,int i1,int j1,int k1,float wr1,float wt1,float wp1)
+  void Sgrid::ogrid__find_near_corner( float rad,float theta,float phi )
   {                            
-    //   integer,  intent(out) :: i1, j1, k1                                  
-    //real(DP), intent(out) :: wr1, wt1, wp1             
+    int i1, j1, k1;                         
+    float wr1, wt1, wp1;          
      
     int nr, nt, np, i, j, k;
       //real(DP), parameter :: ERROR_MARK = -2007.0605_DP
@@ -343,7 +358,47 @@ namespace local
 	    wp1 = (ogrid__phi[k+1]-phi)/ogrid__range_phi.d;
 	    break;
 	  }
+      } 
+    /*std::cout << "i1=";
+    std::cout <<i1 << std::endl;
+    std::cout << "j1=";
+    std::cout << j1 << std::endl;
+    std::cout << "k1]=";
+    std::cout <<k1 << std::endl;*/
+     this-> ogrid_to_sgrid_localize( i1, j1, k1, wr1, wt1, wp1 );
+    
       }
-      }
-      
+  void Sgrid::ogrid_to_sgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1)
+   {
+     float w;
+     float v[8];
+     size_t a = k1*ogrid__size.nr*ogrid__size.nt + j1*ogrid__size.nr + i1 ;
+     
+     v[0] = ogrid__value.at<float>( a );   
+     v[1] = ogrid__value.at<float>( a + 1 );
+     v[2] = ogrid__value.at<float>( a + (ogrid__size.nr*ogrid__size.nt) );
+     v[3] = ogrid__value.at<float>( a + (ogrid__size.nr*ogrid__size.nt) + 1);
+     v[4] = ogrid__value.at<float>( a + ogrid__size.nr );
+     v[5] = ogrid__value.at<float>( a + ogrid__size.nr + 1 );
+     v[6] = ogrid__value.at<float>( a + ogrid__size.nr + (ogrid__size.nr*ogrid__size.nt) );
+     v[7] = ogrid__value.at<float>( a + ogrid__size.nr + (ogrid__size.nr*ogrid__size.nt) + 1 );
+
+     /*std::cout << "v[0]=";
+    std::cout << v[0] << std::endl;
+    std::cout << "v[1]=";
+    std::cout << v[1] << std::endl;
+    std::cout << "v[2]=";
+    std::cout << v[2] << std::endl;
+     std::cout << "v[3]=";
+    std::cout << v[3] << std::endl;
+    std::cout << "v[4]=";
+    std::cout << v[4] << std::endl;
+    std::cout << "v[5]=";
+    std::cout << v[5] << std::endl;
+     std::cout << "v[6]=";
+    std::cout << v[6] << std::endl;
+    std::cout << "v[7]=";
+    std::cout << v[7] << std::endl;*/
+
+   }
 }  // end of namespace local
