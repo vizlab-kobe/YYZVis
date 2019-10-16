@@ -1,5 +1,5 @@
 #include "Convert.h"
-#include "Sgrid.h"
+#include "sgrid.h"
 
 namespace local
 {
@@ -10,8 +10,6 @@ kvs::StructuredVolumeObject Convert(
     YinYangVis::ZhongVolumeObject& zhong_volume )
 {   
   local::Sgrid sgrid( yin_volume, yang_volume, zhong_volume );
-    // sgrid( yang_volume );
-    
     // Vector length
     const int veclen = 1;
     int dim_r, dim_t, dim_p;

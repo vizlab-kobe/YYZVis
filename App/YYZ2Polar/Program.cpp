@@ -137,6 +137,7 @@ int Program::exec( int argc, char** argv )
     const bool ascii = false;
     kvs::StructuredVolumeObject cart_volume = local::Convert( yin_volume, yang_volume, zhong_volume );
     cart_volume.print( std::cout << "STRUCTURED VOLUME DATA" << std::endl, indent );
+    
     // cart_volume.write( input.filename_output, ascii );
 
     return 0;

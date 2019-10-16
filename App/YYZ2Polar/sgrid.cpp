@@ -13,7 +13,7 @@ namespace local
     this->ogrid__make( yin_volume );
     this->igrid__make( zhong_volume ); 
     this->sgrid__make();
-    this->sgrid__localize();
+    this->sgrid__localize();   
     this->mapping__localize();
     this->ogrid__make( yang_volume );
     this->mapping__localize();
@@ -63,11 +63,11 @@ for ( int i = 0; i < igrid__dim; i++ )
 
   void Sgrid::set_o_minmax( const YinYangVis::YinYangVolumeObject& yoy_object )
   {
-    OGRID__THETA_FROM = M_PI/4;
-    OGRID__THETA_TO   = M_PI - M_PI/4;
-    OGRID__PHI_FROM   = -(3*M_PI)/4.0;
-    OGRID__PHI_TO     =  (3*M_PI)/4.0;// この辺全部いらない
-        
+    OGRID__THETA_FROM = yoy_object.rangeTheta().min;
+    OGRID__THETA_TO = yoy_object.rangeTheta().max;
+    OGRID__PHI_FROM = yoy_object.rangePhi().min;
+    OGRID__PHI_TO = yoy_object.rangePhi().max;
+       
     ogrid__range_r = yoy_object.rangeR();
     ogrid__range_theta = yoy_object.rangeTheta();
     ogrid__range_phi = yoy_object.rangePhi();
@@ -82,7 +82,6 @@ for ( int i = 0; i < igrid__dim; i++ )
       ogrid__rad.allocate(ogrid__size.nr);
       ogrid__theta.allocate(ogrid__size.nt);
       ogrid__phi.allocate(ogrid__size.np);
-      //  ogrid__value.allocate( ogrid__size.nr * ogrid__size.nt * ogrid__size.np );
   }
 
   void Sgrid::set_o_metric( const YinYangVis::YinYangVolumeObject& yoy_object )
@@ -118,13 +117,13 @@ for ( int i = 0; i < igrid__dim; i++ )
     // Changed by Yoshiki Ueda on 2017.06.23
     //sgrid__tht_min = SGRID__THETA_FROM + ogrid__dtht / 2;
     //sgrid__tht_max = SGRID__THETA_TO - ogrid__dtht / 2;
-    sgrid__tht_min = SGRID__THETA_FROM + ogrid__range_theta.d / 10000;
-    sgrid__tht_max = SGRID__THETA_TO - ogrid__range_theta.d / 10000;
+    sgrid__tht_min = SGRID__THETA_FROM + ogrid__range_theta.d / 2;
+    sgrid__tht_max = SGRID__THETA_TO - ogrid__range_theta.d / 2;
         
     sgrid__phi_min = SGRID__PHI_FROM + ogrid__range_phi.d / 2;
     // Changed by Yoshiki Ueda on 2017.06.23
-    // sgrid__phi_max = SGRID__PHI_TO - ogrid__dphi / 2;
-    sgrid__phi_max = SGRID__PHI_TO + ogrid__range_phi.d / 2;
+    // sgrid__phi_max = SGRID__PHI_TO + ogrid__dphi / 2;
+    sgrid__phi_max = SGRID__PHI_TO - ogrid__range_phi.d / 2;
 
   }
     
@@ -146,12 +145,12 @@ for ( int i = 0; i < igrid__dim; i++ )
     drad = rad_culling * ogrid__range_r.d;
     dtht = tht_culling * ogrid__range_theta.d;
     dphi = phi_culling * ogrid__range_phi.d;
-        
+
     sgrid__size.nr = ( sgrid__rad_max - sgrid__rad_min ) / drad + 1;
     sgrid__size.nt = ( sgrid__tht_max - sgrid__tht_min ) / dtht + 1;
     sgrid__size.np = ( sgrid__phi_max - sgrid__phi_min ) / dphi + 1;
         
-    if ( sgrid__size.nt%2 == 1 )
+    /*  if ( sgrid__size.nt%2 == 1 )
       {
 	sgrid__size.nt = sgrid__size.nt + 1;
       }
@@ -159,15 +158,11 @@ for ( int i = 0; i < igrid__dim; i++ )
     if ( sgrid__size.np%2 == 1 )
       {
 	sgrid__size.np = sgrid__size.np + 1;
-      }
+	}*/
 
     sgrid__rad.allocate(sgrid__size.nr);
     sgrid__theta.allocate(sgrid__size.nt);
     sgrid__phi.allocate(sgrid__size.np);
-    sgrid__sintht.allocate(sgrid__size.nt);
-    sgrid__sinphi.allocate(sgrid__size.np);
-    sgrid__costht.allocate(sgrid__size.nt);
-    sgrid__cosphi.allocate(sgrid__size.np);
    
     sgrid__values.reserve(sgrid__size.nr*sgrid__size.nt*sgrid__size.np);
     sgrid__coords.reserve(3*sgrid__size.nr*sgrid__size.nt*sgrid__size.np);
@@ -176,7 +171,7 @@ for ( int i = 0; i < igrid__dim; i++ )
       {
 	sgrid__values.push_back(0);
       }
-    //    sgrid__value.allocate(sgrid__size.nr * sgrid__size.nt * sgrid__size.np);
+
   }
     
   void Sgrid::set_drtp()
@@ -190,7 +185,7 @@ for ( int i = 0; i < igrid__dim; i++ )
   void Sgrid::set_metric()
   {
     int i, j, k;
-    
+
     for ( i = 0; i < sgrid__size.nr; i++ )
       {
 	sgrid__rad[i] = sgrid__rad_min + sgrid__drad * i;
@@ -235,15 +230,11 @@ for ( int i = 0; i < igrid__dim; i++ )
     for ( j = 0; j < sgrid__size.nt; j++)
       {
 	tht = sgrid__theta[j];
-	sgrid__sintht[j] = sin(tht);
-	sgrid__costht[j] = cos(tht);
       }
         
     for ( k = 0; k < sgrid__size.np; k++)
       {
 	phi = sgrid__phi[k];
-	sgrid__sinphi[k] = sin(phi);
-	sgrid__cosphi[k] = cos(phi);
       }
 	
   }
@@ -253,6 +244,7 @@ for ( int i = 0; i < igrid__dim; i++ )
     int i, j, k;
     float rad, tht, phi;
     int index = 0;
+    
     for( k = 0; k < sgrid__size.np; k++ )
       {
         phi = sgrid__phi[k];
@@ -276,8 +268,7 @@ for ( int i = 0; i < igrid__dim; i++ )
 
     float polar[3];    //{ r, t, p }
     float wx1, wy1, wz1;
-
-
+    
     this->sgrid__rtp2xyz( rad, tht, phi, cart );
    
     if ( cart[0]*cart[0] + cart[1]*cart[1] + cart[2]*cart[2] >= ogrid__range_r.max )
@@ -298,9 +289,9 @@ for ( int i = 0; i < igrid__dim; i++ )
 	this->igrid_to_sgrid_localize(i1, j1, k1, wx1, wy1, wz1, index);      
 	return;
 	  }
-    
+
     this->sgrid__xyz2rtp( cart, polar );
-   
+
     this->ogrid__find_near_corner( polar[0], polar[1], polar[2], index);
       }
  
@@ -337,14 +328,13 @@ for ( int i = 0; i < igrid__dim; i++ )
 	  }
       }
 
-    if ( flag ==  "YIN" )
+    if ( flag ==  "YANG" )
       {
 	float x_ = -x;
 	float y_ = z;
 	float z_ = y;
 	t = acos( z_/r );
 	p = atan2( y_, x_ );
-      
       }
     
     polar[0] = r;
@@ -396,7 +386,6 @@ for ( int i = 0; i < igrid__dim; i++ )
     float wr1, wt1, wp1;          
     int i, j, k; 
     int nr, nt, np;
-      //real(DP), parameter :: ERROR_MARK = -2007.0605_DP
 
     nr = ogrid__size.nr;
     nt = ogrid__size.nt;
@@ -419,7 +408,7 @@ for ( int i = 0; i < igrid__dim; i++ )
 	    j1 = j;
 	    wt1 = (ogrid__theta[j+1]-theta)/ogrid__range_theta.d;
 	    break;
-	  }
+	  } 
       }
 
     for ( k = 0; k < np-2; k++ )
@@ -442,7 +431,7 @@ for ( int i = 0; i < igrid__dim; i++ )
      float v[8];
      float value;
      size_t a = k1*ogrid__size.nr*ogrid__size.nt + j1*ogrid__size.nr + i1 ;
-     
+
      wr2 = 1 - wr1;
      wt2 = 1 - wt1;
      wp2 = 1 - wp1;
@@ -472,7 +461,6 @@ for ( int i = 0; i < igrid__dim; i++ )
            + v[6] * w[6] + v[7] * w[7];
 
      sgrid__values[index] = value;
-   
    }
 
   void Sgrid::igrid_to_sgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1, int index )

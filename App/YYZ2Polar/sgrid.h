@@ -21,7 +21,6 @@ namespace local
      
   public:
     
-    kvs::ValueArray<float> sgrid__cosphi, sgrid__costht, sgrid__sinphi, sgrid__sintht;
     kvs::ValueArray<float> sgrid__rad, sgrid__theta, sgrid__phi;
 
    std::vector<float> sgrid__coords;
@@ -44,9 +43,7 @@ namespace local
       SGRID__PHI_FROM, SGRID__PHI_TO,
       
       ogrid__drad, ogrid__dtht, ogrid__dphi,
-      /*ogrid__rad_max, ogrid__rad_min,  
-      ogrid__tht_max, ogrid__tht_min,          
-      ogrid__phi_max, ogrid__phi_min,      */               
+              
       OGRID__THETA_FROM, OGRID__THETA_TO,
       OGRID__PHI_FROM, OGRID__PHI_TO,
 
