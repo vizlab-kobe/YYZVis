@@ -12,8 +12,7 @@ namespace local
   {
     this->ogrid__make( yin_volume );
     this->igrid__make( zhong_volume ); 
-    this->sgrid__make();
-    this->sgrid__localize();   
+    this->sgrid__make(); 
     this->mapping__localize();
     this->ogrid__make( yang_volume );
     this->mapping__localize();
@@ -127,28 +126,21 @@ for ( int i = 0; i < igrid__dim; i++ )
 
   }
     
-  void Sgrid::set_nrtp()
+  void Sgrid::set_rtp()
   {
-    float drad, dtht, dphi;
     float rad_culling, tht_culling, phi_culling;
         
     rad_culling = 2.5; //namelist__double('DIM1_culling')
     tht_culling = 2.5; //namelist__double('DIM2_culling')
     phi_culling = 2.5; //namelist__double('DIM3_culling')
         
-    /* if(rad_culling < 1.0_DP ||
-       tht_culling < 1.0_DP ||
-       phi_culling < 1.0_DP) then
-       call ut__fatal("< sgrid > Error : Culling values must be bigger than 1.0")
-       end if*/
-        
-    drad = rad_culling * ogrid__range_r.d;
-    dtht = tht_culling * ogrid__range_theta.d;
-    dphi = phi_culling * ogrid__range_phi.d;
+    sgrid__drad = rad_culling * ogrid__range_r.d;
+    sgrid__dtht = tht_culling * ogrid__range_theta.d;
+    sgrid__dphi = phi_culling * ogrid__range_phi.d;
 
-    sgrid__size.nr = ( sgrid__rad_max - sgrid__rad_min ) / drad + 1;
-    sgrid__size.nt = ( sgrid__tht_max - sgrid__tht_min ) / dtht + 1;
-    sgrid__size.np = ( sgrid__phi_max - sgrid__phi_min ) / dphi + 1;
+    sgrid__size.nr = ( sgrid__rad_max - sgrid__rad_min ) / sgrid__drad + 1;
+    sgrid__size.nt = ( sgrid__tht_max - sgrid__tht_min ) / sgrid__dtht + 1;
+    sgrid__size.np = ( sgrid__phi_max - sgrid__phi_min ) / sgrid__dphi + 1;
         
     /*  if ( sgrid__size.nt%2 == 1 )
       {
@@ -171,14 +163,6 @@ for ( int i = 0; i < igrid__dim; i++ )
       {
 	sgrid__values.push_back(0);
       }
-
-  }
-    
-  void Sgrid::set_drtp()
-  {
-    sgrid__drad = ( sgrid__rad_max - sgrid__rad_min ) / (sgrid__size.nr - 1);
-    sgrid__dtht = ( sgrid__tht_max - sgrid__tht_min ) / (sgrid__size.nt - 1);
-    sgrid__dphi = ( sgrid__phi_max - sgrid__phi_min ) / (sgrid__size.np - 1);
 
   }
     
@@ -206,8 +190,8 @@ for ( int i = 0; i < igrid__dim; i++ )
 	     for ( k = 0; k < sgrid__size.np; k++ )
 	       {
 		 sgrid__coords.push_back(sgrid__rad[i]);
-		 sgrid__coords.push_back(sgrid__rad[j]);
-		 sgrid__coords.push_back(sgrid__rad[k]);
+		 sgrid__coords.push_back(sgrid__theta[j]);
+		 sgrid__coords.push_back(sgrid__phi[k]);
 	       }
 	   }
 
@@ -217,28 +201,10 @@ for ( int i = 0; i < igrid__dim; i++ )
   void Sgrid::sgrid__make()
   {
     this->set_minmax();
-    this->set_nrtp();
-    this->set_drtp();
+    this->set_rtp();
     this->set_metric();
   }
   
-  void Sgrid::sgrid__localize()
-  {
-    int j, k;
-    float tht, phi;
-        
-    for ( j = 0; j < sgrid__size.nt; j++)
-      {
-	tht = sgrid__theta[j];
-      }
-        
-    for ( k = 0; k < sgrid__size.np; k++)
-      {
-	phi = sgrid__phi[k];
-      }
-	
-  }
-
   void Sgrid::mapping__localize()
   {
     int i, j, k;
