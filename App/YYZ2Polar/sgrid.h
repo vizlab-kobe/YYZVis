@@ -14,26 +14,20 @@ namespace local
     };
     Sgrid__size sgrid__size;
 
-     struct Ogrid__size{
+    struct Ogrid__size{
       int nr, nt, np;
     };
-     Ogrid__size ogrid__size;
+    Ogrid__size ogrid__size;
      
   public:
     
     kvs::ValueArray<float> sgrid__rad, sgrid__theta, sgrid__phi;
-
-   std::vector<float> sgrid__coords;
-
+    std::vector<float> sgrid__coords;
     std::vector<float> sgrid__values;
-
     kvs::ValueArray<float> ogrid__rad, ogrid__theta, ogrid__phi;
-
     kvs::AnyValueArray  ogrid__values;
-
-     kvs::ValueArray<float> igrid__x, igrid__y, igrid__z;
-
-     kvs::AnyValueArray  igrid__values;
+    kvs::ValueArray<float> igrid__x, igrid__y, igrid__z; 
+    kvs::AnyValueArray  igrid__values;
 
     float sgrid__drad, sgrid__dtht, sgrid__dphi,
       sgrid__rad_min, sgrid__rad_max,
@@ -57,14 +51,12 @@ namespace local
     
   public:
     Sgrid( const YinYangVis::YinYangVolumeObject& yin_volume, const YinYangVis::YinYangVolumeObject& yang_volume, const YinYangVis::ZhongVolumeObject& zhong_volume  );
-    void sgrid__localize();
     void sgrid__make();
     void sgrid__output();
     void sgrid__rtp2xyz();
     void sgrid__xyz2rtp();
     void set_minmax();
-    void set_nrtp();
-    void set_drtp();
+    void set_rtp();
     void set_metric();
 
     void ogrid__make( const YinYangVis::YinYangVolumeObject& yoy_object );
