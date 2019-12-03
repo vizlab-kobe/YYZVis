@@ -5,6 +5,7 @@
 #include <kvs/ExternalFaces>
 #include <kvs/SmartPointer>
 #include <kvs/Indent>
+#include "ExternalFaces.h"
 
 
 namespace
@@ -61,20 +62,26 @@ kvs::LineObject* Model::newZhongEdges() const
 
 kvs::PolygonObject* Model::newYinFaces() const
 {
-    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
-    return this->newFaces( volume.get() );
+    return new YinYangVis::ExternalFaces( &m_yin_volume );
+
+//    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
+//    return this->newFaces( volume.get() );
 }
 
 kvs::PolygonObject* Model::newYangFaces() const
 {
-    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
-    return this->newFaces( volume.get() );
+    return new YinYangVis::ExternalFaces( &m_yang_volume );
+
+//    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
+//    return this->newFaces( volume.get() );
 }
 
 kvs::PolygonObject* Model::newZhongFaces() const
 {
-    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
-    return this->newFaces( volume.get() );
+    return new YinYangVis::ExternalFaces( &m_zhong_volume );
+
+//    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
+//    return this->newFaces( volume.get() );
 }
 
 kvs::PolygonObject* Model::newFaces( const kvs::UnstructuredVolumeObject* volume ) const
