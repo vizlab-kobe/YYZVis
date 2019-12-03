@@ -7,6 +7,7 @@
 #include <kvs/PolygonToPolygon>
 #include <kvs/SmartPointer>
 #include <kvs/Indent>
+#include "Isosurface.h"
 
 
 namespace
@@ -94,20 +95,38 @@ kvs::PolygonObject* Model::newFaces( const kvs::UnstructuredVolumeObject* volume
 
 kvs::PolygonObject* Model::newYinIsosurfaces() const
 {
-    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
-    return this->newIsosurfaces( volume.get() );
+    const double isovalue = m_isovalue;
+    const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
+    const bool d = true;
+    const kvs::TransferFunction& tfunc = m_input.tfunc;
+    return new YinYangVis::Isosurface( &m_yin_volume, isovalue, n, d, tfunc );
+
+//    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
+//    return this->newIsosurfaces( volume.get() );
 }
 
 kvs::PolygonObject* Model::newYangIsosurfaces() const
 {
-    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
-    return this->newIsosurfaces( volume.get() );
+    const double isovalue = m_isovalue;
+    const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
+    const bool d = true;
+    const kvs::TransferFunction& tfunc = m_input.tfunc;
+    return new YinYangVis::Isosurface( &m_yang_volume, isovalue, n, d, tfunc );
+
+//    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
+//    return this->newIsosurfaces( volume.get() );
 }
 
 kvs::PolygonObject* Model::newZhongIsosurfaces() const
 {
-    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
-    return this->newIsosurfaces( volume.get() );
+    const double isovalue = m_isovalue;
+    const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
+    const bool d = true;
+    const kvs::TransferFunction& tfunc = m_input.tfunc;
+    return new YinYangVis::Isosurface( &m_zhong_volume, isovalue, n, d, tfunc );
+
+//    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
+//    return this->newIsosurfaces( volume.get() );
 }
 
 kvs::PolygonObject* Model::newIsosurfaces( const kvs::UnstructuredVolumeObject* volume ) const
