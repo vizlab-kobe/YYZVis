@@ -6,6 +6,7 @@
 #include <kvs/SlicePlane>
 #include <kvs/SmartPointer>
 #include <kvs/Indent>
+#include "SlicePlane.h"
 
 
 namespace
@@ -93,20 +94,29 @@ kvs::PolygonObject* Model::newFaces( const kvs::UnstructuredVolumeObject* volume
 
 kvs::PolygonObject* Model::newYinSlice() const
 {
-    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
-    return this->newSlice( volume.get() );
+    const kvs::TransferFunction& tfunc = m_input.tfunc;
+    return new YinYangVis::SlicePlane( &m_yin_volume, m_plane_point, m_plane_normal, tfunc );
+
+//    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
+//    return this->newSlice( volume.get() );
 }
 
 kvs::PolygonObject* Model::newYangSlice() const
 {
-    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
-    return this->newSlice( volume.get() );
+    const kvs::TransferFunction& tfunc = m_input.tfunc;
+    return new YinYangVis::SlicePlane( &m_yang_volume, m_plane_point, m_plane_normal, tfunc );
+
+//    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
+//    return this->newSlice( volume.get() );
 }
 
 kvs::PolygonObject* Model::newZhongSlice() const
 {
-    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
-    return this->newSlice( volume.get() );
+    const kvs::TransferFunction& tfunc = m_input.tfunc;
+    return new YinYangVis::SlicePlane( &m_zhong_volume, m_plane_point, m_plane_normal, tfunc );
+
+//    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
+//    return this->newSlice( volume.get() );
 }
 
 kvs::PolygonObject* Model::newSlice( const kvs::UnstructuredVolumeObject* volume ) const
