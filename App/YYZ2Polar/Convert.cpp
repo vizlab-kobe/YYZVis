@@ -32,6 +32,8 @@ kvs::StructuredVolumeObject Convert(
     object.setVeclen( veclen );
     object.setResolution( resolution );
     object.setValues( values );
+    object.setCoords( coords );
+    object.updateMinMaxCoords();
 
     return object;
 }
