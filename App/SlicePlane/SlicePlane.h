@@ -41,6 +41,21 @@ public:
 private:
     void mapping( const YinYangVis::ZhongVolumeObject* zvolume );
     void mapping( const YinYangVis::YinYangVolumeObject* yvolume );
+    void extract_yinyang_plane( const YinYangVis::YinYangVolumeObject* yvolume );
+    void extract_zhong_plane( const YinYangVis::ZhongVolumeObject* zvolume );
+    size_t calculate_hexahedra_table_index( const size_t* local_index ) const;
+    float substitute_plane_equation( const kvs::Vector3f& vertex ) const;
+    const kvs::Vector3f interpolate_vertex(
+                                           const kvs::Vector3f& vertex0,
+                                           const kvs::Vector3f& vertex1 ) const;
+    double interpolate_yinyang_value(
+			     const YinYangVis::YinYangVolumeObject* yvolume,
+                             const size_t                         index0,
+                             const size_t                         index1 ) const;
+    double interpolate_zhong_value(
+			     const YinYangVis::ZhongVolumeObject* zvolume,
+                             const size_t                         index0,
+                             const size_t                         index1 ) const;
 };
 
 } // end of namespace YinYangVis

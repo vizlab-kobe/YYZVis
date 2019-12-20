@@ -676,7 +676,7 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
 	}
 
 	SuperClass::setCoords( coords );
-	//	SuperClass::setNormals( normals );
+		SuperClass::setNormals( normals );
 }
 
 void ExternalFaces::calculate_normal( const float x0, const float y0, const float z0,
@@ -697,13 +697,13 @@ void ExternalFaces::calculate_normal( const float x0, const float y0, const floa
     z5 = z2 - z0;
 
     x6 = y4 * z5 - y5 * z4;
-    y6 = x4 * z5 - x5 * z4;
+    y6 = z4 * x5 - x4 * z5;
     z6 = x4 * y5 - x5 * y4;
 
-    er = sqrt ( x6 * x6 + y6 * y6 + z6 * z6);
-    x6 = er * x6;
-    y6 = er * y6;
-    z6 = er * z6;
+    /* er = sqrt ( x6 * x6 + y6 * y6 + z6 * z6);
+    x6 = x6 / er;
+    y6 = y6 / er;
+    z6 = z6 / er;*/
 
     *(normal++) = x6;
     *(normal++) = y6;
