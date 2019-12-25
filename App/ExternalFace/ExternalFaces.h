@@ -30,8 +30,9 @@ private:
     void calculate_yinyang_coords( const YinYangVis::YinYangVolumeObject* yvolume );
     void calculate_normal( const float x0, const float y0, const float z0,
 					const float x1, const float y1, const float z1,
-					  const float x2, const float y2, const float z2, kvs::Real32* normal);
-    void calculate_colors( const YinYangVis::YinYangVolumeObject* yvolume );
+			   const float x2, const float y2, const float z2, kvs::Real32* normal, size_t index );
+    void calculate_yinyang_colors( const YinYangVis::YinYangVolumeObject* yvolume );
+    void calculate_zhong_colors( const YinYangVis::ZhongVolumeObject* zvolume );
     void GetColorIndices(		      kvs::AnyValueArray value,
 				      const kvs::Real64 min_value,
 				      const kvs::Real64 max_value,

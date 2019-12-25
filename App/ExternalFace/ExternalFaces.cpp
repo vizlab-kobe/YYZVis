@@ -59,22 +59,15 @@ ExternalFaces::SuperClass* ExternalFaces::exec( const kvs::ObjectBase* object )
         const YinYangVis::YinYangVolumeObject* yvolume = YinYangVis::YinYangVolumeObject::DownCast( volume );
         this->mapping( yvolume );
     }
-
+    
     return this;
 }
 
 void ExternalFaces::mapping( const YinYangVis::ZhongVolumeObject* zvolume )
 {
-    const size_t nfaces = (zvolume->dim() - 1) * (zvolume->dim() - 1) * 6 ;
-    const size_t nverts = nfaces * 3;
-    const kvs::ColorMap cmap = BaseClass::colorMap();
-
-    kvs::ValueArray<kvs::Real32> coords( nverts * 3 );
-    kvs::ValueArray<kvs::UInt8> colors( nverts * 3 );
-    kvs::ValueArray<kvs::Real32> normals( nfaces * 3 );
-
     // Calculate coords, colors, and normals.
-    this->calculate_zhong_coords( zvolume );
+     this->calculate_zhong_coords( zvolume );
+     this->calculate_zhong_colors( zvolume );
 
     // SuperClass::setCoords( coords );
     // SuperClass::setColors( colors );
@@ -87,7 +80,7 @@ void ExternalFaces::mapping( const YinYangVis::YinYangVolumeObject* yvolume )
 
     // Calculate coords, colors, and normals.
       this->calculate_yinyang_coords( yvolume );
-      this->calculate_colors( yvolume );
+      this->calculate_yinyang_colors( yvolume );
 
     // SuperClass::setCoords( coords );
     // SuperClass::setColors( colors );
@@ -97,151 +90,335 @@ void ExternalFaces::mapping( const YinYangVis::YinYangVolumeObject* yvolume )
 
 void ExternalFaces::calculate_zhong_coords( const YinYangVis::ZhongVolumeObject* zvolume )  
 {
-    const size_t dim = zvolume->dim();
-    const kvs::Vector3f volume_size = zvolume->maxObjectCoord() - zvolume->minObjectCoord();
-    kvs::ValueArray<float> xcoords, ycoords, zcoords; 
+  const size_t dim = zvolume->dim();
+  float x_min,x_max,
+        y_min,y_max,
+        z_min,z_max;
+  float dx,dy,dz;
 
-    float x_min,x_max,
-          y_min,y_max,
-          z_min,z_max;
-    float dx,dy,dz;
-    size_t i,j,k;
+  kvs::ValueArray<float> xcoords, ycoords, zcoords; 
 
-    kvs::UInt32 node_index[4];
+  const size_t nfaces = ( dim - 1 ) * ( dim - 1 ) * 6 * 2;
+  const size_t nverts = nfaces * 3;
+  kvs::ValueArray<kvs::Real32> coords( 3 * nverts);
+  kvs::Real32* coord = coords.data();
+  kvs::ValueArray<kvs::Real32> normals( 3 * nfaces );
+  kvs::Real32* normal = normals.data();
 
-    const size_t nfaces = dim * dim * dim;
-    const size_t nverts = nfaces * 3;
-    kvs::ValueArray<kvs::Real32> coords( 3 * nverts);
-    kvs::Real32* coord = coords.data();
+  x_min = -0.35;
+  x_max = 0.35;
+  y_min = -0.35;
+  y_max = 0.35;
+  z_min = -0.35;
+  z_max = 0.35;
+  std ::cout << zvolume->rangeR().max;
+  dx = ( x_max*2 ) / ( dim - 1 );
+  dy = ( y_max*2 ) / ( dim - 1 );
+  dz = ( z_max*2 ) / ( dim - 1 );
 
-    x_min = -zvolume->rangeR().max;
-    x_max = zvolume->rangeR().max;
-    y_min = -zvolume->rangeR().max;
-    y_max = zvolume->rangeR().max;
-    z_min = -zvolume->rangeR().max;
-    z_max = zvolume->rangeR().max;
-   
-    dx = ( x_max*2 ) / (dim-1);
-    dy = ( y_max*2 ) / (dim-1);
-    dz = ( z_max*2 ) / (dim-1);
+  xcoords.allocate( dim );
+  ycoords.allocate( dim );
+  zcoords.allocate( dim );
 
-    xcoords.allocate( dim );
-    ycoords.allocate( dim );
-    zcoords.allocate( dim );
+  for ( size_t i = 0; i < dim; i++ )
+    {
+      xcoords[i] = x_min + dx * i;
+      ycoords[i] = y_min + dy * i;
+      zcoords[i] = z_min + dz * i;
+    }
 
-    for ( size_t i = 0; i < dim; i++ )
+  // XY (Z=-0.35) plane.
+  {
+    const float z = z_min;
+    const kvs::Vector3f n( 0.0f, 0.0f, -1.0f );
+    for ( size_t j = 0; j < dim - 1; j++ )
       {
-	xcoords[i] = x_min + dx * i;
-	ycoords[i] = y_min + dy * i;
-	zcoords[i] = z_min + dz * i;
-      }
-
-    //  const size_t offset = 0;
-    //for ( size_t k = 0; i < dim - 1; k++ )//, offset = k * dim_r * dim_theta )
-	// {
-	//const float z = dz * k;
-	//for ( size_t j = 0/*, offset = offset0; */;j < dim - 1; j++)//, offset = j * dim_r )
-    /* {
-	    const float y = dy * j;
-	    for ( size_t i = 0; i < dim - 1; i++ )//, offset += 1 )
-	      {
-		const float x = dx * i;
-		const float v0_x = x;
-		const float v0_y = y;
-		const float v0_z = z;
-		const float v1_x = x + dx;
-		const float v1_y = y;
-		const float v1_z = z;
-		const float v2_x = x + dx;
-		const float v2_y = y + dy;
-		const float v2_z = z;
-		const float v3_x = x;
-		const float v3_y = y + dy;
-		const float v3_z = z;
-		const float v4_x = x;
-		const float v4_y = y + dy;
-		const float v4_z = z + dz;
-		const float v5_x = x + dx;
-		const float v5_y = y;
-		const float v5_z = z + dz;
-		const float v6_x = x + dx;
-		const float v6_y = y + dy;
-		const float v6_z = z + dz;
-		const float v7_x = x;
-		const float v7_y = y + dy;
-		const float v7_z = z + dz;
-	     
-
-		if ( sqrt( v0_x * v0_x + v0_y * v0_y + v0_z * v0_z) <= 1 )
-		  {
-		    *( coord++ ) = v0_x;
-		    *( coord++ ) = v0_y;
-		    *( coord++ ) = v0_z;
-		  }
-		if ( sqrt( v1_x * v1_x + v1_y * v1_y + v1_z * v1_z) <= 1 )
-		  {
-		    *( coord++ ) = v1_x;
-		    *( coord++ ) = v1_y;
-		    *( coord++ ) = v1_z;
-		  }
-		if ( sqrt( v2_x * v2_x + v2_y * v2_y + v2_z * v2_z) <= 1 )
-		  {
-		    *( coord++ ) = v2_x;
-		    *( coord++ ) = v2_y;
-		    *( coord++ ) = v2_z;
-		  }
-		if ( sqrt( v3_x * v3_x + v3_y * v3_y + v3_z * v3_z) <= 1 )
-		  {
-		    *( coord++ ) = v3_x;
-		    *( coord++ ) = v3_y;
-		    *( coord++ ) = v3_z;
-		  }
-		if ( sqrt( v4_x * v4_x + v4_y * v4_y + v4_z * v4_z) <= 1 )
-		  {
-		    *( coord++ ) = v4_x;
-		    *( coord++ ) = v4_y;
-		    *( coord++ ) = v4_z;
-		  }
-		if ( sqrt( v5_x * v5_x + v5_y * v5_y + v5_z * v5_z) <= 1 )
-		  {
-		    *( coord++ ) = v5_x;
-		    *( coord++ ) = v5_y;
-		    *( coord++ ) = v5_z;
-		  }
-		if ( sqrt( v6_x * v6_x + v6_y * v6_y + v6_z * v6_z) <= 1 )
-		  {
-		    *( coord++ ) = v6_x;
-		    *( coord++ ) = v6_y;
-		    *( coord++ ) = v6_z;
-		  }
-		if ( sqrt( v7_x * v7_x + v7_y * v7_y + v7_z * v7_z) <= 1 )
-		  {
-		    *( coord++ ) = v7_x;
-		    *( coord++ ) = v7_y;
-		    *( coord++ ) = v7_z;
-		  }
-	      }
-	  }
-      }*/
-
-    SuperClass::setCoords( coords );
-      /* for ( i = 0; i < dim; i++ )
-      {
-	for ( j = 0; j < dim; j++)
+	const float y = y_min + dy * j;
+	for ( size_t i = 0; i < dim - 1; i++ )
 	  {
-	    for ( k = 0; k < dim; k++)
-	      {
-		if ( sqrt(xcoords[i] * xcoords[i] + ycoords[j] * ycoords[j] + zcoords[k] * zcoords[k]) >= zvolume->rangeR().max - 0.005 &&
-                     sqrt(xcoords[i] * xcoords[i] + ycoords[j] * ycoords[j] + zcoords[k] * zcoords[k]) <= zvolume->rangeR().max + 0.005)
-		     {
-		       count++;
-		       std::cout << "count=";
-		       std::cout << count << std::endl;
-		     }
-	      }
+	    const float x = x_min + dx * i;
+	    // v3
+	    *( coord++ ) = x;
+	    *( coord++ ) = y + dy;
+	    *( coord++ ) = z;
+	    // v2
+	    *( coord++ ) = x + dx;
+	    *( coord++ ) = y + dy;
+	    *( coord++ ) = z;
+	    // v1
+	    *( coord++ ) = x + dx;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z;
+
+	    // v1
+	    *( coord++ ) = x + dx;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z;
+	    // v0
+	    *( coord++ ) = x;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z;
+	    // v3
+	    *( coord++ ) = x;
+	    *( coord++ ) = y + dy;
+	    *( coord++ ) = z;
+
+	    // n0
+	    *( normal++ ) = n.x();
+	    *( normal++ ) = n.y();
+	    *( normal++ ) = n.z();
+	    // n0
+	    *( normal++ ) = n.x();
+	    *( normal++ ) = n.y();
+	    *( normal++ ) = n.z();
 	  }
-	
-	  }*/
+      }
+  }
+
+  // XY (Z=0.35) plane.
+  {
+    const float z = z_max;
+    const kvs::Vector3f n( 0.0f, 0.0f, 1.0f );
+    for ( size_t j = 0; j < dim - 1; j++ )
+      {
+	const float y = y_min + dy * j;
+	for ( size_t i = 0; i < dim - 1; i++ )
+	  {
+	    const float x = x_min + dx * i;
+	// v0
+	*( coord++ ) = x;
+	*( coord++ ) = y;
+	*( coord++ ) = z;
+	// v1
+	*( coord++ ) = x + dx;
+	*( coord++ ) = y;
+	*( coord++ ) = z;
+	// v2
+	*( coord++ ) = x + dx;
+	*( coord++ ) = y + dy;
+	*( coord++ ) = z;
+
+	// v2
+	*( coord++ ) = x + dx;
+	*( coord++ ) = y + dy;
+	*( coord++ ) = z;
+	// v3
+	*( coord++ ) = x;
+	*( coord++ ) = y + dy;
+	*( coord++ ) = z;
+	// v0
+	*( coord++ ) = x;
+	*( coord++ ) = y;
+	*( coord++ ) = z;
+
+	// n0
+	*( normal++ ) = n.x();
+	*( normal++ ) = n.y();
+	*( normal++ ) = n.z();
+	// n0
+	*( normal++ ) = n.x();
+	*( normal++ ) = n.y();
+	*( normal++ ) = n.z();
+      }
+  }
+}
+
+  // YZ (X=-0.35) plane.
+  {
+    const float x = x_min;
+    const kvs::Vector3f n( -1.0f, 0.0f, 0.0f );
+    for ( size_t j = 0; j < dim - 1; j++ )
+      {
+	const float y = y_min + dy * j;
+	for ( size_t k = 0; k < dim - 1; k++ )
+	  {
+	    const float z = z_min + dz * k;
+	    // v0
+	    *( coord++ ) = x;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z;
+	    // v1
+	    *( coord++ ) = x;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z + dz;
+	    // v2
+	    *( coord++ ) = x;
+	    *( coord++ ) = y + dy;
+	    *( coord++ ) = z + dz;
+
+	    // v2
+	    *( coord++ ) = x;
+	    *( coord++ ) = y + dy;
+	    *( coord++ ) = z + dz;
+	    // v3
+	    *( coord++ ) = x;
+	    *( coord++ ) = y + dy;
+	    *( coord++ ) = z;
+	    // v0
+	    *( coord++ ) = x;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z;
+
+	    // n0
+	    *( normal++ ) = n.x();
+	    *( normal++ ) = n.y();
+	    *( normal++ ) = n.z();
+	    // n0
+	    *( normal++ ) = n.x();
+	    *( normal++ ) = n.y();
+	    *( normal++ ) = n.z();
+	  }
+      }
+  }
+
+  // YZ (X=0.35) plane.
+  {
+    const float x = x_max;
+    const kvs::Vector3f n( 1.0f, 0.0f, 0.0f );
+    for ( size_t j = 0; j < dim - 1; j++ )
+      {
+	const float y = y_min + dy * j;
+    for ( size_t k = 0; k < dim - 1; k++ )
+      {
+	const float z = z_min + dz * k;
+	// v3
+	*( coord++ ) = x;
+	*( coord++ ) = y + dy;
+	*( coord++ ) = z;
+	// v2
+	*( coord++ ) = x;
+	*( coord++ ) = y + dy;
+	*( coord++ ) = z + dz;
+	// v1
+	*( coord++ ) = x;
+	*( coord++ ) = y;
+	*( coord++ ) = z + dz;
+
+	// v1
+	*( coord++ ) = x;
+	*( coord++ ) = y;
+	*( coord++ ) = z + dz;
+	// v0
+	*( coord++ ) = x;
+	*( coord++ ) = y;
+	*( coord++ ) = z;
+	// v3
+	*( coord++ ) = x;
+	*( coord++ ) = y + dy;
+	*( coord++ ) = z;
+
+	// n0
+	*( normal++ ) = n.x();
+	*( normal++ ) = n.y();
+	*( normal++ ) = n.z();
+	// n0
+	*( normal++ ) = n.x();
+	*( normal++ ) = n.y();
+	*( normal++ ) = n.z();
+      }
+  }
+}
+
+// XZ (Y=-0.35) plane.
+  {
+    const float y = y_min;
+    const kvs::Vector3f n( 0.0f, -1.0f, 0.0f );
+    for ( size_t k = 0; k < dim - 1; k++ )
+      {
+	const float z = z_min + dz * k;
+	for ( size_t i = 0; i < dim - 1; i++ )
+      {
+	const float x = x_min + dx * i;
+	// v0
+	*( coord++ ) = x;
+	*( coord++ ) = y;
+	*( coord++ ) = z;
+	// v1
+	*( coord++ ) = x + dz;
+	*( coord++ ) = y;
+	*( coord++ ) = z;
+	// v2
+	*( coord++ ) = x + dx;
+	*( coord++ ) = y;
+	*( coord++ ) = z + dz;
+
+	// v2
+	*( coord++ ) = x + dx;
+	*( coord++ ) = y;
+	*( coord++ ) = z + dz;
+	// v3
+	*( coord++ ) = x;
+	*( coord++ ) = y;
+	*( coord++ ) = z + dz;
+	// v0
+	*( coord++ ) = x;
+	*( coord++ ) = y;
+	*( coord++ ) = z;
+
+	// n0
+	*( normal++ ) = n.x();
+	*( normal++ ) = n.y();
+	*( normal++ ) = n.z();
+	// n0
+	*( normal++ ) = n.x();
+	*( normal++ ) = n.y();
+	*( normal++ ) = n.z();
+      }
+  }
+}
+
+// XZ (Y=0.35) plane.
+  {
+    const float y = y_max;
+      const kvs::Vector3f n( 0.0f, 1.0f, 0.0f );
+    for ( size_t k = 0; k < dim - 1; k++ )
+      {
+	const float z = z_min + dz * k;
+	for ( size_t i = 0; i < dim - 1; i++ )
+	  {
+	    const float x = x_min + dx * i;
+	    // v3
+	    *( coord++ ) = x;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z + dz;
+	      // v2
+            *( coord++ ) = x + dx;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z + dz;
+	    // v1
+	    *( coord++ ) = x + dx;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z;
+
+	    // v1
+	    *( coord++ ) = x + dx;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z;
+	    // v0
+	    *( coord++ ) = x;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z;
+	    // v3
+	    *( coord++ ) = x;
+	    *( coord++ ) = y;
+	    *( coord++ ) = z + dz;
+
+	    // n0
+	    *( normal++ ) = n.x();
+	    *( normal++ ) = n.y();
+	    *( normal++ ) = n.z();
+	    // n0
+	    *( normal++ ) = n.x();
+	    *( normal++ ) = n.y();
+	    *( normal++ ) = n.z();
+	  }
+      }
+  }
+
+		    	
+SuperClass::setCoords( coords );
+SuperClass::setNormals( normals );    
+  
 }
 
 void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObject* yvolume )
@@ -250,6 +427,7 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
 
      float theta_from,theta_to,phi_from,phi_to,r_from,r_to;
      float r_d,theta_d,phi_d;
+     size_t index = 0;
 
      r_from = yvolume->rangeR().min;
      r_to =  yvolume->rangeR().max;
@@ -265,36 +443,22 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
      dim_r = yvolume->dimR();
      dim_theta= yvolume->dimTheta();
      dim_phi = yvolume->dimPhi();
-     
-     const kvs::Vector3f grid_size(
-				   ( r_to - r_from ) / ( dim_r - 1 ),
-				   ( theta_to - theta_from ) / ( dim_theta - 1 ),
-				   ( phi_to - phi_from ) / ( dim_phi - 1 ));
-
 
     const size_t nfaces = ((dim_r - 1) * (dim_theta - 1) * 2
                         + (dim_r - 1) * (dim_phi - 1) * 2
 			+ (dim_theta - 1) * (dim_phi - 1) * 2) * 2;
     const size_t nverts = nfaces * 3;
 
-    kvs::ValueArray<kvs::Real32> coords( 3 * nverts);
+    kvs::ValueArray<kvs::Real32> coords( 3 * nverts );
     kvs::Real32* coord = coords.data();
-    kvs::ValueArray<kvs::Real32> normals( 3 * nfaces);
+    kvs::ValueArray<kvs::Real32> normals( 3 * nfaces );
     kvs::Real32* normal = normals.data();
-    /*   kvs::ValueArray<kvs::UInt8> colors( 3 * nverts );
-    kvs::UInt8* color = colors.data();
-
-    kvs::UInt32 node_index[4];
-    kvs::UInt32 color_level[4];*/
     
     // phi = 0	
     {
       const float phi = phi_from;
-      const float phi_next = phi + phi_d;
       const float sin_phi = std::sin( phi );
       const float cos_phi = std::cos( phi );
-      const float sin_phi_next = std::sin( phi_next );
-      const float cos_phi_next = std::cos( phi_next );
       for ( size_t j = 0; j < dim_theta - 1; j++ )
 	{
 	  const float theta = theta_from + theta_d * j;
@@ -346,8 +510,20 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
 	      *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y3 : z3;
 	      *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z3 : y3;
 
-	      this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal);
-	      this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal);
+	      if( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin )
+		{
+	          this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal,index);
+	          index++;
+	          this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal,index);
+		  index++;
+		}
+	      else
+		{
+		  this->calculate_normal(-x3,z3,y3,-x2,z2,y2,-x1,z1,y1,normal,index);
+	          index++;
+	          this->calculate_normal(-x1,z1,y1,-x0,z0,y0,-x3,z3,y3,normal,index);
+		  index++;
+		}
 	    }
 	}
 
@@ -356,11 +532,8 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
     // phi = dim_phi - 1
     {
       const float phi = phi_to;  //grid_size.z() * ( dim_phi - 1 );
-      const float phi_next = phi + phi_d;
       const float sin_phi = std::sin( phi );
       const float cos_phi = std::cos( phi );
-      const float sin_phi_next = std::sin( phi_next );
-      const float cos_phi_next = std::cos( phi_next );
       for ( size_t j = 0; j < dim_theta - 1; j++ )
 	{
 	  const float theta = theta_from + theta_d * j;
@@ -412,8 +585,20 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
 	      *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y0 : z0;
 	      *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z0 : y0;
 
-	      this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal);
-	      this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal);
+	       if( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin )
+		 {
+		   this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal,index);
+		   index++;
+		   this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal,index);
+		   index++;
+		 }
+	       else
+		 {
+		   this->calculate_normal(-x0,z0,y0,-x1,z1,y1,-x2,z2,y2,normal,index);
+		   index++;
+		   this->calculate_normal(-x2,z2,y2,-x3,z3,y3,-x0,z0,y0,normal,index);
+		   index++;
+		 }
 	    }
 	}
      
@@ -475,8 +660,20 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
 	   *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y0 : z0;
 	   *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z0 : y0;
 
-	   this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal);
-	   this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal);
+	   if( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin )
+	     {
+	       this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal,index);
+	       index++;
+	       this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal,index);
+	       index++;
+	     }
+	   else
+	     {
+	       this->calculate_normal(-x0,z0,y0,-x1,z1,y1,-x2,z2,y2,normal,index);
+	       index++;
+	       this->calculate_normal(-x2,z2,y2,-x3,z3,y3,-x0,z0,y0,normal,index);
+	       index++;
+	     }
 	 }
     }
     }
@@ -541,9 +738,21 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
 	       *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y3 : z3;
 	       *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z3 : y3;
 
-	       this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal);
-	       this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal);
-	   }
+	       if( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin )
+		 {
+		   this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal,index);
+		   index++;
+		   this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal,index);
+		   index++;
+		 }
+	       else
+		 {
+		   this->calculate_normal(-x3,z3,y3,-x2,z2,y2,-x1,z1,y1,normal,index);
+		   index++;
+		   this->calculate_normal(-x1,z1,y1,-x0,z0,y0,-x3,z3,y3,normal,index);
+		   index++;
+		 }
+	     }
 	 }
     }
 
@@ -605,9 +814,21 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
 		*( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y0 : z0;
 		*( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z0 : y0;
 
-		this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal);
-		this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal);
-	    }
+		if( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin )
+		  {
+		    this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal,index);
+		    index++;
+		    this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal,index);
+		    index++;
+		  }
+		else
+		  {
+		    this->calculate_normal(-x0,z0,y0,-x1,z1,y1,-x2,z2,y2,normal,index);
+		    index++;
+		    this->calculate_normal(-x2,z2,y2,-x3,z3,y3,-x0,z0,y0,normal,index);
+		    index++;
+		  }
+	     }
 	}
     }
 
@@ -668,62 +889,34 @@ void ExternalFaces::calculate_yinyang_coords( const YinYangVis::YinYangVolumeObj
                     *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y3 : z3;
                     *( coord++) = ( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z3 : y3;
 
-		    this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal);
-		    this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal);
-		  
+		    if( yvolume->gridType() == YinYangVis::YinYangVolumeObject::Yin )
+		      {
+			this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal,index);
+			index++;
+			this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal,index);
+			index++;
+		      }
+		    else
+		      {
+			this->calculate_normal(-x3,z3,y3,-x2,z2,y2,-x1,z1,y1,normal,index);
+			index++;
+			this->calculate_normal(-x1,z1,y1,-x0,z0,y0,-x3,z3,y3,normal,index);
+			index++;
+		      }
 		}
 	    }
 	}
 
 	SuperClass::setCoords( coords );
-		SuperClass::setNormals( normals );
+      	SuperClass::setNormals( normals );
 }
 
-void ExternalFaces::calculate_normal( const float x0, const float y0, const float z0,
-					const float x1, const float y1, const float z1,
-				      const float x2, const float y2, const float z2, kvs::Real32* normal)
-{
-    float x4=0,y4=0,z4=0;
-    float x5=0,y5=0,z5=0;
-    float x6=0,y6=0,z6=0;
-    float er=0;
-
-    x4 = x1 - x0;
-    y4 = y1 - y0;
-    z4 = z1 - z0;
-
-    x5 = x2 - x0;
-    y5 = y2 - y0;
-    z5 = z2 - z0;
-
-    x6 = y4 * z5 - y5 * z4;
-    y6 = z4 * x5 - x4 * z5;
-    z6 = x4 * y5 - x5 * y4;
-
-    /* er = sqrt ( x6 * x6 + y6 * y6 + z6 * z6);
-    x6 = x6 / er;
-    y6 = y6 / er;
-    z6 = z6 / er;*/
-
-    *(normal++) = x6;
-    *(normal++) = y6;
-    *(normal++) = z6;
-    
-
-    
-}
-
-void ExternalFaces::calculate_colors( const YinYangVis::YinYangVolumeObject* yvolume
-				     /*kvs::AnyValueArray value,
-				      const kvs::Real64 min_value,
-				      const kvs::Real64 max_value,
-				      const kvs::UInt32 node_index[4],
-				      kvs::UInt32 (*color_index)[4]*/)
+void ExternalFaces::calculate_yinyang_colors( const YinYangVis::YinYangVolumeObject* yvolume
+				    )
 {
    size_t dim_r = 0, dim_theta = 0, dim_phi = 0;
    const kvs::Real64 min_value = yvolume->minValue();
    const kvs::Real64 max_value = yvolume->maxValue();
-   //const size_t veclen = yvolume->veclen();
    kvs::AnyValueArray value =  yvolume->values();
 
    kvs::UInt32 node_index[4];
@@ -1007,12 +1200,315 @@ void ExternalFaces::calculate_colors( const YinYangVis::YinYangVolumeObject* yvo
             }
         }
     }
-   SuperClass::setColors( colors );
+    SuperClass::setColors( colors );
     }
 
+  void ExternalFaces::calculate_zhong_colors( const YinYangVis::ZhongVolumeObject* zvolume )
+  {
+    // Parameters of the volume data.
+    const size_t dim = zvolume->dim();
+    const kvs::Real64 min_value = zvolume->minValue();
+    const kvs::Real64 max_value = zvolume->maxValue();
+    kvs::AnyValueArray value =  zvolume->values();
+    const size_t nnodes_per_line = dim;
+    const size_t nnodes_per_slice = dim * dim;
 
-  void ExternalFaces::GetColorIndices(
-				      kvs::AnyValueArray value,
+    kvs::UInt32 node_index[4];
+    kvs::UInt32 color_level[4];
+ 
+    const size_t nfaces = (dim - 1) * (dim - 1) * 6 * 2;
+    const size_t nverts = nfaces * 3;
+    kvs::ValueArray<kvs::UInt8> colors( 3 * nverts );
+    kvs::UInt8* color = colors.data();	       
+    const kvs::ColorMap cmap( BaseClass::colorMap() );
+
+      // XY (Z=-0.35) plane.
+      {
+        const size_t k = 0;
+        const size_t offset0 = k * nnodes_per_line;
+        for ( size_t j = 0, offset = offset0; j < dim - 1; j++, offset = offset0 + j * nnodes_per_line )
+	  {
+            for ( size_t i = 0; i < dim - 1; i++, offset += 1 )
+	      {
+                node_index[0] = offset;
+                node_index[1] = node_index[0] + 1;
+                node_index[2] = node_index[1] + nnodes_per_line;
+                node_index[3] = node_index[0] + nnodes_per_line;
+                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+	      }
+	  }
+      }
+
+      // XY (Z=0.35) plane.
+      {
+        const size_t k = dim - 1;
+        const size_t offset0 = k * nnodes_per_slice;
+        for ( size_t j = 0, offset = offset0; j < dim - 1; j++, offset = offset0 + j * nnodes_per_line )
+	  {
+            for ( size_t i = 0; i < dim - 1; i++, offset += 1 )
+	      {
+                node_index[0] = offset;
+                node_index[1] = node_index[0] + 1;
+                node_index[2] = node_index[1] + nnodes_per_line;
+                node_index[3] = node_index[0] + nnodes_per_line;
+                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+	      }
+	  }
+      }
+
+      // YZ (X=-0.35) plane.
+      {
+        const size_t i = 0;
+        const size_t offset0 = i;
+        for ( size_t j = 0, offset = offset0; j < dim - 1; j++, offset = offset0 + j * nnodes_per_line )
+	  {
+            for ( size_t k = 0; k < dim - 1; k++, offset += nnodes_per_slice )
+	      {
+                node_index[0] = offset;
+                node_index[1] = node_index[0] + nnodes_per_slice;
+                node_index[2] = node_index[1] + nnodes_per_line;
+                node_index[3] = node_index[0] + nnodes_per_line;
+                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+	      }
+	  }
+      }
+
+      // YZ (X=0.35) plane.
+      {
+        const size_t i = dim - 1;
+        const size_t offset0 = i;
+        for ( size_t j = 0, offset = offset0; j < dim - 1; j++, offset = offset0 + j * nnodes_per_line )
+	  {
+            for ( size_t k = 0; k < dim - 1; k++, offset += nnodes_per_slice )
+	      {
+                node_index[0] = offset;
+                node_index[1] = node_index[0] + nnodes_per_slice;
+                node_index[2] = node_index[1] + nnodes_per_line;
+                node_index[3] = node_index[0] + nnodes_per_line;
+                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+	      }
+	  }
+      }
+
+      // XZ (Y=-0.35) plane.
+      {
+        const size_t j = 0;
+        const size_t offset0 = j * nnodes_per_line;
+        for ( size_t k = 0, offset = offset0; k < dim - 1; k++, offset =  offset0 + k * nnodes_per_slice )
+	  {
+            for ( size_t i = 0; i < dim - 1; i++, offset += 1 )
+	      {
+                node_index[0] = offset;
+                node_index[1] = node_index[0] + 1;
+                node_index[2] = node_index[1] + nnodes_per_slice;
+                node_index[3] = node_index[0] + nnodes_per_slice;
+                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+	      }
+	  }
+      }
+
+      // XZ (Y=0.35) plane.
+      {
+        const size_t j = dim - 1;
+        const size_t offset0 = j * nnodes_per_line;
+        for ( size_t k = 0, offset = offset0; k < dim - 1; k++, offset = offset0 + k * nnodes_per_slice )
+	  {
+            for ( size_t i = 0; i < dim - 1; i++, offset += 1 )
+	      {
+                node_index[0] = offset;
+                node_index[1] = node_index[0] + 1;
+                node_index[2] = node_index[1] + nnodes_per_slice;
+                node_index[3] = node_index[0] + nnodes_per_slice;
+                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+                // v2
+                *( color++ ) = cmap[ color_level[2] ].r();
+                *( color++ ) = cmap[ color_level[2] ].g();
+                *( color++ ) = cmap[ color_level[2] ].b();
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+
+                // v1
+                *( color++ ) = cmap[ color_level[1] ].r();
+                *( color++ ) = cmap[ color_level[1] ].g();
+                *( color++ ) = cmap[ color_level[1] ].b();
+                // v0
+                *( color++ ) = cmap[ color_level[0] ].r();
+                *( color++ ) = cmap[ color_level[0] ].g();
+                *( color++ ) = cmap[ color_level[0] ].b();
+                // v3
+                *( color++ ) = cmap[ color_level[3] ].r();
+                *( color++ ) = cmap[ color_level[3] ].g();
+                *( color++ ) = cmap[ color_level[3] ].b();
+	      }
+	  }
+      }
+
+    SuperClass::setColors( colors );
+}
+
+void ExternalFaces::calculate_normal( const float x0, const float y0, const float z0,
+					const float x1, const float y1, const float z1,
+				      const float x2, const float y2, const float z2, kvs::Real32* normal, size_t index )
+{
+    float x4=0,y4=0,z4=0;
+    float x5=0,y5=0,z5=0;
+    float x6=0,y6=0,z6=0;
+    float er=0;
+
+    x4 = x1 - x0;
+    y4 = y1 - y0;
+    z4 = z1 - z0;
+
+    x5 = x2 - x0;
+    y5 = y2 - y0;
+    z5 = z2 - z0;
+
+    x6 = y4 * z5 - y5 * z4;
+    y6 = z4 * x5 - x4 * z5;
+    z6 = x4 * y5 - x5 * y4;
+
+    er = sqrt ( x6 * x6 + y6 * y6 + z6 * z6 );
+    x6 = x6 / er;
+    y6 = y6 / er;
+    z6 = z6 / er;
+
+    normal[ 3 * index ] = x6;
+    normal[ 3 * index + 1 ] = y6;
+    normal[ 3 * index + 2 ] = z6;
+}
+
+void ExternalFaces::GetColorIndices(  kvs::AnyValueArray value,
 				      const kvs::Real64 min_value,
 				      const kvs::Real64 max_value,
 				      const size_t colormap_resolution,
