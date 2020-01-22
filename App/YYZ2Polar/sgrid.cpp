@@ -151,11 +151,11 @@ namespace local
 
     this->sgrid__rtp2xyz( rad, tht, phi, cart );
    
-    if ( cart[0]*cart[0] + cart[1]*cart[1] + cart[2]*cart[2] >= yoy_object.rangeR().max )
+    if ( sqrt ( cart[0]*cart[0] + cart[1]*cart[1] + cart[2]*cart[2] ) >= yoy_object.rangeR().max )
       {
 	return;
       }
-    else if ( cart[0]*cart[0] + cart[1]*cart[1] + cart[2]*cart[2] <= yoy_object.rangeR().min )
+    else if ( sqrt ( cart[0]*cart[0] + cart[1]*cart[1] + cart[2]*cart[2] ) <= yoy_object.rangeR().min )
       {
 	return;
       }
@@ -173,7 +173,7 @@ namespace local
 
     this->sgrid__rtp2xyz( rad, tht, phi, cart );
    
-    if ( cart[0]*cart[0] + cart[1]*cart[1] + cart[2]*cart[2] <= 0.35 )
+    if ( sqrt ( cart[0]*cart[0] + cart[1]*cart[1] + cart[2]*cart[2] ) <= 0.35 )
       {
 
 	i1 =  igrid__find_nearleft('x', cart[0], z_object);
