@@ -102,7 +102,7 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
 	    for( i = 0; i < cgrid__size.nx; i++ )
 	      {
 		z = cgrid__x[i];
-		if ( x*x + y*y + z*z <= yin_volume.rangeR().min )
+		if ( sqrt( x*x + y*y + z*z ) <= yin_volume.rangeR().min )
 		  {
 		this->iFind_zhong( x, y, z, index, zhong_volume );
 		continue;
@@ -128,11 +128,11 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
   {
     float polar[3];    //{ r, t, p }
    
-    if ( x*x + y*y + z*z >= yoy_object.rangeR().max )
+    if ( sqrt ( x*x + y*y + z*z ) >= yoy_object.rangeR().max )
       {
 	return;
       }
-    else if ( x*x + y*y + z*z <= yoy_object.rangeR().min )
+    else if ( sqrt ( x*x + y*y + z*z ) <= yoy_object.rangeR().min )
       {
 	return;
       }
