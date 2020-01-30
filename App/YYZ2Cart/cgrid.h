@@ -33,9 +33,7 @@ namespace local
     void set_metric();
 
     void mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume,  const YinYangVis::YinYangVolumeObject& yang_volume, const YinYangVis::ZhongVolumeObject& zhong_volume );
-    void iFind( float x, float y, float z, int index, const YinYangVis::YinYangVolumeObject& yoy_object);
     void iFind_zhong(float x, float y, float z, int index, const YinYangVis::ZhongVolumeObject& z_object );
-    void cgrid__xyz2rtp(float x, float y, float z, float polar[3], const YinYangVis::YinYangVolumeObject& object);
     void ogrid__find_near_corner( float rad, float theta, float phi, int index, const YinYangVis::YinYangVolumeObject& object );
     int  igrid__find_nearleft( char axis, float c, const YinYangVis::ZhongVolumeObject& object );
     void ogrid_to_cgrid_localize( int i1, int j1, int k1, float wr1, float wt1, float wp1, float rad, float tht, float phi, int index, const YinYangVis::YinYangVolumeObject& object );

@@ -91,6 +91,7 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
   {
     int i, j, k;
     float x, y, z;
+    float r, t, p;
     int index = 0;
 
     for( k = 0; k < cgrid__size.nz; k++ )
@@ -102,93 +103,62 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
 	    for( i = 0; i < cgrid__size.nx; i++ )
 	      {
 		z = cgrid__x[i];
-		if ( sqrt( x*x + y*y + z*z ) <= yin_volume.rangeR().min )
+		
+		r = sqrt( x*x + y*y + z*z );
+		t = acos( z/r );
+		p = atan2( y, x );
+
+		if ( r > yin_volume.rangeR().max ) continue;
+		if ( r <= yin_volume.rangeR().min )
 		  {
-		this->iFind_zhong( x, y, z, index, zhong_volume );
-		continue;
+		     this->iFind_zhong( x, y, z, index, zhong_volume );
+		     continue;
 		  }
-		float p = atan2( y, x );
-		if (  p >= yin_volume.rangePhi().min && p <= yin_volume.rangePhi().max )
+		if ( t >= yin_volume.rangeTheta().min && t <= yin_volume.rangeTheta().max &&
+		     p >= yin_volume.rangePhi().min && p <= yin_volume.rangePhi().max )
 	            {
 	              // YIN
-		      this->iFind( x, y, z, index, yin_volume );
+		      this->ogrid__find_near_corner( r, t, p, index, yin_volume );
 	            }
 		else
 		    {
 		      // YANG
-		      this->iFind( x, y, z, index, yang_volume );
+		      float x_ = -x;
+		      float y_ = z;
+		      float z_ = y;
+		      t = acos( z_/r );
+		      p = atan2( y_, x_ );
+		      this->ogrid__find_near_corner( r, t, p, index, yang_volume );
 		    }
 		index++;
 	      }	 
 	  } 
       }
   }
-
-  void Cgrid::iFind(float x, float y, float z, int index, const YinYangVis::YinYangVolumeObject& yoy_object )
-  {
-    float polar[3];    //{ r, t, p }
-   
-    if ( sqrt ( x*x + y*y + z*z ) >= yoy_object.rangeR().max )
-      {
-	return;
-      }
-    else if ( sqrt ( x*x + y*y + z*z ) <= yoy_object.rangeR().min )
-      {
-	return;
-      }
-
-    this->cgrid__xyz2rtp( x, y, x, polar, yoy_object );
-
-    this->ogrid__find_near_corner( polar[0], polar[1], polar[2], index, yoy_object);
-      }
   
   void Cgrid::iFind_zhong(float x, float y, float z, int index, const YinYangVis::ZhongVolumeObject& z_object )
   {
     int i1,j1,k1;
     float wx1,wy1,wz1;
+    float x_next,y_next,z_next;
+    float dx;
     
     i1 =  igrid__find_nearleft('x', x, z_object);
     j1 =  igrid__find_nearleft('y', y, z_object);
     k1 =  igrid__find_nearleft('z', z, z_object);
 
-    wx1 = ( -(z_object.rangeR().min+z_object.rangeR().d*2) + (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1)*(i1+1) - x ) / (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1);
-    wy1 = (  -(z_object.rangeR().min+z_object.rangeR().d*2) + (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1)*(j1+1) - y ) / (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1);
-    wz1 = (  -(z_object.rangeR().min+z_object.rangeR().d*2) + (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1)*(k1+1) - z ) / (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1);
+    x_next =  -(z_object.rangeR().min+z_object.rangeR().d*2) + (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1)*(i1+1);
+    y_next =  -(z_object.rangeR().min+z_object.rangeR().d*2) + (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1)*(j1+1);
+    z_next =  -(z_object.rangeR().min+z_object.rangeR().d*2) + (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1)*(k1+1);
+    dx = (z_object.rangeR().min+z_object.rangeR().d*2)*2/(z_object.dim()-1);
 	
-    /*	wx1 = ( igrid__x[i1 + 1] - cart[0] ) / igrid__dx;
-	wy1 = ( igrid__y[j1 + 1] - cart[1] ) / igrid__dy;
-	wz1 = ( igrid__z[k1 + 1] - cart[2] ) / igrid__dz;*/
+    wx1 = ( x_next - x ) / dx;
+    wy1 = ( y_next - y ) / dx;   //dx = dy = dz
+    wz1 = ( z_next - z ) / dx;   //dx = dy = dz
 
     this->igrid_to_cgrid_localize(i1, j1, k1, wx1, wy1, wz1, index, z_object);      
     return;
    }
-
-  void Cgrid::cgrid__xyz2rtp( float x, float y, float z, float polar[3], const YinYangVis::YinYangVolumeObject& object )
-  {
-    float r, t, p;
-
-    r = sqrt(  x*x + y*y + z*z );
- 
-    t = acos( z/r );
-
-    if ( t >= object.rangeTheta().min && t <= object.rangeTheta().max )
-      {
-	p = atan2( y, x );
-      }
-    if( object.gridType() == YinYangVis::YinYangVolumeObject::Yang)
-      {
-	float x_ = -x;
-	float y_ = z;
-	float z_ = y;
-	t = acos( z_/r );
-	p = atan2( y_, x_ );
-      }
-    
-    polar[0] = r;
-    polar[1] = t;
-    polar[2] = p;
-
-  }
 
   int Cgrid::igrid__find_nearleft( char axis, float c, const YinYangVis::ZhongVolumeObject& object )
   {
@@ -242,7 +212,7 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
     int i, j, k;
     float ogrid_rad, ogrid_theta, ogrid_phi;
     float ogrid_rad_next, ogrid_theta_next, ogrid_phi_next;
-
+    	    	    	    
     for ( i = 0; i < object.dimR() - 2; i++ )
       {
 	ogrid_rad = object.rangeR().min + object.rangeR().d * i;
