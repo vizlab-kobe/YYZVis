@@ -1,5 +1,5 @@
-# YinYangVis
-YinYangVis is a visualization toolkit based on KVS for Yin-Yang-Zhong volume dataset.
+# YYZVis
+YYZVis is a visualization toolkit based on KVS for Yin-Yang-Zhong volume dataset.
 
 ## Requirements
 * [KVS](https://github.com/naohisas/KVS)
@@ -7,7 +7,7 @@ YinYangVis is a visualization toolkit based on KVS for Yin-Yang-Zhong volume dat
 ## Compiling
 Clone the repository.
 ```bash
-$ git clone https://github.com/vizlab-kobe/YinYangVis.git
+$ git clone https://github.com/vizlab-kobe/YYZVis.git
 ```
 
 Build YinYangVis library required to compile each application in App.
@@ -27,3 +27,4 @@ $ ./run.sh
 ## Publications
 
 1. Kaoru Uemori, Naohisa Sakamoto, Nobuaki Ohno, Akira Kageyama, An Interactive Visualization Toolkit for Yin-Yang-Zhong Grid Dataset, The 38th JSST Annual International Conference on Simulation Technology (JSST2019), (Accepted), 2019. [[repo](https://github.com/vizlab-kobe-paper/2019_JSST__KaoruUemori)]
+2. Kaoru Uemori, Naohisa Sakamoto, Nobuaki Ohno, Akira Kageyama, YYZVis: An Efficient Visualization Toolkit for Yin-Yang-Zhong Grid Dataset, Journal of Advanced Simulation in Science and Engineering (JASSE), Vol.7, Issue 2, pp.xxx-xxx, 2020.2 (Accepted) [[repo](https://github.com/vizlab-kobe-paper/2020_JASSE__KaoruUemori))]
