@@ -105,13 +105,14 @@ void ExternalFaces::calculate_zhong_coords( const YinYangVis::ZhongVolumeObject*
   kvs::ValueArray<kvs::Real32> normals( 3 * nfaces );
   kvs::Real32* normal = normals.data();
 
-  x_min = -0.35;
-  x_max = 0.35;
-  y_min = -0.35;
-  y_max = 0.35;
-  z_min = -0.35;
-  z_max = 0.35;
-  std ::cout << zvolume->rangeR().max;
+  const float r_min = zvolume->rangeR().min;
+  x_min = -r_min;
+  x_max = r_min;
+  y_min = -r_min;
+  y_max = r_min;
+  z_min = -r_min;
+  z_max = r_min;
+
   dx = ( x_max*2 ) / ( dim - 1 );
   dy = ( y_max*2 ) / ( dim - 1 );
   dz = ( z_max*2 ) / ( dim - 1 );
