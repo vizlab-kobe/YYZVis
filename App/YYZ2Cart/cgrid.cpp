@@ -10,25 +10,27 @@ namespace local
 {
   Cgrid::Cgrid( const YinYangVis::YinYangVolumeObject& yin_volume, const YinYangVis::YinYangVolumeObject& yang_volume, const YinYangVis::ZhongVolumeObject& zhong_volume )
   {
-    this->cgrid__make(); 
+    this->cgrid__make( yin_volume ); 
     this->mapping__localize( yin_volume, yang_volume, zhong_volume );
   }
 
-  void Cgrid::cgrid__make()
+  void Cgrid::cgrid__make( const YinYangVis::YinYangVolumeObject& yin_volume )
   {
-    this->set_minmax();
+    this->set_minmax( yin_volume );
     this->set_xyz();
     this->set_metric();
   }  
   
-  void Cgrid::set_minmax()
+  void Cgrid::set_minmax( const YinYangVis::YinYangVolumeObject& yin_volume )
   {
-    cgrid__x_min = -1.0;
-    cgrid__x_max =  1.0;
-    cgrid__y_min = -1.0;
-    cgrid__y_max =  1.0;
-    cgrid__z_min = -1.0;
-    cgrid__z_max =  1.0;
+    
+    cgrid__x_min = -yin_volume.rangeR().max;
+    cgrid__x_max =  yin_volume.rangeR().max;
+    cgrid__y_min = -yin_volume.rangeR().max;
+    cgrid__y_max =  yin_volume.rangeR().max;
+    cgrid__z_min = -yin_volume.rangeR().max;
+    cgrid__z_max =  yin_volume.rangeR().max;
+
   }
     
   void Cgrid::set_xyz()
@@ -111,6 +113,7 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
 		if ( r > yin_volume.rangeR().max ) continue;
 		if ( r <= yin_volume.rangeR().min )
 		  {
+		     // ZHONG
 		     this->iFind_zhong( x, y, z, index, zhong_volume );
 		     continue;
 		  }

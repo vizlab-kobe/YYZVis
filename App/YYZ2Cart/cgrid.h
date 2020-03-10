@@ -26,9 +26,9 @@ namespace local
           
   public:
     Cgrid( const YinYangVis::YinYangVolumeObject& yin_volume, const YinYangVis::YinYangVolumeObject& yang_volume, const YinYangVis::ZhongVolumeObject& zhong_volume  );
-    void cgrid__make();
+    void cgrid__make( const YinYangVis::YinYangVolumeObject& yin_volume );
     void cgrid__output();
-    void set_minmax();
+    void set_minmax( const YinYangVis::YinYangVolumeObject& yin_volume );
     void set_xyz();
     void set_metric();
 
