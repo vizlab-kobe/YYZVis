@@ -32,11 +32,7 @@ private:
     void mapping( const YYZVis::ZhongVolumeObject* zvolume );
     void mapping( const YYZVis::YinYangVolumeObject* yvolume );
     void calculate_coords( const YYZVis::ZhongVolumeObject* zvolume );
-    void calculate_yinyang_coords( const YYZVis::YinYangVolumeObject* yvolume );
-    void calculate_normal(
-        const float x0, const float y0, const float z0,
-        const float x1, const float y1, const float z1,
-        const float x2, const float y2, const float z2, kvs::Real32* normal, size_t index );
+    void calculate_coords( const YYZVis::YinYangVolumeObject* yvolume );
     void calculate_yinyang_colors( const YYZVis::YinYangVolumeObject* yvolume );
     void calculate_colors( const YYZVis::ZhongVolumeObject* zvolume );
 };

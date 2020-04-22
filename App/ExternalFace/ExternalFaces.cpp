@@ -78,7 +78,29 @@ inline void GetColorIndices(
     }
 }
 
+/*===========================================================================*/
+/**
+ *  @brief  Returns coordinate value in yin coordinate or yang coordinate.
+ *  @param  volume [in] pointer to yin or yang volume object
+ *  @param  x [in] x value of yin coordinate
+ *  @param  y [in] y value of yin coordinate
+ *  @param  z [in] z value of yin coordinate
+ *  @return rotated coordinate value if the given volume is yang volume
+ */
+/*===========================================================================*/
+inline kvs::Vec3 GetCoord(
+    const YYZVis::YinYangVolumeObject* volume,
+    const float x,
+    const float y,
+    const float z )
+{
+    return ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ?
+        kvs::Vec3(  x, y, z ) : // Yin
+        kvs::Vec3( -x, z, y ); // Yang = rotated yin
+}
+
 } // end of namespace
+
 
 namespace local
 {
@@ -185,7 +207,7 @@ void ExternalFaces::mapping( const YYZVis::ZhongVolumeObject* zvolume )
 void ExternalFaces::mapping( const YYZVis::YinYangVolumeObject* yvolume )
 {
     // Calculate coords, colors, and normals.
-    this->calculate_yinyang_coords( yvolume );
+    this->calculate_coords( yvolume );
     this->calculate_yinyang_colors( yvolume );
 
     // SuperClass::setCoords( coords );
@@ -352,193 +374,141 @@ void ExternalFaces::calculate_coords( const YYZVis::ZhongVolumeObject* zvolume )
     SuperClass::setNormals( normals );
 }
 
-void ExternalFaces::calculate_yinyang_coords( const YYZVis::YinYangVolumeObject* yvolume )
+/*===========================================================================*/
+/**
+ *  @brief  Calculates coordinate values of the specified yin or yang volume object.
+ *  @param  yvolume [in] pointer to yin or yang volume object
+ */
+/*===========================================================================*/
+void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume )
 {
-    size_t dim_r = 0, dim_theta = 0, dim_phi = 0;
+    const float r_from = yvolume->rangeR().min;
+    const float r_to =  yvolume->rangeR().max;
+    const float r_d = yvolume->rangeR().d;
 
-    float theta_from,theta_to,phi_from,phi_to,r_from,r_to;
-    float r_d,theta_d,phi_d;
-    size_t index = 0;
+    const float theta_from =  yvolume->rangeTheta().min;
+    const float theta_to =  yvolume->rangeTheta().max;
+    const float theta_d = yvolume->rangeTheta().d;
 
-    r_from = yvolume->rangeR().min;
-    r_to =  yvolume->rangeR().max;
-    theta_from =  yvolume->rangeTheta().min;
-    theta_to =  yvolume->rangeTheta().max;
-    phi_from =  yvolume->rangePhi().min;
-    phi_to =  yvolume->rangePhi().max;
+    const float phi_from =  yvolume->rangePhi().min;
+    const float phi_to =  yvolume->rangePhi().max;
+    const float phi_d = yvolume->rangePhi().d;
 
-    r_d = yvolume->rangeR().d;
-    theta_d = yvolume->rangeTheta().d;
-    phi_d = yvolume->rangePhi().d;
+    const float dim_r = yvolume->dimR();
+    const float dim_theta= yvolume->dimTheta();
+    const float dim_phi = yvolume->dimPhi();
 
-    dim_r = yvolume->dimR();
-    dim_theta= yvolume->dimTheta();
-    dim_phi = yvolume->dimPhi();
-
-    const size_t nfaces = ((dim_r - 1) * (dim_theta - 1) * 2
-                           + (dim_r - 1) * (dim_phi - 1) * 2
-                           + (dim_theta - 1) * (dim_phi - 1) * 2) * 2;
+    const size_t nfaces =
+        ( ( dim_r - 1 ) * ( dim_theta - 1 ) +
+          ( dim_r - 1 ) * ( dim_phi - 1 ) +
+          ( dim_theta - 1 ) * ( dim_phi - 1 ) ) * 2 * 2;
     const size_t nverts = nfaces * 3;
 
     kvs::ValueArray<kvs::Real32> coords( 3 * nverts );
-    kvs::Real32* coord = coords.data();
     kvs::ValueArray<kvs::Real32> normals( 3 * nfaces );
+    kvs::Real32* coord = coords.data();
     kvs::Real32* normal = normals.data();
-    
-    // phi = 0	
+
+    // phi = 0
     {
         const float phi = phi_from;
         const float sin_phi = std::sin( phi );
         const float cos_phi = std::cos( phi );
         for ( size_t j = 0; j < dim_theta - 1; j++ )
-	{
+        {
             const float theta = theta_from + theta_d * j;
             const float theta_next = theta + theta_d;
+
             const float sin_theta = std::sin( theta );
             const float cos_theta = std::cos( theta );
             const float sin_theta_next = std::sin( theta_next );
             const float cos_theta_next = std::cos( theta_next );
             for ( size_t i = 0; i < dim_r - 1; i++ )
-	    {
+            {
                 const float r = r_from + r_d * i;
                 const float r_next = r + r_d;
-	      
-                // v3
-                const float x3 = r * sin_theta_next * cos_phi;
-                const float y3 = r * sin_theta_next * sin_phi;
-                const float z3 = r * cos_theta_next;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
-                // v2
-                const float x2 = r_next * sin_theta_next * cos_phi;
-                const float y2 = r_next * sin_theta_next * sin_phi;
-                const float z2 = r_next * cos_theta_next;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
-                // v1
-                const float x1 = r_next * sin_theta * cos_phi;
-                const float y1 = r_next * sin_theta * sin_phi;
-                const float z1 = r_next * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
 
-                // v1
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
-                // v0
                 const float x0 = r * sin_theta * cos_phi;
                 const float y0 = r * sin_theta * sin_phi;
                 const float z0 = r * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
-                // v3
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
+                const kvs::Vec3 v0 = ::GetCoord( yvolume, x0, y0, z0 );
 
-                if( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin )
-		{
-                    this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal,index);
-                    index++;
-                    this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal,index);
-                    index++;
-		}
-                else
-		{
-                    this->calculate_normal(-x3,z3,y3,-x2,z2,y2,-x1,z1,y1,normal,index);
-                    index++;
-                    this->calculate_normal(-x1,z1,y1,-x0,z0,y0,-x3,z3,y3,normal,index);
-                    index++;
-		}
-	    }
-	}
+                const float x1 = r_next * sin_theta * cos_phi;
+                const float y1 = r_next * sin_theta * sin_phi;
+                const float z1 = r_next * cos_theta;
+                const kvs::Vec3 v1 = ::GetCoord( yvolume, x1, y1, z1 );
 
+                const float x2 = r_next * sin_theta_next * cos_phi;
+                const float y2 = r_next * sin_theta_next * sin_phi;
+                const float z2 = r_next * cos_theta_next;
+                const kvs::Vec3 v2 = ::GetCoord( yvolume, x2, y2, z2 );
+
+                const float x3 = r * sin_theta_next * cos_phi;
+                const float y3 = r * sin_theta_next * sin_phi;
+                const float z3 = r * cos_theta_next;
+                const kvs::Vec3 v3 = ::GetCoord( yvolume, x3, y3, z3 );
+
+                SET_FACE( coord, v3, v2, v1 );
+                SET_FACE( coord, v1, v0, v3 );
+                SET_NORMAL( normal, ( v2 - v3 ).cross( v1 - v3 ) );
+                SET_NORMAL( normal, ( v0 - v1 ).cross( v3 - v1 ) );
+            }
+        }
     }
-    
+
     // phi = dim_phi - 1
     {
         const float phi = phi_to;  //grid_size.z() * ( dim_phi - 1 );
         const float sin_phi = std::sin( phi );
         const float cos_phi = std::cos( phi );
         for ( size_t j = 0; j < dim_theta - 1; j++ )
-	{
+        {
             const float theta = theta_from + theta_d * j;
             const float theta_next = theta + theta_d;
+
             const float sin_theta = std::sin( theta );
             const float cos_theta = std::cos( theta );
             const float sin_theta_next = std::sin( theta_next );
             const float cos_theta_next = std::cos( theta_next );
             for ( size_t i = 0; i < dim_r - 1; i++ )
-	    {
+            {
                 const float r = r_from + r_d * i;
                 const float r_next = r + r_d;
-	      
-                // v0
+
                 const float x0 = r * sin_theta * cos_phi;
                 const float y0 = r * sin_theta * sin_phi;
                 const float z0 = r * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
-                // v1
+                const kvs::Vec3 v0 = ::GetCoord( yvolume, x0, y0, z0 );
+
                 const float x1 = r_next * sin_theta * cos_phi;
                 const float y1 = r_next * sin_theta * sin_phi;
                 const float z1 = r_next * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
-                // v2
+                const kvs::Vec3 v1 = ::GetCoord( yvolume, x1, y1, z1 );
+
                 const float x2 = r_next * sin_theta_next * cos_phi;
                 const float y2 = r_next * sin_theta_next * sin_phi;
                 const float z2 = r_next * cos_theta_next;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
+                const kvs::Vec3 v2 = ::GetCoord( yvolume, x2, y2, z2 );
 
-                // v2
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
-                // v3
                 const float x3 = r * sin_theta_next * cos_phi;
                 const float y3 = r * sin_theta_next * sin_phi;
                 const float z3 = r * cos_theta_next;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
-                // v0
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
+                const kvs::Vec3 v3 = ::GetCoord( yvolume, x3, y3, z3 );
 
-                if( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin )
-                {
-                    this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal,index);
-                    index++;
-                    this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal,index);
-                    index++;
-                }
-                else
-                {
-                    this->calculate_normal(-x0,z0,y0,-x1,z1,y1,-x2,z2,y2,normal,index);
-                    index++;
-                    this->calculate_normal(-x2,z2,y2,-x3,z3,y3,-x0,z0,y0,normal,index);
-                    index++;
-                }
-	    }
-	}
-     
+                SET_FACE( coord, v0, v1, v2 );
+                SET_FACE( coord, v2, v3, v0 );
+                SET_NORMAL( normal, ( v1 - v0 ).cross( v2 - v0 ) );
+                SET_NORMAL( normal, ( v3 - v2 ).cross( v0 - v2 ) );
+            }
+        }
+
         // r = 0
         const float r = r_from;
-        for  ( size_t j = 0; j < dim_theta - 1; j++ ) 
+        for  ( size_t j = 0; j < dim_theta - 1; j++ )
         {
             const float theta = theta_from + theta_d * j;
             const float theta_next = theta + theta_d;
+
             const float sin_theta = std::sin( theta );
             const float cos_theta = std::cos( theta );
             const float sin_theta_next = std::sin( theta_next );
@@ -547,69 +517,40 @@ void ExternalFaces::calculate_yinyang_coords( const YYZVis::YinYangVolumeObject*
             {
                 const float phi = phi_from + phi_d * k;
                 const float phi_next = phi + phi_d;
-		    
+
                 const float sin_phi = std::sin( phi );
                 const float cos_phi = std::cos( phi );
                 const float sin_phi_next = std::sin( phi_next );
                 const float cos_phi_next = std::cos( phi_next );
-	   
-                // v0
+
                 const float x0 = r * sin_theta * cos_phi;
                 const float y0 = r * sin_theta * sin_phi;
                 const float z0 = r * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
-                // v1
+                const kvs::Vec3 v0 = ::GetCoord( yvolume, x0, y0, z0 );
+
                 const float x1 = r * sin_theta * cos_phi_next;
                 const float y1 = r * sin_theta * sin_phi_next;
                 const float z1 = r * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
-                // v2
+                const kvs::Vec3 v1 = ::GetCoord( yvolume, x1, y1, z1 );
+
                 const float x2 = r * sin_theta_next * cos_phi_next;
                 const float y2 = r * sin_theta_next * sin_phi_next;
                 const float z2 = r * cos_theta_next;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
+                const kvs::Vec3 v2 = ::GetCoord( yvolume, x2, y2, z2 );
 
-                // v2
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
-                // v3
                 const float x3 = r * sin_theta_next * cos_phi;
                 const float y3 = r * sin_theta_next * sin_phi;
                 const float z3 = r * cos_theta_next;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
-                // v0
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
+                const kvs::Vec3 v3 = ::GetCoord( yvolume, x3, y3, z3 );
 
-                if( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin )
-                {
-                    this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal,index);
-                    index++;
-                    this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal,index);
-                    index++;
-                }
-                else
-                {
-                    this->calculate_normal(-x0,z0,y0,-x1,z1,y1,-x2,z2,y2,normal,index);
-                    index++;
-                    this->calculate_normal(-x2,z2,y2,-x3,z3,y3,-x0,z0,y0,normal,index);
-                    index++;
-                }
+                SET_FACE( coord, v0, v1, v2 );
+                SET_FACE( coord, v2, v3, v0 );
+                SET_NORMAL( normal, ( v1 - v0 ).cross( v2 - v0 ) );
+                SET_NORMAL( normal, ( v3 - v2 ).cross( v0 - v2 ) );
             }
         }
     }
 
-    
     // r = dim_r - 1
     {
         const float r = r_to; //grid_size.x() * ( dim_r - 1 );
@@ -617,6 +558,7 @@ void ExternalFaces::calculate_yinyang_coords( const YYZVis::YinYangVolumeObject*
         {
             const float theta = theta_from + theta_d * j;
             const float theta_next = theta + theta_d;
+
             const float sin_theta = std::sin( theta );
             const float cos_theta = std::cos( theta );
             const float sin_theta_next = std::sin( theta_next );
@@ -625,142 +567,85 @@ void ExternalFaces::calculate_yinyang_coords( const YYZVis::YinYangVolumeObject*
             {
                 const float phi = phi_from + phi_d * k;
                 const float phi_next = phi + phi_d;
-		    
+
                 const float sin_phi = std::sin( phi );
                 const float cos_phi = std::cos( phi );
                 const float sin_phi_next = std::sin( phi_next );
                 const float cos_phi_next = std::cos( phi_next );
-	     
-	        // v3
-                const float x3 = r * sin_theta_next * cos_phi;
-                const float y3 = r * sin_theta_next * sin_phi;
-                const float z3 = r * cos_theta_next;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
-                // v2
-                const float x2 = r * sin_theta_next * cos_phi_next;
-                const float y2 = r * sin_theta_next * sin_phi_next;
-                const float z2 = r * cos_theta_next;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
-                // v1
-                const float x1 = r * sin_theta * cos_phi_next;
-                const float y1 = r * sin_theta * sin_phi_next;
-                const float z1 = r * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
 
-                // v1
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
-                // v0
                 const float x0 = r * sin_theta * cos_phi;
                 const float y0 = r * sin_theta * sin_phi;
                 const float z0 = r * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
-                // v3
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
+                const kvs::Vec3 v0 = ::GetCoord( yvolume, x0, y0, z0 );
 
-                if( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin )
-                {
-                    this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal,index);
-                    index++;
-                    this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal,index);
-                    index++;
-                }
-                else
-                {
-                    this->calculate_normal(-x3,z3,y3,-x2,z2,y2,-x1,z1,y1,normal,index);
-                    index++;
-                    this->calculate_normal(-x1,z1,y1,-x0,z0,y0,-x3,z3,y3,normal,index);
-                    index++;
-                }
+                const float x1 = r * sin_theta * cos_phi_next;
+                const float y1 = r * sin_theta * sin_phi_next;
+                const float z1 = r * cos_theta;
+                const kvs::Vec3 v1 = ::GetCoord( yvolume, x1, y1, z1 );
+
+                const float x2 = r * sin_theta_next * cos_phi_next;
+                const float y2 = r * sin_theta_next * sin_phi_next;
+                const float z2 = r * cos_theta_next;
+                const kvs::Vec3 v2 = ::GetCoord( yvolume, x2, y2, z2 );
+
+                const float x3 = r * sin_theta_next * cos_phi;
+                const float y3 = r * sin_theta_next * sin_phi;
+                const float z3 = r * cos_theta_next;
+                const kvs::Vec3 v3 = ::GetCoord( yvolume, x3, y3, z3 );
+
+                SET_FACE( coord, v3, v2, v1 );
+                SET_FACE( coord, v1, v0, v3 );
+                SET_NORMAL( normal, ( v2 - v3 ).cross( v1 - v3 ) );
+                SET_NORMAL( normal, ( v0 - v1 ).cross( v3 - v1 ) );
             }
         }
     }
 
-    
     // theta = 0
     {
         const float theta = theta_from;
-	const float sin_theta = std::sin( theta );
-	const float cos_theta = std::cos( theta );
+        const float sin_theta = std::sin( theta );
+        const float cos_theta = std::cos( theta );
         for ( size_t k = 0; k < dim_phi - 1; k++ )
-	{
-	    const float phi = phi_from + phi_d * k;
-	    const float phi_next = phi + phi_d;
-	    for ( size_t i = 0; i < dim_r - 1; i++ )
-	    {
-	        const float r = r_from + r_d * i;
-		const float r_next = r + r_d;
-		    
-		const float sin_phi = std::sin( phi );
-		const float cos_phi = std::cos( phi );
-		const float sin_phi_next = std::sin( phi_next );
-		const float cos_phi_next = std::cos( phi_next );
-		
-		// v0
-		const float x0 = r * sin_theta * cos_phi;
-		const float y0 = r * sin_theta * sin_phi;
-		const float z0 = r * cos_theta;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
-		// v1
-		const float x1 = r_next * sin_theta * cos_phi;
-		const float y1 = r_next * sin_theta * sin_phi;
-		const float z1 = r_next * cos_theta;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
-		// v2
-		const float x2 = r_next * sin_theta * cos_phi_next;
-		const float y2 = r_next * sin_theta * sin_phi_next;
-		const float z2 = r_next * cos_theta;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
+        {
+            const float phi = phi_from + phi_d * k;
+            const float phi_next = phi + phi_d;
+            for ( size_t i = 0; i < dim_r - 1; i++ )
+            {
+                const float r = r_from + r_d * i;
+                const float r_next = r + r_d;
 
-		// v2
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
-		// v3
-		const float x3 = r * sin_theta * cos_phi_next;
-		const float y3 = r * sin_theta * sin_phi_next;
-		const float z3 = r * cos_theta;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
-		// v0
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-		*( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
+                const float sin_phi = std::sin( phi );
+                const float cos_phi = std::cos( phi );
+                const float sin_phi_next = std::sin( phi_next );
+                const float cos_phi_next = std::cos( phi_next );
 
-		if( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin )
-                {
-		    this->calculate_normal(x0,y0,z0,x1,y1,z1,x2,y2,z2,normal,index);
-		    index++;
-		    this->calculate_normal(x2,y2,z2,x3,y3,z3,x0,y0,z0,normal,index);
-		    index++;
-                }
-		else
-                {
-		    this->calculate_normal(-x0,z0,y0,-x1,z1,y1,-x2,z2,y2,normal,index);
-		    index++;
-		    this->calculate_normal(-x2,z2,y2,-x3,z3,y3,-x0,z0,y0,normal,index);
-		    index++;
-                }
+                const float x0 = r * sin_theta * cos_phi;
+                const float y0 = r * sin_theta * sin_phi;
+                const float z0 = r * cos_theta;
+                const kvs::Vec3 v0 = ::GetCoord( yvolume, x0, y0, z0 );
+
+                const float x1 = r_next * sin_theta * cos_phi;
+                const float y1 = r_next * sin_theta * sin_phi;
+                const float z1 = r_next * cos_theta;
+                const kvs::Vec3 v1 = ::GetCoord( yvolume, x1, y1, z1 );
+
+                const float x2 = r_next * sin_theta * cos_phi_next;
+                const float y2 = r_next * sin_theta * sin_phi_next;
+                const float z2 = r_next * cos_theta;
+                const kvs::Vec3 v2 = ::GetCoord( yvolume, x2, y2, z2 );
+
+                const float x3 = r * sin_theta * cos_phi_next;
+                const float y3 = r * sin_theta * sin_phi_next;
+                const float z3 = r * cos_theta;
+                const kvs::Vec3 v3 = ::GetCoord( yvolume, x3, y3, z3 );
+
+                SET_FACE( coord, v0, v1, v2 );
+                SET_FACE( coord, v2, v3, v0 );
+                SET_NORMAL( normal, ( v1 - v0 ).cross( v2 - v0 ) );
+                SET_NORMAL( normal, ( v3 - v2 ).cross( v0 - v2 ) );
             }
-	}
+        }
     }
 
     // theta = dim_theta - 1
@@ -776,64 +661,36 @@ void ExternalFaces::calculate_yinyang_coords( const YYZVis::YinYangVolumeObject*
             {
                 const float r = r_from + r_d * i;
                 const float r_next = r + r_d;
-		    
+
                 const float sin_phi = std::sin( phi );
                 const float cos_phi = std::cos( phi );
                 const float sin_phi_next = std::sin( phi_next );
                 const float cos_phi_next = std::cos( phi_next );
-		    
-                // v3
-                const float x3 = r * sin_theta * cos_phi_next;
-                const float y3 = r * sin_theta * sin_phi_next;
-                const float z3 = r * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
-                // v2
-                const float x2 = r_next * sin_theta * cos_phi_next;
-                const float y2 = r_next * sin_theta * sin_phi_next;
-                const float z2 = r_next * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x2 : -x2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y2 : z2;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z2 : y2;
-                // v1
-                const float x1 = r_next * sin_theta * cos_phi;
-                const float y1 = r_next * sin_theta * sin_phi;
-                const float z1 = r_next * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
 
-                // v1
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x1 : -x1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y1 : z1;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z1 : y1;
-                // v0
                 const float x0 = r * sin_theta * cos_phi;
                 const float y0 = r * sin_theta * sin_phi;
                 const float z0 = r * cos_theta;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x0 : -x0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y0 : z0;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z0 : y0;
-                // v3
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x3 : -x3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y3 : z3;
-                *( coord++) = ( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z3 : y3;
+                const kvs::Vec3 v0 = ::GetCoord( yvolume, x0, y0, z0 );
 
-                if( yvolume->gridType() == YYZVis::YinYangVolumeObject::Yin )
-                {
-                    this->calculate_normal(x3,y3,z3,x2,y2,z2,x1,y1,z1,normal,index);
-                    index++;
-                    this->calculate_normal(x1,y1,z1,x0,y0,z0,x3,y3,z3,normal,index);
-                    index++;
-                }
-                else
-                {
-                    this->calculate_normal(-x3,z3,y3,-x2,z2,y2,-x1,z1,y1,normal,index);
-                    index++;
-                    this->calculate_normal(-x1,z1,y1,-x0,z0,y0,-x3,z3,y3,normal,index);
-                    index++;
-                }
+                const float x1 = r_next * sin_theta * cos_phi;
+                const float y1 = r_next * sin_theta * sin_phi;
+                const float z1 = r_next * cos_theta;
+                const kvs::Vec3 v1 = ::GetCoord( yvolume, x1, y1, z1 );
+
+                const float x2 = r_next * sin_theta * cos_phi_next;
+                const float y2 = r_next * sin_theta * sin_phi_next;
+                const float z2 = r_next * cos_theta;
+                const kvs::Vec3 v2 = ::GetCoord( yvolume, x2, y2, z2 );
+
+                const float x3 = r * sin_theta * cos_phi_next;
+                const float y3 = r * sin_theta * sin_phi_next;
+                const float z3 = r * cos_theta;
+                const kvs::Vec3 v3 = ::GetCoord( yvolume, x3, y3, z3 );
+
+                SET_FACE( coord, v3, v2, v1 );
+                SET_FACE( coord, v1, v0, v3 );
+                SET_NORMAL( normal, ( v2 - v3 ).cross( v1 - v3 ) );
+                SET_NORMAL( normal, ( v0 - v1 ).cross( v3 - v1 ) );
             }
         }
     }
@@ -842,13 +699,12 @@ void ExternalFaces::calculate_yinyang_coords( const YYZVis::YinYangVolumeObject*
     SuperClass::setNormals( normals );
 }
 
-void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject* yvolume
-    )
+void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject* yvolume )
 {
     size_t dim_r = 0, dim_theta = 0, dim_phi = 0;
     const kvs::Real64 min_value = yvolume->minValue();
     const kvs::Real64 max_value = yvolume->maxValue();
-    kvs::AnyValueArray value =  yvolume->values();
+    const kvs::AnyValueArray& value =  yvolume->values();
 
     kvs::UInt32 node_index[4];
     kvs::UInt32 color_level[4];
@@ -896,7 +752,6 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
                 node_index[3] = node_index[0] + dim_r;
 //                this->GetColorIndices( value, min_value, max_value, cmap.resolution(),node_index, &color_level );
                 ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
-
 
                 // v3
                 *( color++ ) = cmap[ color_level[3] ].r();
@@ -1144,6 +999,12 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
     SuperClass::setColors( colors );
 }
 
+/*===========================================================================*/
+/**
+ *  @brief  Calculates colors for zhong volume object
+ *  @param  zvolume [in] pointer to zhong volume object
+ */
+/*===========================================================================*/
 void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
 {
     // Parameters of the volume data.
@@ -1316,37 +1177,6 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
     }
 
     SuperClass::setColors( colors );
-}
-
-void ExternalFaces::calculate_normal( const float x0, const float y0, const float z0,
-                                      const float x1, const float y1, const float z1,
-				      const float x2, const float y2, const float z2, kvs::Real32* normal, size_t index )
-{
-    float x4=0,y4=0,z4=0;
-    float x5=0,y5=0,z5=0;
-    float x6=0,y6=0,z6=0;
-    float er=0;
-
-    x4 = x1 - x0;
-    y4 = y1 - y0;
-    z4 = z1 - z0;
-
-    x5 = x2 - x0;
-    y5 = y2 - y0;
-    z5 = z2 - z0;
-
-    x6 = y4 * z5 - y5 * z4;
-    y6 = z4 * x5 - x4 * z5;
-    z6 = x4 * y5 - x5 * y4;
-
-    er = sqrt ( x6 * x6 + y6 * y6 + z6 * z6 );
-    x6 = x6 / er;
-    y6 = y6 / er;
-    z6 = z6 / er;
-
-    normal[ 3 * index ] = x6;
-    normal[ 3 * index + 1 ] = y6;
-    normal[ 3 * index + 2 ] = z6;
 }
 
 } // end of namespace local
