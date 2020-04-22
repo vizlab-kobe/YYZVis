@@ -208,181 +208,25 @@ void ExternalFaces::mapping( const YYZVis::YinYangVolumeObject* yvolume )
 
 /*===========================================================================*/
 /**
- *  @brief  Calculates coordinate values of the specified zhong volume object.
- *  @param  zvolume [in] pointer to zhong volume object
- */
-/*===========================================================================*/
-void ExternalFaces::calculate_coords( const YYZVis::ZhongVolumeObject* zvolume )
-{
-    const size_t dim = zvolume->dim(); // number of grid points along each axis
-    const size_t nfaces = ( dim - 1 ) * ( dim - 1 ) * 6 * 2; // number of triangle faces
-    const size_t nverts = nfaces * 3; // number of vertices
-
-    const float r_min = zvolume->rangeR().min; // min range of R direction
-    const kvs::Vec3 min_coord = kvs::Vec3::Constant( -r_min ); // min coord of the volume
-    const kvs::Vec3 max_coord = kvs::Vec3::Constant(  r_min ); // max coord of the volume
-    const kvs::Vec3 d = max_coord * 2.0f / ( dim - 1.0f ); // distance between grid points
-
-    kvs::ValueArray<kvs::Real32> coords( 3 * nverts );
-    kvs::ValueArray<kvs::Real32> normals( 3 * nfaces );
-    kvs::Real32* coord = coords.data();
-    kvs::Real32* normal = normals.data();
-
-    // XY (Z=Zmin) plane.
-    {
-        const float z = min_coord.z();
-        const kvs::Vec3 n( 0.0f, 0.0f, -1.0f );
-        for ( size_t j = 0; j < dim - 1; j++ )
-        {
-            const float y = min_coord.y() + d.y() * j;
-            for ( size_t i = 0; i < dim - 1; i++ )
-            {
-                const float x = min_coord.x() + d.x() * i;
-                const kvs::Vec3 v0( x, y, z );
-                const kvs::Vec3 v1( x + d.x(), y, z );
-                const kvs::Vec3 v2( x + d.x(), y + d.y(), z );
-                const kvs::Vec3 v3( x, y + d.y(), z );
-                SET_FACE( coord, v3, v2, v1 );
-                SET_FACE( coord, v1, v0, v3 );
-                SET_NORMAL( normal, n );
-                SET_NORMAL( normal, n );
-            }
-        }
-    }
-
-    // XY (Z=Zmax) plane.
-    {
-        const float z = max_coord.z();
-        const kvs::Vec3 n( 0.0f, 0.0f, 1.0f );
-        for ( size_t j = 0; j < dim - 1; j++ )
-        {
-            const float y = min_coord.y() + d.y() * j;
-            for ( size_t i = 0; i < dim - 1; i++ )
-            {
-                const float x = min_coord.x() + d.x() * i;
-                const kvs::Vec3 v0( x, y, z );
-                const kvs::Vec3 v1( x + d.x(), y, z );
-                const kvs::Vec3 v2( x + d.x(), y + d.y(), z );
-                const kvs::Vec3 v3( x, y + d.y(), z );
-                SET_FACE( coord, v0, v1, v2 );
-                SET_FACE( coord, v2, v3, v0 );
-                SET_NORMAL( normal, n );
-                SET_NORMAL( normal, n );
-            }
-        }
-    }
-
-    // YZ (X=Xmin) plane.
-    {
-        const float x = min_coord.x();
-        const kvs::Vec3 n( -1.0f, 0.0f, 0.0f );
-        for ( size_t j = 0; j < dim - 1; j++ )
-        {
-            const float y = min_coord.y() + d.y() * j;
-            for ( size_t k = 0; k < dim - 1; k++ )
-            {
-                const float z = min_coord.z() + d.z() * k;
-                const kvs::Vec3 v0( x, y, z );
-                const kvs::Vec3 v1( x, y, z + d.z() );
-                const kvs::Vec3 v2( x, y + d.y(), z + d.z() );
-                const kvs::Vec3 v3( x, y + d.y(), z );
-                SET_FACE( coord, v0, v1, v2 );
-                SET_FACE( coord, v2, v3, v0 );
-                SET_NORMAL( normal, n );
-                SET_NORMAL( normal, n );
-            }
-        }
-    }
-
-    // YZ (X=Xmax) plane.
-    {
-        const float x = max_coord.x();
-        const kvs::Vec3 n( 1.0f, 0.0f, 0.0f );
-        for ( size_t j = 0; j < dim - 1; j++ )
-        {
-            const float y = min_coord.y() + d.y() * j;
-            for ( size_t k = 0; k < dim - 1; k++ )
-            {
-                const float z = min_coord.z() + d.z() * k;
-                const kvs::Vec3 v0( x, y, z );
-                const kvs::Vec3 v1( x, y, z + d.z() );
-                const kvs::Vec3 v2( x, y + d.y(), z + d.z() );
-                const kvs::Vec3 v3( x, y + d.y(), z );
-                SET_FACE( coord, v3, v2, v1 );
-                SET_FACE( coord, v1, v0, v3 );
-                SET_NORMAL( normal, n );
-                SET_NORMAL( normal, n );
-            }
-        }
-    }
-
-    // XZ (Y=Ymin) plane.
-    {
-        const float y = min_coord.y();
-        const kvs::Vec3 n( 0.0f, -1.0f, 0.0f );
-        for ( size_t k = 0; k < dim - 1; k++ )
-        {
-            const float z = min_coord.z() + d.z() * k;
-            for ( size_t i = 0; i < dim - 1; i++ )
-            {
-                const float x = min_coord.x() + d.x() * i;
-                const kvs::Vec3 v0( x, y, z );
-                const kvs::Vec3 v1( x + d.x(), y, z );
-                const kvs::Vec3 v2( x + d.x(), y, z + d.z() );
-                const kvs::Vec3 v3( x, y, z + d.z() );
-                SET_FACE( coord, v0, v1, v2 );
-                SET_FACE( coord, v2, v3, v0 );
-                SET_NORMAL( normal, n );
-                SET_NORMAL( normal, n );
-            }
-        }
-    }
-
-    // XZ (Y=Ymax) plane.
-    {
-        const float y = max_coord.y();
-        const kvs::Vec3 n( 0.0f, 1.0f, 0.0f );
-        for ( size_t k = 0; k < dim - 1; k++ )
-        {
-            const float z = min_coord.z() + d.z() * k;
-            for ( size_t i = 0; i < dim - 1; i++ )
-            {
-                const float x = min_coord.x() + d.x() * i;
-                const kvs::Vec3 v0( x, y, z );
-                const kvs::Vec3 v1( x + d.x(), y, z );
-                const kvs::Vec3 v2( x + d.x(), y, z + d.z() );
-                const kvs::Vec3 v3( x, y, z + d.z() );
-                SET_FACE( coord, v3, v2, v1 );
-                SET_FACE( coord, v1, v0, v3 );
-                SET_NORMAL( normal, n );
-                SET_NORMAL( normal, n );
-            }
-        }
-    }
-
-    SuperClass::setCoords( coords );
-    SuperClass::setNormals( normals );
-}
-
-/*===========================================================================*/
-/**
  *  @brief  Calculates coordinate values of the specified yin or yang volume object.
  *  @param  yvolume [in] pointer to yin or yang volume object
  */
 /*===========================================================================*/
 void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume )
 {
+    const float r_d = yvolume->rangeR().d;
     const float r_from = yvolume->rangeR().min;
     const float r_to =  yvolume->rangeR().max;
-    const float r_d = yvolume->rangeR().d;
 
-    const float theta_from =  yvolume->rangeTheta().min;
-    const float theta_to =  yvolume->rangeTheta().max;
     const float theta_d = yvolume->rangeTheta().d;
+    const float theta_from =  yvolume->rangeTheta().min;
+//    const float theta_to =  yvolume->rangeTheta().max;
+    const float theta_to =  yvolume->rangeTheta().max + theta_d;
 
-    const float phi_from =  yvolume->rangePhi().min;
-    const float phi_to =  yvolume->rangePhi().max;
     const float phi_d = yvolume->rangePhi().d;
+    const float phi_from =  yvolume->rangePhi().min;
+//    const float phi_to =  yvolume->rangePhi().max;
+    const float phi_to =  yvolume->rangePhi().max + phi_d;
 
     const float dim_r = yvolume->dimR();
     const float dim_theta= yvolume->dimTheta();
@@ -406,7 +250,8 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
         const float cos_phi = std::cos( phi );
         for ( size_t j = 0; j < dim_theta - 1; j++ )
         {
-            const float theta = theta_from + theta_d * j;
+//            const float theta = theta_from + theta_d * j;
+            const float theta = theta_from + theta_d * ( j - 1 );
             const float theta_next = theta + theta_d;
 
             const float sin_theta = std::sin( theta );
@@ -453,7 +298,8 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
         const float cos_phi = std::cos( phi );
         for ( size_t j = 0; j < dim_theta - 1; j++ )
         {
-            const float theta = theta_from + theta_d * j;
+//            const float theta = theta_from + theta_d * j;
+            const float theta = theta_from + theta_d * ( j - 1 );
             const float theta_next = theta + theta_d;
 
             const float sin_theta = std::sin( theta );
@@ -496,7 +342,8 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
         const float r = r_from;
         for  ( size_t j = 0; j < dim_theta - 1; j++ )
         {
-            const float theta = theta_from + theta_d * j;
+//            const float theta = theta_from + theta_d * j;
+            const float theta = theta_from + theta_d * ( j - 1 );
             const float theta_next = theta + theta_d;
 
             const float sin_theta = std::sin( theta );
@@ -505,7 +352,8 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
             const float cos_theta_next = std::cos( theta_next );
             for ( size_t k = 0; k < dim_phi - 1; k++ )
             {
-                const float phi = phi_from + phi_d * k;
+//                const float phi = phi_from + phi_d * k;
+                const float phi = phi_from + phi_d * ( k - 2 );
                 const float phi_next = phi + phi_d;
 
                 const float sin_phi = std::sin( phi );
@@ -546,7 +394,8 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
         const float r = r_to; //grid_size.x() * ( dim_r - 1 );
         for ( size_t j = 0; j < dim_theta - 1; j++ )
         {
-            const float theta = theta_from + theta_d * j;
+//            const float theta = theta_from + theta_d * j;
+            const float theta = theta_from + theta_d * ( j - 1 );
             const float theta_next = theta + theta_d;
 
             const float sin_theta = std::sin( theta );
@@ -555,7 +404,8 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
             const float cos_theta_next = std::cos( theta_next );
             for ( size_t k = 0; k < dim_phi - 1; k++ )
             {
-                const float phi = phi_from + phi_d * k;
+//                const float phi = phi_from + phi_d * k;
+                const float phi = phi_from + phi_d * ( k - 2 );
                 const float phi_next = phi + phi_d;
 
                 const float sin_phi = std::sin( phi );
@@ -598,7 +448,8 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
         const float cos_theta = std::cos( theta );
         for ( size_t k = 0; k < dim_phi - 1; k++ )
         {
-            const float phi = phi_from + phi_d * k;
+//            const float phi = phi_from + phi_d * k;
+            const float phi = phi_from + phi_d * ( k - 2 );
             const float phi_next = phi + phi_d;
             for ( size_t i = 0; i < dim_r - 1; i++ )
             {
@@ -645,7 +496,8 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
         const float cos_theta = std::cos( theta );
         for ( size_t k = 0; k < dim_phi - 1; k++ )
         {
-            const float phi = phi_from + phi_d * k;
+//            const float phi = phi_from + phi_d * k;
+            const float phi = phi_from + phi_d * ( k - 2 );
             const float phi_next = phi + phi_d;
             for ( size_t i = 0; i < dim_r - 1; i++ )
             {
@@ -689,6 +541,12 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
     SuperClass::setNormals( normals );
 }
 
+/*===========================================================================*/
+/**
+ *  @brief  Calculates colors for yin or yang volume object
+ *  @param  zvolume [in] pointer to yin or yang volume object
+ */
+/*===========================================================================*/
 void ExternalFaces::calculate_colors( const YYZVis::YinYangVolumeObject* yvolume )
 {
     const kvs::Real64 min_value = yvolume->minValue();
@@ -866,6 +724,164 @@ void ExternalFaces::calculate_colors( const YYZVis::YinYangVolumeObject* yvolume
 
 /*===========================================================================*/
 /**
+ *  @brief  Calculates coordinate values of the specified zhong volume object.
+ *  @param  zvolume [in] pointer to zhong volume object
+ */
+/*===========================================================================*/
+void ExternalFaces::calculate_coords( const YYZVis::ZhongVolumeObject* zvolume )
+{
+    const size_t dim = zvolume->dim(); // number of grid points along each axis
+    const size_t nfaces = ( dim - 1 ) * ( dim - 1 ) * 6 * 2; // number of triangle faces
+    const size_t nverts = nfaces * 3; // number of vertices
+
+    const float r_min = zvolume->rangeR().min + zvolume->rangeR().d * 2;
+    const kvs::Vec3 min_coord = kvs::Vec3::Constant( -r_min ); // min coord of the volume
+    const kvs::Vec3 max_coord = kvs::Vec3::Constant(  r_min ); // max coord of the volume
+    const kvs::Vec3 d = ( max_coord - min_coord ) / ( dim - 1.0f ); // distance between grid points
+
+    kvs::ValueArray<kvs::Real32> coords( 3 * nverts );
+    kvs::ValueArray<kvs::Real32> normals( 3 * nfaces );
+    kvs::Real32* coord = coords.data();
+    kvs::Real32* normal = normals.data();
+
+    // XY (Z=Zmin) plane.
+    {
+        const float z = min_coord.z();
+        const kvs::Vec3 n( 0.0f, 0.0f, -1.0f );
+        for ( size_t j = 0; j < dim - 1; j++ )
+        {
+            const float y = min_coord.y() + d.y() * j;
+            for ( size_t i = 0; i < dim - 1; i++ )
+            {
+                const float x = min_coord.x() + d.x() * i;
+                const kvs::Vec3 v0( x, y, z );
+                const kvs::Vec3 v1( x + d.x(), y, z );
+                const kvs::Vec3 v2( x + d.x(), y + d.y(), z );
+                const kvs::Vec3 v3( x, y + d.y(), z );
+                SET_FACE( coord, v3, v2, v1 );
+                SET_FACE( coord, v1, v0, v3 );
+                SET_NORMAL( normal, n );
+                SET_NORMAL( normal, n );
+            }
+        }
+    }
+
+    // XY (Z=Zmax) plane.
+    {
+        const float z = max_coord.z();
+        const kvs::Vec3 n( 0.0f, 0.0f, 1.0f );
+        for ( size_t j = 0; j < dim - 1; j++ )
+        {
+            const float y = min_coord.y() + d.y() * j;
+            for ( size_t i = 0; i < dim - 1; i++ )
+            {
+                const float x = min_coord.x() + d.x() * i;
+                const kvs::Vec3 v0( x, y, z );
+                const kvs::Vec3 v1( x + d.x(), y, z );
+                const kvs::Vec3 v2( x + d.x(), y + d.y(), z );
+                const kvs::Vec3 v3( x, y + d.y(), z );
+                SET_FACE( coord, v0, v1, v2 );
+                SET_FACE( coord, v2, v3, v0 );
+                SET_NORMAL( normal, n );
+                SET_NORMAL( normal, n );
+            }
+        }
+    }
+
+    // YZ (X=Xmin) plane.
+    {
+        const float x = min_coord.x();
+        const kvs::Vec3 n( -1.0f, 0.0f, 0.0f );
+        for ( size_t j = 0; j < dim - 1; j++ )
+        {
+            const float y = min_coord.y() + d.y() * j;
+            for ( size_t k = 0; k < dim - 1; k++ )
+            {
+                const float z = min_coord.z() + d.z() * k;
+                const kvs::Vec3 v0( x, y, z );
+                const kvs::Vec3 v1( x, y, z + d.z() );
+                const kvs::Vec3 v2( x, y + d.y(), z + d.z() );
+                const kvs::Vec3 v3( x, y + d.y(), z );
+                SET_FACE( coord, v0, v1, v2 );
+                SET_FACE( coord, v2, v3, v0 );
+                SET_NORMAL( normal, n );
+                SET_NORMAL( normal, n );
+            }
+        }
+    }
+
+    // YZ (X=Xmax) plane.
+    {
+        const float x = max_coord.x();
+        const kvs::Vec3 n( 1.0f, 0.0f, 0.0f );
+        for ( size_t j = 0; j < dim - 1; j++ )
+        {
+            const float y = min_coord.y() + d.y() * j;
+            for ( size_t k = 0; k < dim - 1; k++ )
+            {
+                const float z = min_coord.z() + d.z() * k;
+                const kvs::Vec3 v0( x, y, z );
+                const kvs::Vec3 v1( x, y, z + d.z() );
+                const kvs::Vec3 v2( x, y + d.y(), z + d.z() );
+                const kvs::Vec3 v3( x, y + d.y(), z );
+                SET_FACE( coord, v3, v2, v1 );
+                SET_FACE( coord, v1, v0, v3 );
+                SET_NORMAL( normal, n );
+                SET_NORMAL( normal, n );
+            }
+        }
+    }
+
+    // XZ (Y=Ymin) plane.
+    {
+        const float y = min_coord.y();
+        const kvs::Vec3 n( 0.0f, -1.0f, 0.0f );
+        for ( size_t k = 0; k < dim - 1; k++ )
+        {
+            const float z = min_coord.z() + d.z() * k;
+            for ( size_t i = 0; i < dim - 1; i++ )
+            {
+                const float x = min_coord.x() + d.x() * i;
+                const kvs::Vec3 v0( x, y, z );
+                const kvs::Vec3 v1( x + d.x(), y, z );
+                const kvs::Vec3 v2( x + d.x(), y, z + d.z() );
+                const kvs::Vec3 v3( x, y, z + d.z() );
+                SET_FACE( coord, v0, v1, v2 );
+                SET_FACE( coord, v2, v3, v0 );
+                SET_NORMAL( normal, n );
+                SET_NORMAL( normal, n );
+            }
+        }
+    }
+
+    // XZ (Y=Ymax) plane.
+    {
+        const float y = max_coord.y();
+        const kvs::Vec3 n( 0.0f, 1.0f, 0.0f );
+        for ( size_t k = 0; k < dim - 1; k++ )
+        {
+            const float z = min_coord.z() + d.z() * k;
+            for ( size_t i = 0; i < dim - 1; i++ )
+            {
+                const float x = min_coord.x() + d.x() * i;
+                const kvs::Vec3 v0( x, y, z );
+                const kvs::Vec3 v1( x + d.x(), y, z );
+                const kvs::Vec3 v2( x + d.x(), y, z + d.z() );
+                const kvs::Vec3 v3( x, y, z + d.z() );
+                SET_FACE( coord, v3, v2, v1 );
+                SET_FACE( coord, v1, v0, v3 );
+                SET_NORMAL( normal, n );
+                SET_NORMAL( normal, n );
+            }
+        }
+    }
+
+    SuperClass::setCoords( coords );
+    SuperClass::setNormals( normals );
+}
+
+/*===========================================================================*/
+/**
  *  @brief  Calculates colors for zhong volume object
  *  @param  zvolume [in] pointer to zhong volume object
  */
@@ -995,7 +1011,7 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
     {
         const size_t j = 0;
         const size_t offset0 = j * nnodes_per_line;
-        for ( size_t k = 0, offset = offset0; k < dim - 1; k++, offset =  offset0 + k * nnodes_per_slice )
+        for ( size_t k = 0, offset = offset0; k < dim - 1; k++, offset = offset0 + k * nnodes_per_slice )
         {
             for ( size_t i = 0; i < dim - 1; i++, offset += 1 )
             {

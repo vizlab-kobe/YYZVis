@@ -31,9 +31,9 @@ public:
 private:
     void mapping( const YYZVis::ZhongVolumeObject* zvolume );
     void mapping( const YYZVis::YinYangVolumeObject* yvolume );
-    void calculate_coords( const YYZVis::ZhongVolumeObject* zvolume );
     void calculate_coords( const YYZVis::YinYangVolumeObject* yvolume );
     void calculate_colors( const YYZVis::YinYangVolumeObject* yvolume );
+    void calculate_coords( const YYZVis::ZhongVolumeObject* zvolume );
     void calculate_colors( const YYZVis::ZhongVolumeObject* zvolume );
 };
 
