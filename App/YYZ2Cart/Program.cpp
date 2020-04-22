@@ -1,22 +1,22 @@
 #include "Program.h"
 #include "Input.h"
 #include "Convert.h"
-#include <YinYangVis/Lib/YinYangVolumeObject.h>
-#include <YinYangVis/Lib/ZhongVolumeObject.h>
+#include <YYZVis/Lib/YinYangVolumeObject.h>
+#include <YYZVis/Lib/ZhongVolumeObject.h>
 #include <kvs/Indent>
 
 
 namespace
 {
 
-YinYangVis::YinYangVolumeObject ImportYinVolume( const local::Input& input )
+YYZVis::YinYangVolumeObject ImportYinVolume( const local::Input& input )
 {
     const size_t dim_rad = input.dim_rad;
     const size_t dim_lat = input.dim_lat;
     const size_t dim_lon = input.dim_lon;
     const std::string& filename = input.filename_yin;
 
-    YinYangVis::YinYangVolumeObject object;
+    YYZVis::YinYangVolumeObject object;
     object.setGridTypeToYin();
     object.setDimR( dim_rad );
     object.setDimTheta( dim_lat );
@@ -29,14 +29,14 @@ YinYangVis::YinYangVolumeObject ImportYinVolume( const local::Input& input )
     return object;
 }
 
-YinYangVis::YinYangVolumeObject ImportYangVolume( const local::Input& input )
+YYZVis::YinYangVolumeObject ImportYangVolume( const local::Input& input )
 {
     const size_t dim_rad = input.dim_rad;
     const size_t dim_lat = input.dim_lat;
     const size_t dim_lon = input.dim_lon;
     const std::string& filename = input.filename_yang;
 
-    YinYangVis::YinYangVolumeObject object;
+    YYZVis::YinYangVolumeObject object;
     object.setGridTypeToYang();
     object.setDimR( dim_rad );
     object.setDimTheta( dim_lat );
@@ -49,13 +49,13 @@ YinYangVis::YinYangVolumeObject ImportYangVolume( const local::Input& input )
     return object;
 }
 
-YinYangVis::ZhongVolumeObject ImportZhongVolume( const local::Input& input )
+YYZVis::ZhongVolumeObject ImportZhongVolume( const local::Input& input )
 {
     const size_t dim_rad = input.dim_rad;
     const size_t dim_zhong = input.dim_zhong;
     const std::string& filename = input.filename_zhong;
 
-    YinYangVis::ZhongVolumeObject object;
+    YYZVis::ZhongVolumeObject object;
     object.setDimR( dim_rad );
     object.setDim( dim_zhong );
     object.setVeclen( 1 );
@@ -67,9 +67,9 @@ YinYangVis::ZhongVolumeObject ImportZhongVolume( const local::Input& input )
 }
 
 void UpdateMinMaxValues(
-    YinYangVis::YinYangVolumeObject& yin_volume,
-    YinYangVis::YinYangVolumeObject& yang_volume,
-    YinYangVis::ZhongVolumeObject& zhong_volume )
+    YYZVis::YinYangVolumeObject& yin_volume,
+    YYZVis::YinYangVolumeObject& yang_volume,
+    YYZVis::ZhongVolumeObject& zhong_volume )
 {
     const kvs::Real32 min_value0 = yin_volume.minValue();
     const kvs::Real32 min_value1 = yang_volume.minValue();
@@ -85,9 +85,9 @@ void UpdateMinMaxValues(
 }
 
 void UpdateMinMaxCoords(
-    YinYangVis::YinYangVolumeObject& yin_volume,
-    YinYangVis::YinYangVolumeObject& yang_volume,
-    YinYangVis::ZhongVolumeObject& zhong_volume )
+    YYZVis::YinYangVolumeObject& yin_volume,
+    YYZVis::YinYangVolumeObject& yang_volume,
+    YYZVis::ZhongVolumeObject& zhong_volume )
 {
     const kvs::Vec3& min_coord0 = yin_volume.minObjectCoord();
     const kvs::Vec3& min_coord1 = yang_volume.minObjectCoord();
@@ -123,9 +123,9 @@ int Program::exec( int argc, char** argv )
     if ( !input.parse() ) { return 1; }
 
     std::cout << "IMPORT VOLUMES ..." << std::endl;
-    YinYangVis::YinYangVolumeObject yin_volume = ::ImportYinVolume( input );
-    YinYangVis::YinYangVolumeObject yang_volume = ::ImportYangVolume( input );
-    YinYangVis::ZhongVolumeObject zhong_volume = ::ImportZhongVolume( input );
+    YYZVis::YinYangVolumeObject yin_volume = ::ImportYinVolume( input );
+    YYZVis::YinYangVolumeObject yang_volume = ::ImportYangVolume( input );
+    YYZVis::ZhongVolumeObject zhong_volume = ::ImportZhongVolume( input );
     ::UpdateMinMaxValues( yin_volume, yang_volume, zhong_volume );
     ::UpdateMinMaxCoords( yin_volume, yang_volume, zhong_volume );
 

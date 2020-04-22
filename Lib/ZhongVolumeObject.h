@@ -6,17 +6,22 @@
 #include <kvs/UnstructuredVolumeObject>
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
+/*===========================================================================*/
+/**
+ *  @brief  Zhong volume object class.
+ */
+/*===========================================================================*/
 class ZhongVolumeObject : public kvs::VolumeObjectBase
 {
-    kvsModule( YinYangVis::ZhongVolumeObject, Object );
+    kvsModule( YYZVis::ZhongVolumeObject, Object );
     kvsModuleBaseClass( kvs::VolumeObjectBase );
 
 public:
-    static kvs::StructuredVolumeObject* ToStructuredVolumeObject( const YinYangVis::ZhongVolumeObject* object );
-    static kvs::UnstructuredVolumeObject* ToUnstructuredVolumeObject( const YinYangVis::ZhongVolumeObject* object );
+    static kvs::StructuredVolumeObject* ToStructuredVolumeObject( const YYZVis::ZhongVolumeObject* object );
+    static kvs::UnstructuredVolumeObject* ToUnstructuredVolumeObject( const YYZVis::ZhongVolumeObject* object );
 
 public:
     struct Range
@@ -53,4 +58,4 @@ public:
     void updateMinMaxCoords();
 };
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

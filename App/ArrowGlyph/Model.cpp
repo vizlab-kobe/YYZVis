@@ -1,7 +1,7 @@
 #include "Model.h"
-#include <YinYangVis/Lib/Edge.h>
-#include <YinYangVis/Lib/YinYangGridSampling.h>
-#include <YinYangVis/Lib/ZhongGridSampling.h>
+#include <YYZVis/Lib/Edge.h>
+#include <YYZVis/Lib/YinYangGridSampling.h>
+#include <YYZVis/Lib/ZhongGridSampling.h>
 #include <kvs/ExternalFaces>
 #include <kvs/Isosurface>
 #include <kvs/PolygonToPolygon>
@@ -47,27 +47,27 @@ Model::Model( local::Input& input ):
 
 kvs::LineObject* Model::newYinMeshes( const size_t dim_edge ) const
 {
-    return YinYangVis::Edge::CreateLineMeshObject( &m_yin_volume, dim_edge );
+    return YYZVis::Edge::CreateLineMeshObject( &m_yin_volume, dim_edge );
 }
 
 kvs::LineObject* Model::newYangMeshes( const size_t dim_edge ) const
 {
-    return YinYangVis::Edge::CreateLineMeshObject( &m_yang_volume, dim_edge );
+    return YYZVis::Edge::CreateLineMeshObject( &m_yang_volume, dim_edge );
 }
 
 kvs::LineObject* Model::newYinEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_yin_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_yin_volume );
 }
 
 kvs::LineObject* Model::newYangEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_yang_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_yang_volume );
 }
 
 kvs::LineObject* Model::newZhongEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_zhong_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_zhong_volume );
 }
 
 kvs::PolygonObject* Model::newYinFaces() const
@@ -100,7 +100,7 @@ kvs::PolygonObject* Model::newYinIsosurfaces() const
     const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
     const bool d = true;
     const kvs::TransferFunction& tfunc = m_input.tfunc;
-    return new YinYangVis::Isosurface( &m_yin_volume, isovalue, n, d, tfunc );
+    return new YYZVis::Isosurface( &m_yin_volume, isovalue, n, d, tfunc );
 
 //    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
 //    return this->newIsosurfaces( volume.get() );
@@ -112,7 +112,7 @@ kvs::PolygonObject* Model::newYangIsosurfaces() const
     const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
     const bool d = true;
     const kvs::TransferFunction& tfunc = m_input.tfunc;
-    return new YinYangVis::Isosurface( &m_yang_volume, isovalue, n, d, tfunc );
+    return new YYZVis::Isosurface( &m_yang_volume, isovalue, n, d, tfunc );
 
 //    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
 //    return this->newIsosurfaces( volume.get() );
@@ -124,7 +124,7 @@ kvs::PolygonObject* Model::newZhongIsosurfaces() const
     const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
     const bool d = true;
     const kvs::TransferFunction& tfunc = m_input.tfunc;
-    return new YinYangVis::Isosurface( &m_zhong_volume, isovalue, n, d, tfunc );
+    return new YYZVis::Isosurface( &m_zhong_volume, isovalue, n, d, tfunc );
 
 //    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
 //    return this->newIsosurfaces( volume.get() );

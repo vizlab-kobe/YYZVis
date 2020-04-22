@@ -6,7 +6,7 @@ namespace
 
 template <typename ValueType>
 inline void Bind(
-    const YinYangVis::ZhongVolumeObject* volume,
+    const YYZVis::ZhongVolumeObject* volume,
     const kvs::Vec3ui& base_index,
     kvs::Real32* grid_values,
     kvs::Vec3* grid_coords )
@@ -90,10 +90,10 @@ inline kvs::Real32 RandomNumber()
 
 }
 
-namespace YinYangVis
+namespace YYZVis
 {
 
-ZhongGrid::ZhongGrid( const YinYangVis::ZhongVolumeObject* volume ):
+ZhongGrid::ZhongGrid( const YYZVis::ZhongVolumeObject* volume ):
     m_base_index( 0, 0, 0 ),
     m_local_point( 0, 0, 0 ),
     m_reference_volume( volume )
@@ -113,7 +113,7 @@ void ZhongGrid::bind( const kvs::Vec3ui& base_index )
     KVS_ASSERT( base_index.z() < m_reference_volume->dim() - 1 );
 
     m_base_index = base_index;
-    const YinYangVis::ZhongVolumeObject* volume = m_reference_volume;
+    const YYZVis::ZhongVolumeObject* volume = m_reference_volume;
     switch ( volume->values().typeID() )
     {
     case kvs::Type::TypeInt8:   ::Bind<kvs::Int8>( volume, base_index, m_values, m_coords ); break;
@@ -311,4 +311,4 @@ const kvs::Vec3 ZhongGrid::randomSampling() const
     return this->globalPoint();
 }
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

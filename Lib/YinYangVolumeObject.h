@@ -6,17 +6,22 @@
 #include <kvs/UnstructuredVolumeObject>
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
+/*===========================================================================*/
+/**
+ *  @brief  Yin-Yang volume object class.
+ */
+/*===========================================================================*/
 class YinYangVolumeObject : public kvs::VolumeObjectBase
 {
-    kvsModule( YinYangVis::YinYangVolumeObject, Object );
+    kvsModule( YYZVis::YinYangVolumeObject, Object );
     kvsModuleBaseClass( kvs::VolumeObjectBase );
 
 public:
-    static kvs::StructuredVolumeObject* ToStructuredVolumeObject( const YinYangVis::YinYangVolumeObject* object );
-    static kvs::UnstructuredVolumeObject* ToUnstructuredVolumeObject( const YinYangVis::YinYangVolumeObject* object );
+    static kvs::StructuredVolumeObject* ToStructuredVolumeObject( const YYZVis::YinYangVolumeObject* object );
+    static kvs::UnstructuredVolumeObject* ToUnstructuredVolumeObject( const YYZVis::YinYangVolumeObject* object );
 
 public:
     enum GridType
@@ -74,4 +79,4 @@ public:
     void updateMinMaxCoords();
 };
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

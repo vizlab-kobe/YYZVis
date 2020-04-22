@@ -182,7 +182,7 @@ kvs::Real32 PixelLength( const kvs::Camera* camera, const kvs::ObjectBase* objec
 } // end of namespace
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
 kvs::Real32 DensityMap::at( const float value, const kvs::Real32 overlapweight ) const
@@ -260,4 +260,4 @@ kvs::Real32 DensityMap::max_density( const kvs::Real32 s0, const kvs::Real32 s1 
     return max_density;
 }
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

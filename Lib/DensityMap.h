@@ -5,9 +5,14 @@
 #include <kvs/OpacityMap>
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
+/*===========================================================================*/
+/**
+ *  @brief  Density map class used for particle-based rendering.
+ */
+/*===========================================================================*/
 class DensityMap
 {
 public:
@@ -41,4 +46,4 @@ private:
     kvs::Real32 max_density( const kvs::Real32 s0, const kvs::Real32 s1 ) const;
 };
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

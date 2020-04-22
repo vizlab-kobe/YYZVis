@@ -11,15 +11,15 @@ const std::string GridTypeName[2] = {
     "yang"
 };
 
-kvs::ValueArray<kvs::Real32> CalculateCoords( const YinYangVis::YinYangVolumeObject* object )
+kvs::ValueArray<kvs::Real32> CalculateCoords( const YYZVis::YinYangVolumeObject* object )
 {
     const size_t dim_r = object->dimR(); // radius
     const size_t dim_theta = object->dimTheta(); // latitude
     const size_t dim_phi = object->dimPhi(); // longitude
 
-    const YinYangVis::YinYangVolumeObject::Range range_r = object->rangeR();
-    const YinYangVis::YinYangVolumeObject::Range range_theta = object->rangeTheta();
-    const YinYangVis::YinYangVolumeObject::Range range_phi = object->rangePhi();
+    const YYZVis::YinYangVolumeObject::Range range_r = object->rangeR();
+    const YYZVis::YinYangVolumeObject::Range range_theta = object->rangeTheta();
+    const YYZVis::YinYangVolumeObject::Range range_phi = object->rangePhi();
 
     const size_t nnodes = object->numberOfNodes();
     kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
@@ -41,9 +41,9 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const YinYangVis::YinYangVolumeObj
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
 
-                *(pcoords++) = ( object->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? x : -x;
-                *(pcoords++) = ( object->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? y : z;
-                *(pcoords++) = ( object->gridType() == YinYangVis::YinYangVolumeObject::Yin ) ? z : y;
+                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x : -x;
+                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y : z;
+                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z : y;
             }
         }
     }
@@ -51,7 +51,7 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const YinYangVis::YinYangVolumeObj
     return coords;
 }
 
-kvs::ValueArray<kvs::UInt32> CalculateConnections( const YinYangVis::YinYangVolumeObject* object )
+kvs::ValueArray<kvs::UInt32> CalculateConnections( const YYZVis::YinYangVolumeObject* object )
 {
     const size_t dim_r = object->dimR(); // radius
     const size_t dim_theta = object->dimTheta(); // latitude
@@ -83,10 +83,10 @@ kvs::ValueArray<kvs::UInt32> CalculateConnections( const YinYangVis::YinYangVolu
 
 }
 
-namespace YinYangVis
+namespace YYZVis
 {
 
-kvs::StructuredVolumeObject* YinYangVolumeObject::ToStructuredVolumeObject( const YinYangVis::YinYangVolumeObject* object )
+kvs::StructuredVolumeObject* YinYangVolumeObject::ToStructuredVolumeObject( const YYZVis::YinYangVolumeObject* object )
 {
     kvs::StructuredVolumeObject* volume = new kvs::StructuredVolumeObject();
     volume->setGridTypeToCurvilinear();
@@ -102,7 +102,7 @@ kvs::StructuredVolumeObject* YinYangVolumeObject::ToStructuredVolumeObject( cons
     return volume;
 }
 
-kvs::UnstructuredVolumeObject* YinYangVolumeObject::ToUnstructuredVolumeObject( const YinYangVis::YinYangVolumeObject* object )
+kvs::UnstructuredVolumeObject* YinYangVolumeObject::ToUnstructuredVolumeObject( const YYZVis::YinYangVolumeObject* object )
 {
     kvs::UnstructuredVolumeObject* volume = new kvs::UnstructuredVolumeObject();
     volume->setCellTypeToHexahedra();
@@ -290,4 +290,4 @@ void YinYangVolumeObject::updateMinMaxCoords()
     }
 }
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

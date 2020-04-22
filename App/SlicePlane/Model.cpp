@@ -1,7 +1,7 @@
 #include "Model.h"
-#include <YinYangVis/Lib/Edge.h>
-#include <YinYangVis/Lib/YinYangGridSampling.h>
-#include <YinYangVis/Lib/ZhongGridSampling.h>
+#include <YYZVis/Lib/Edge.h>
+#include <YYZVis/Lib/YinYangGridSampling.h>
+#include <YYZVis/Lib/ZhongGridSampling.h>
 #include <kvs/ExternalFaces>
 #include <kvs/SlicePlane>
 #include <kvs/SmartPointer>
@@ -46,27 +46,27 @@ Model::Model( const local::Input& input ):
 
 kvs::LineObject* Model::newYinMeshes( const size_t dim_edge ) const
 {
-    return YinYangVis::Edge::CreateLineMeshObject( &m_yin_volume, dim_edge );
+    return YYZVis::Edge::CreateLineMeshObject( &m_yin_volume, dim_edge );
 }
 
 kvs::LineObject* Model::newYangMeshes( const size_t dim_edge ) const
 {
-    return YinYangVis::Edge::CreateLineMeshObject( &m_yang_volume, dim_edge );
+    return YYZVis::Edge::CreateLineMeshObject( &m_yang_volume, dim_edge );
 }
 
 kvs::LineObject* Model::newYinEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_yin_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_yin_volume );
 }
 
 kvs::LineObject* Model::newYangEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_yang_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_yang_volume );
 }
 
 kvs::LineObject* Model::newZhongEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_zhong_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_zhong_volume );
 }
 
 kvs::PolygonObject* Model::newYinFaces() const
@@ -95,7 +95,7 @@ kvs::PolygonObject* Model::newFaces( const kvs::UnstructuredVolumeObject* volume
 kvs::PolygonObject* Model::newYinSlice() const
 {
     const kvs::TransferFunction& tfunc = m_input.tfunc;
-    return new YinYangVis::SlicePlane( &m_yin_volume, m_plane_point, m_plane_normal, tfunc );
+    return new YYZVis::SlicePlane( &m_yin_volume, m_plane_point, m_plane_normal, tfunc );
 
 //    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
 //    return this->newSlice( volume.get() );
@@ -104,7 +104,7 @@ kvs::PolygonObject* Model::newYinSlice() const
 kvs::PolygonObject* Model::newYangSlice() const
 {
     const kvs::TransferFunction& tfunc = m_input.tfunc;
-    return new YinYangVis::SlicePlane( &m_yang_volume, m_plane_point, m_plane_normal, tfunc );
+    return new YYZVis::SlicePlane( &m_yang_volume, m_plane_point, m_plane_normal, tfunc );
 
 //    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
 //    return this->newSlice( volume.get() );
@@ -113,7 +113,7 @@ kvs::PolygonObject* Model::newYangSlice() const
 kvs::PolygonObject* Model::newZhongSlice() const
 {
     const kvs::TransferFunction& tfunc = m_input.tfunc;
-    return new YinYangVis::SlicePlane( &m_zhong_volume, m_plane_point, m_plane_normal, tfunc );
+    return new YYZVis::SlicePlane( &m_zhong_volume, m_plane_point, m_plane_normal, tfunc );
 
 //    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
 //    return this->newSlice( volume.get() );

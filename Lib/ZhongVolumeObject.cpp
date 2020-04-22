@@ -6,7 +6,7 @@
 namespace
 {
 
-kvs::ValueArray<kvs::Real32> CalculateCoords( const YinYangVis::ZhongVolumeObject* object )
+kvs::ValueArray<kvs::Real32> CalculateCoords( const YYZVis::ZhongVolumeObject* object )
 {
     const size_t dim = object->dim();
     const float r_min = object->rangeR().min;
@@ -40,7 +40,7 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const YinYangVis::ZhongVolumeObjec
     return coords;
 }
 
-kvs::ValueArray<kvs::UInt32> CalculateConnections( const YinYangVis::ZhongVolumeObject* object )
+kvs::ValueArray<kvs::UInt32> CalculateConnections( const YYZVis::ZhongVolumeObject* object )
 {
     const size_t dim = object->dim();
 
@@ -70,10 +70,10 @@ kvs::ValueArray<kvs::UInt32> CalculateConnections( const YinYangVis::ZhongVolume
 
 }
 
-namespace YinYangVis
+namespace YYZVis
 {
 
-kvs::StructuredVolumeObject* ZhongVolumeObject::ToStructuredVolumeObject( const YinYangVis::ZhongVolumeObject* object )
+kvs::StructuredVolumeObject* ZhongVolumeObject::ToStructuredVolumeObject( const YYZVis::ZhongVolumeObject* object )
 {
     kvs::StructuredVolumeObject* volume = new kvs::StructuredVolumeObject();
     volume->setGridTypeToUniform();
@@ -88,7 +88,7 @@ kvs::StructuredVolumeObject* ZhongVolumeObject::ToStructuredVolumeObject( const 
     return volume;
 }
 
-kvs::UnstructuredVolumeObject* ZhongVolumeObject::ToUnstructuredVolumeObject( const YinYangVis::ZhongVolumeObject* object )
+kvs::UnstructuredVolumeObject* ZhongVolumeObject::ToUnstructuredVolumeObject( const YYZVis::ZhongVolumeObject* object )
 {
     kvs::UnstructuredVolumeObject* volume = new kvs::UnstructuredVolumeObject();
     volume->setCellTypeToHexahedra();
@@ -233,5 +233,4 @@ void ZhongVolumeObject::updateMinMaxCoords()
     }
 }
 
-
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

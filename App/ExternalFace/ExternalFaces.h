@@ -4,16 +4,16 @@
 #include <kvs/PolygonObject>
 #include <kvs/VolumeObjectBase>
 #include <kvs/TransferFunction>
-#include <YinYangVis/Lib/YinYangVolumeObject.h>
-#include <YinYangVis/Lib/ZhongVolumeObject.h>
+#include <YYZVis/Lib/YinYangVolumeObject.h>
+#include <YYZVis/Lib/ZhongVolumeObject.h>
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
 class ExternalFaces : public kvs::MapperBase, public kvs::PolygonObject
 {
-    kvsModule( YinYangVis::ExternalFaces, Mapper );
+    kvsModule( YYZVis::ExternalFaces, Mapper );
     kvsModuleBaseClass( kvs::MapperBase );
     kvsModuleSuperClass( kvs::PolygonObject );
 
@@ -24,15 +24,15 @@ public:
     SuperClass* exec( const kvs::ObjectBase* object );
 
 private:
-    void mapping( const YinYangVis::ZhongVolumeObject* zvolume );
-    void mapping( const YinYangVis::YinYangVolumeObject* yvolume );
-    void calculate_zhong_coords( const YinYangVis::ZhongVolumeObject* zvolume );
-    void calculate_yinyang_coords( const YinYangVis::YinYangVolumeObject* yvolume );
+    void mapping( const YYZVis::ZhongVolumeObject* zvolume );
+    void mapping( const YYZVis::YinYangVolumeObject* yvolume );
+    void calculate_zhong_coords( const YYZVis::ZhongVolumeObject* zvolume );
+    void calculate_yinyang_coords( const YYZVis::YinYangVolumeObject* yvolume );
     void calculate_normal( const float x0, const float y0, const float z0,
 					const float x1, const float y1, const float z1,
 			   const float x2, const float y2, const float z2, kvs::Real32* normal, size_t index );
-    void calculate_yinyang_colors( const YinYangVis::YinYangVolumeObject* yvolume );
-    void calculate_zhong_colors( const YinYangVis::ZhongVolumeObject* zvolume );
+    void calculate_yinyang_colors( const YYZVis::YinYangVolumeObject* yvolume );
+    void calculate_zhong_colors( const YYZVis::ZhongVolumeObject* zvolume );
     void GetColorIndices(		      kvs::AnyValueArray value,
 				      const kvs::Real64 min_value,
 				      const kvs::Real64 max_value,
@@ -42,4 +42,4 @@ private:
 
 };
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

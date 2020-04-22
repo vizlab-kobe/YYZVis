@@ -7,12 +7,17 @@
 #include "ZhongVolumeObject.h"
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
+/*===========================================================================*/
+/**
+ *  @brief  Particle generation class for Zhong grid.
+ */
+/*===========================================================================*/
 class ZhongGridSampling : public kvs::MapperBase, public kvs::PointObject
 {
-    kvsModule( YinYangVis::ZhongGridSampling, Mapper );
+    kvsModule( YYZVis::ZhongGridSampling, Mapper );
     kvsModuleBaseClass( kvs::MapperBase );
     kvsModuleSuperClass( kvs::PointObject );
 
@@ -50,7 +55,7 @@ public:
     void setObjectDepth( const float depth ) { m_object_depth = depth; }
 
 private:
-    void mapping( const YinYangVis::ZhongVolumeObject* volume );
+    void mapping( const YYZVis::ZhongVolumeObject* volume );
 };
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

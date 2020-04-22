@@ -7,12 +7,17 @@
 #include "YinYangVolumeObject.h"
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
+/*===========================================================================*/
+/**
+ *  @brief  Partilce generation class for Yin-Yang grid.
+ */
+/*===========================================================================*/
 class YinYangGridSampling : public kvs::MapperBase, public kvs::PointObject
 {
-    kvsModule( YinYangVis::YinYangGridSampling, Mapper );
+    kvsModule( YYZVis::YinYangGridSampling, Mapper );
     kvsModuleBaseClass( kvs::MapperBase );
     kvsModuleSuperClass( kvs::PointObject );
 
@@ -50,9 +55,9 @@ public:
     void setObjectDepth( const float depth ) { m_object_depth = depth; }
 
 private:
-    void mapping_metro_yin( const YinYangVis::YinYangVolumeObject* volume );
-    void mapping_metro_yang( const YinYangVis::YinYangVolumeObject* volume );
-    void mapping_uniform( const YinYangVis::YinYangVolumeObject* volume );
+    void mapping_metro_yin( const YYZVis::YinYangVolumeObject* volume );
+    void mapping_metro_yang( const YYZVis::YinYangVolumeObject* volume );
+    void mapping_uniform( const YYZVis::YinYangVolumeObject* volume );
 };
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

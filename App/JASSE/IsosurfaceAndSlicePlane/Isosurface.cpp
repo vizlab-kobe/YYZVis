@@ -1,7 +1,7 @@
 #include "Isosurface.h"
 #include <kvs/MarchingHexahedraTable>
 
-namespace YinYangVis
+namespace YYZVis
 {
 
 Isosurface::Isosurface():
@@ -70,21 +70,21 @@ Isosurface::SuperClass* Isosurface::exec( const kvs::ObjectBase* object )
     SuperClass::setColorType( kvs::PolygonObject::PolygonColor );
     SuperClass::setNormalType( kvs::PolygonObject::PolygonNormal );
 
-    if ( YinYangVis::ZhongVolumeObject::DownCast( volume ) )
+    if ( YYZVis::ZhongVolumeObject::DownCast( volume ) )
     {
-        const YinYangVis::ZhongVolumeObject* zvolume = YinYangVis::ZhongVolumeObject::DownCast( volume );
+        const YYZVis::ZhongVolumeObject* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
         this->mapping( zvolume );
     }
-    else if ( YinYangVis::YinYangVolumeObject::DownCast( volume ) )
+    else if ( YYZVis::YinYangVolumeObject::DownCast( volume ) )
     {
-        const YinYangVis::YinYangVolumeObject* yvolume = YinYangVis::YinYangVolumeObject::DownCast( volume );
+        const YYZVis::YinYangVolumeObject* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
         this->mapping( yvolume );
     }
 
     return this;
 }
 
-void Isosurface::mapping( const YinYangVis::ZhongVolumeObject* zvolume )
+void Isosurface::mapping( const YYZVis::ZhongVolumeObject* zvolume )
 {
     // std::vector<kvs::Real32> coords;
     // std::vector<kvs::Real32> normals;
@@ -108,7 +108,7 @@ void Isosurface::mapping( const YinYangVis::ZhongVolumeObject* zvolume )
     // SuperClass::setOpacity( 255 );
 }
 
-void Isosurface::mapping( const YinYangVis::YinYangVolumeObject* yvolume )
+void Isosurface::mapping( const YYZVis::YinYangVolumeObject* yvolume )
 {
     // std::vector<kvs::Real32> coords;
     // std::vector<kvs::Real32> normals;
@@ -132,7 +132,7 @@ void Isosurface::mapping( const YinYangVis::YinYangVolumeObject* yvolume )
     // SuperClass::setOpacity( 255 );
 }
 
-void Isosurface::extract_yinyang_surfaces_with_duplication(const YinYangVis::YinYangVolumeObject* yvolume )
+void Isosurface::extract_yinyang_surfaces_with_duplication(const YYZVis::YinYangVolumeObject* yvolume )
 {
     // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -246,7 +246,7 @@ void Isosurface::extract_yinyang_surfaces_with_duplication(const YinYangVis::Yin
     }
 }
 
-void Isosurface::extract_zhong_surfaces_with_duplication(const YinYangVis::ZhongVolumeObject* zvolume )
+void Isosurface::extract_zhong_surfaces_with_duplication(const YYZVis::ZhongVolumeObject* zvolume )
 {
     // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -407,4 +407,4 @@ const kvs::RGBColor Isosurface::calculate_color()
 
     return BaseClass::transferFunction().colorMap()[ index ];
 }
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

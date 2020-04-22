@@ -12,8 +12,8 @@
 #include <kvs/ColorMapBar>
 #include <kvs/Label>
 #include <kvs/Slider>
-#include <YinYangVis/Lib/YinYangVolumeObject.h>
-#include <YinYangVis/Lib/ZhongVolumeObject.h>
+#include <YYZVis/Lib/YinYangVolumeObject.h>
+#include <YYZVis/Lib/ZhongVolumeObject.h>
 #include "Isosurface.h"
 #include "SlicePlane.h"
 
@@ -43,7 +43,7 @@ int main( int argc, char** argv )
     const kvs::TransferFunction tfunc( kvs::DivergingColorMap::CoolWarm( 256 ) );
 
     // Read Yin grid data.
-    YinYangVis::YinYangVolumeObject yin_volume;
+    YYZVis::YinYangVolumeObject yin_volume;
     yin_volume.setGridTypeToYin();
     yin_volume.setDimR( dim_rad );
     yin_volume.setDimTheta( dim_lat );
@@ -55,7 +55,7 @@ int main( int argc, char** argv )
     yin_volume.updateMinMaxValues();
 
     // Read Yang grid data.
-    YinYangVis::YinYangVolumeObject yang_volume;
+    YYZVis::YinYangVolumeObject yang_volume;
     yang_volume.setGridTypeToYang();
     yang_volume.setDimR( dim_rad );
     yang_volume.setDimTheta( dim_lat );
@@ -67,7 +67,7 @@ int main( int argc, char** argv )
     yang_volume.updateMinMaxValues();
 
     // Read Zhong grid data.
-    YinYangVis::ZhongVolumeObject zhong_volume;
+    YYZVis::ZhongVolumeObject zhong_volume;
     zhong_volume.setDimR( dim_rad );
     zhong_volume.setDim( dim_zhong );
     zhong_volume.setVeclen( 1 );
@@ -117,9 +117,9 @@ int main( int argc, char** argv )
     const kvs::PolygonObject::NormalType n = kvs::PolygonObject::PolygonNormal;
     const bool d = true;
     const float isovalue1 = kvs::Math::Mix( min_value, max_value, 0.6f );
-    kvs::PolygonObject* yin_iso1 = new YinYangVis::Isosurface( &yin_volume, isovalue1, n, d, tfunc );
-    kvs::PolygonObject* yang_iso1 = new YinYangVis::Isosurface( &yang_volume, isovalue1, n, d, tfunc );
-    kvs::PolygonObject* zhong_iso1 = new YinYangVis::Isosurface( &zhong_volume, isovalue1, n, d, tfunc );
+    kvs::PolygonObject* yin_iso1 = new YYZVis::Isosurface( &yin_volume, isovalue1, n, d, tfunc );
+    kvs::PolygonObject* yang_iso1 = new YYZVis::Isosurface( &yang_volume, isovalue1, n, d, tfunc );
+    kvs::PolygonObject* zhong_iso1 = new YYZVis::Isosurface( &zhong_volume, isovalue1, n, d, tfunc );
 
     // Set up viewer application.
     kvs::glut::Application app( argc, argv );
@@ -146,9 +146,9 @@ int main( int argc, char** argv )
     if ( true )
     {
         const kvs::Vec3 plane_normal( 1, 0, 0 );
-        kvs::PolygonObject* yin_slice = new YinYangVis::SlicePlane( &yin_volume, plane_point, plane_normal, tfunc );
-        kvs::PolygonObject* yang_slice = new YinYangVis::SlicePlane( &yang_volume, plane_point, plane_normal, tfunc );
-        kvs::PolygonObject* zhong_slice = new YinYangVis::SlicePlane( &zhong_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* yin_slice = new YYZVis::SlicePlane( &yin_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* yang_slice = new YYZVis::SlicePlane( &yang_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* zhong_slice = new YYZVis::SlicePlane( &zhong_volume, plane_point, plane_normal, tfunc );
         screen.registerObject( yin_slice, new Renderer );
         screen.registerObject( yang_slice, new Renderer );
 
@@ -159,9 +159,9 @@ int main( int argc, char** argv )
     if ( true )
     {
         const kvs::Vec3 plane_normal( 0, 1, 0 );
-        kvs::PolygonObject* yin_slice = new YinYangVis::SlicePlane( &yin_volume, plane_point, plane_normal, tfunc );
-        kvs::PolygonObject* yang_slice = new YinYangVis::SlicePlane( &yang_volume, plane_point, plane_normal, tfunc );
-        kvs::PolygonObject* zhong_slice = new YinYangVis::SlicePlane( &zhong_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* yin_slice = new YYZVis::SlicePlane( &yin_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* yang_slice = new YYZVis::SlicePlane( &yang_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* zhong_slice = new YYZVis::SlicePlane( &zhong_volume, plane_point, plane_normal, tfunc );
         screen.registerObject( yin_slice, new Renderer );
         screen.registerObject( yang_slice, new Renderer );
 
@@ -172,9 +172,9 @@ int main( int argc, char** argv )
     if ( true )
     {
         const kvs::Vec3 plane_normal( 0, 0, 1 );
-        kvs::PolygonObject* yin_slice = new YinYangVis::SlicePlane( &yin_volume, plane_point, plane_normal, tfunc );
-        kvs::PolygonObject* yang_slice = new YinYangVis::SlicePlane( &yang_volume, plane_point, plane_normal, tfunc );
-        kvs::PolygonObject* zhong_slice = new YinYangVis::SlicePlane( &zhong_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* yin_slice = new YYZVis::SlicePlane( &yin_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* yang_slice = new YYZVis::SlicePlane( &yang_volume, plane_point, plane_normal, tfunc );
+        kvs::PolygonObject* zhong_slice = new YYZVis::SlicePlane( &zhong_volume, plane_point, plane_normal, tfunc );
         screen.registerObject( yin_slice, new Renderer );
         screen.registerObject( yang_slice, new Renderer );
 

@@ -1,7 +1,7 @@
 #include "Model.h"
-#include <YinYangVis/Lib/Edge.h>
-#include <YinYangVis/Lib/YinYangGridSampling.h>
-#include <YinYangVis/Lib/ZhongGridSampling.h>
+#include <YYZVis/Lib/Edge.h>
+#include <YYZVis/Lib/YinYangGridSampling.h>
+#include <YYZVis/Lib/ZhongGridSampling.h>
 #include <kvs/ExternalFaces>
 #include <kvs/SmartPointer>
 #include <kvs/CellByCellMetropolisSampling>
@@ -29,27 +29,27 @@ Model::Model( const local::Input& input ):
 
 kvs::LineObject* Model::newYinMeshes( const size_t dim_edge ) const
 {
-    return YinYangVis::Edge::CreateLineMeshObject( &m_yin_volume, dim_edge );
+    return YYZVis::Edge::CreateLineMeshObject( &m_yin_volume, dim_edge );
 }
 
 kvs::LineObject* Model::newYangMeshes( const size_t dim_edge ) const
 {
-    return YinYangVis::Edge::CreateLineMeshObject( &m_yang_volume, dim_edge );
+    return YYZVis::Edge::CreateLineMeshObject( &m_yang_volume, dim_edge );
 }
 
 kvs::LineObject* Model::newYinEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_yin_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_yin_volume );
 }
 
 kvs::LineObject* Model::newYangEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_yang_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_yang_volume );
 }
 
 kvs::LineObject* Model::newZhongEdges() const
 {
-    return YinYangVis::Edge::CreateLineEdgeObject( &m_zhong_volume );
+    return YYZVis::Edge::CreateLineEdgeObject( &m_zhong_volume );
 }
 
 kvs::PolygonObject* Model::newYinFaces() const
@@ -116,7 +116,7 @@ kvs::PointObject* Model::newYangParticles( const YangVolume* volume ) const
     const size_t subpixels = 1; // fixed to '1'
     const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
     const float step = 0.1f;
-    return new YinYangVis::YinYangGridSampling( volume, level, step, m_input.tfunc );
+    return new YYZVis::YinYangGridSampling( volume, level, step, m_input.tfunc );
 }
 
 kvs::PointObject* Model::newZhongParticles( const ZhongVolume* volume ) const
@@ -125,7 +125,7 @@ kvs::PointObject* Model::newZhongParticles( const ZhongVolume* volume ) const
     const size_t subpixels = 1; // fixed to '1'
     const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
     const float step = 0.1f;
-    return new YinYangVis::ZhongGridSampling( volume, level, step, m_input.tfunc );
+    return new YYZVis::ZhongGridSampling( volume, level, step, m_input.tfunc );
 }
 
 kvs::PointObject* Model::newParticles( const kvs::UnstructuredVolumeObject* volume ) const

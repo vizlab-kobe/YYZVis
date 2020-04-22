@@ -12,10 +12,10 @@
 #include <kvs/ColorMapBar>
 #include <kvs/Label>
 #include <kvs/Slider>
-#include <YinYangVis/Lib/YinYangVolumeObject.h>
-#include <YinYangVis/Lib/ZhongVolumeObject.h>
-#include <YinYangVis/Lib/YinYangGridSampling.h>
-#include <YinYangVis/Lib/ZhongGridSampling.h>
+#include <YYZVis/Lib/YinYangVolumeObject.h>
+#include <YYZVis/Lib/ZhongVolumeObject.h>
+#include <YYZVis/Lib/YinYangGridSampling.h>
+#include <YYZVis/Lib/ZhongGridSampling.h>
 #include <kvs/PointObject>
 #include <kvs/LineObject>
 #include <kvs/glut/TransferFunctionEditor>
@@ -64,7 +64,7 @@ int main( int argc, char** argv )
     screen.setBackgroundColor( kvs::RGBColor::White() );
 
     // Read Yin grid data.
-    YinYangVis::YinYangVolumeObject yin_volume;
+    YYZVis::YinYangVolumeObject yin_volume;
     yin_volume.setGridTypeToYin();
     yin_volume.setDimR( dim_rad );
     yin_volume.setDimTheta( dim_lat );
@@ -76,7 +76,7 @@ int main( int argc, char** argv )
     yin_volume.updateMinMaxValues();
 
     // Read Yang grid data.
-    YinYangVis::YinYangVolumeObject yang_volume;
+    YYZVis::YinYangVolumeObject yang_volume;
     yang_volume.setGridTypeToYang();
     yang_volume.setDimR( dim_rad );
     yang_volume.setDimTheta( dim_lat );
@@ -88,7 +88,7 @@ int main( int argc, char** argv )
     yang_volume.updateMinMaxValues();
 
     // Read Zhong grid data.
-    YinYangVis::ZhongVolumeObject zhong_volume;
+    YYZVis::ZhongVolumeObject zhong_volume;
     zhong_volume.setDimR( dim_rad );
     zhong_volume.setDim( dim_zhong );
     zhong_volume.setVeclen( 1 );
@@ -139,9 +139,9 @@ int main( int argc, char** argv )
     const size_t subpixels = 1; // fixed to '1'
     const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
     const float step = 0.1f;
-    kvs::PointObject* yin_pnt = new YinYangVis::YinYangGridSampling( &yin_volume, level, step, tfunc );
-    kvs::PointObject* yang_pnt = new YinYangVis::YinYangGridSampling( &yang_volume, level, step, tfunc );
-    kvs::PointObject* zhong_pnt = new YinYangVis::ZhongGridSampling( &zhong_volume, level, step, tfunc );
+    kvs::PointObject* yin_pnt = new YYZVis::YinYangGridSampling( &yin_volume, level, step, tfunc );
+    kvs::PointObject* yang_pnt = new YYZVis::YinYangGridSampling( &yang_volume, level, step, tfunc );
+    kvs::PointObject* zhong_pnt = new YYZVis::ZhongGridSampling( &zhong_volume, level, step, tfunc );
 
 //    yin_pnt->setNormals( kvs::ValueArray<float>() );
 //    yang_pnt->setNormals( kvs::ValueArray<float>() );

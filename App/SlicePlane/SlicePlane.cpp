@@ -1,7 +1,7 @@
 #include "SlicePlane.h"
 #include <kvs/MarchingHexahedraTable>
 
-namespace YinYangVis
+namespace YYZVis
 {
 
 SlicePlane::SlicePlane():
@@ -76,21 +76,21 @@ SlicePlane::SuperClass* SlicePlane::exec( const kvs::ObjectBase* object )
     SuperClass::setColorType( kvs::PolygonObject::VertexColor );
     SuperClass::setNormalType( kvs::PolygonObject::PolygonNormal );
 
-    if ( YinYangVis::ZhongVolumeObject::DownCast( volume ) )
+    if ( YYZVis::ZhongVolumeObject::DownCast( volume ) )
     {
-        const YinYangVis::ZhongVolumeObject* zvolume = YinYangVis::ZhongVolumeObject::DownCast( volume );
+        const YYZVis::ZhongVolumeObject* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
         this->mapping( zvolume );
     }
-    else if ( YinYangVis::YinYangVolumeObject::DownCast( volume ) )
+    else if ( YYZVis::YinYangVolumeObject::DownCast( volume ) )
     {
-        const YinYangVis::YinYangVolumeObject* yvolume = YinYangVis::YinYangVolumeObject::DownCast( volume );
+        const YYZVis::YinYangVolumeObject* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
         this->mapping( yvolume );
     }
 
     return this;
 }
 
-void SlicePlane::mapping( const YinYangVis::ZhongVolumeObject* zvolume )
+void SlicePlane::mapping( const YYZVis::ZhongVolumeObject* zvolume )
 {
     // std::vector<kvs::Real32> coords;
     // std::vector<kvs::Real32> normals;
@@ -106,7 +106,7 @@ void SlicePlane::mapping( const YinYangVis::ZhongVolumeObject* zvolume )
     // SuperClass::setOpacity( 255 );
 }
 
-void SlicePlane::mapping( const YinYangVis::YinYangVolumeObject* yvolume )
+void SlicePlane::mapping( const YYZVis::YinYangVolumeObject* yvolume )
 {
   // std::vector<kvs::Real32> coords;
   // std::vector<kvs::Real32> normals;
@@ -122,7 +122,7 @@ void SlicePlane::mapping( const YinYangVis::YinYangVolumeObject* yvolume )
     // SuperClass::setOpacity( 255 );
 }
   
-void SlicePlane::extract_yinyang_plane( const YinYangVis::YinYangVolumeObject* yvolume )
+void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolume )
 {
    // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -266,7 +266,7 @@ void SlicePlane::extract_yinyang_plane( const YinYangVis::YinYangVolumeObject* y
     SuperClass::setNormalType( kvs::PolygonObject::PolygonNormal );
 }
 
-  void SlicePlane::extract_zhong_plane( const YinYangVis::ZhongVolumeObject* zvolume )
+  void SlicePlane::extract_zhong_plane( const YYZVis::ZhongVolumeObject* zvolume )
 {
    // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -459,7 +459,7 @@ const kvs::Vector3f SlicePlane::interpolate_vertex(
 }
 
 double SlicePlane::interpolate_yinyang_value(
-				     const YinYangVis::YinYangVolumeObject* yvolume,
+				     const YYZVis::YinYangVolumeObject* yvolume,
                                      const size_t                         index0,
                                      const size_t                         index1 ) const
 {
@@ -474,7 +474,7 @@ double SlicePlane::interpolate_yinyang_value(
 }
 
 double SlicePlane::interpolate_zhong_value(
-				     const YinYangVis::ZhongVolumeObject* zvolume,
+				     const YYZVis::ZhongVolumeObject* zvolume,
                                      const size_t                         index0,
                                      const size_t                         index1 ) const
 {
@@ -487,4 +487,4 @@ double SlicePlane::interpolate_zhong_value(
 
     return values.at<float>( index0 ) + ratio * ( values.at<float>( index1 ) - values.at<float>( index0 ) );
 }
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

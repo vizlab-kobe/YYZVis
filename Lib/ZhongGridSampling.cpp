@@ -60,16 +60,16 @@ public:
 class Sampler
 {
 private:
-    YinYangVis::ZhongGrid* m_grid;
-    YinYangVis::DensityMap* m_density_map;
+    YYZVis::ZhongGrid* m_grid;
+    YYZVis::DensityMap* m_density_map;
     Particles m_particles; ///< particles
     Particle m_current; ///< current sampled point
     Particle m_trial; ///< trial point
 
 public:
     Sampler(
-        YinYangVis::ZhongGrid* grid,
-        YinYangVis::DensityMap* density_map ):
+        YYZVis::ZhongGrid* grid,
+        YYZVis::DensityMap* density_map ):
         m_grid( grid ),
         m_density_map( density_map ) {}
 
@@ -80,7 +80,7 @@ public:
         m_grid->bind( base_index );
     }
 
-    size_t numberOfParticles(const YinYangVis::ZhongVolumeObject* object )
+    size_t numberOfParticles(const YYZVis::ZhongVolumeObject* object )
     {
         const kvs::Real32 scalar = this->averaged_scalar();
         kvs::Real32 overlapweight = averaged_overlapweight( object );
@@ -128,7 +128,7 @@ public:
         return m_density_map->at( m_trial.scalar );
     }
 
-    kvs::Real32 sampleOverlap( const YinYangVis::ZhongVolumeObject* object )
+    kvs::Real32 sampleOverlap( const YYZVis::ZhongVolumeObject* object )
     {
         bool flag = false;
         size_t counter = 0;
@@ -143,7 +143,7 @@ public:
         return m_density_map->at( m_current.scalar );
     }
 
-    kvs::Real32 sampleOverlap( const size_t max_loops, const YinYangVis::ZhongVolumeObject* object )
+    kvs::Real32 sampleOverlap( const size_t max_loops, const YYZVis::ZhongVolumeObject* object )
     {
         kvs::Real32 density = this->sampleOverlap( object );
         if ( kvs::Math::IsZero( density ) )
@@ -158,7 +158,7 @@ public:
         return density;
     }
 
-    kvs::Real32 trySampleOverlap( const YinYangVis::ZhongVolumeObject* object )
+    kvs::Real32 trySampleOverlap( const YYZVis::ZhongVolumeObject* object )
     {
         bool flag = false;
         size_t counter = 0;
@@ -186,7 +186,7 @@ public:
         m_current.scalar = m_trial.scalar;
     }
 
-    void checkOverlapFlag( const YinYangVis::ZhongVolumeObject* object, size_t& flag ) const
+    void checkOverlapFlag( const YYZVis::ZhongVolumeObject* object, size_t& flag ) const
     {
         kvs::Real32 l;
         size_t cflag[8];
@@ -217,7 +217,7 @@ private:
         kvs::Real32 d;
     };
 
-    kvs::Real32 calc_zhong_overlap_weight( const YinYangVis::ZhongVolumeObject* object, int i, int j, int k ) const
+    kvs::Real32 calc_zhong_overlap_weight( const YYZVis::ZhongVolumeObject* object, int i, int j, int k ) const
     {
         kvs::Real32 x, y, z, l;
 
@@ -244,7 +244,7 @@ private:
         }
     }
 
-    kvs::Real32 averaged_overlapweight( const YinYangVis::ZhongVolumeObject* object ) const
+    kvs::Real32 averaged_overlapweight( const YYZVis::ZhongVolumeObject* object ) const
     {
         const kvs::Vec3ui base_index = m_grid->baseIndex();
         int i = (int)base_index[0];
@@ -261,7 +261,7 @@ private:
         return ow;
     }
 
-    size_t judge_zhong_overlap( const YinYangVis::ZhongVolumeObject* object, kvs::Vec3 coords ) const
+    size_t judge_zhong_overlap( const YYZVis::ZhongVolumeObject* object, kvs::Vec3 coords ) const
     {
         kvs::Real32 l;
         kvs::Real32 outercore_min_r;
@@ -303,7 +303,7 @@ private:
 }
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
 ZhongGridSampling::ZhongGridSampling(
@@ -361,7 +361,7 @@ ZhongGridSampling::SuperClass* ZhongGridSampling::exec( const kvs::ObjectBase* o
         delete_camera = true;
     }
 
-    this->mapping( YinYangVis::ZhongVolumeObject::DownCast( volume ) );
+    this->mapping( YYZVis::ZhongVolumeObject::DownCast( volume ) );
 
     if ( delete_camera )
     {
@@ -372,7 +372,7 @@ ZhongGridSampling::SuperClass* ZhongGridSampling::exec( const kvs::ObjectBase* o
     return this;
 }
 
-void ZhongGridSampling::mapping( const YinYangVis::ZhongVolumeObject* volume )
+void ZhongGridSampling::mapping( const YYZVis::ZhongVolumeObject* volume )
 {
     KVS_ASSERT( volume != NULL );
 
@@ -380,8 +380,8 @@ void ZhongGridSampling::mapping( const YinYangVis::ZhongVolumeObject* volume )
     BaseClass::setRange( volume );
     BaseClass::setMinMaxCoords( volume, this );
 
-    YinYangVis::ZhongGrid grid( volume );
-    YinYangVis::DensityMap density_map;
+    YYZVis::ZhongGrid grid( volume );
+    YYZVis::DensityMap density_map;
     density_map.setSubpixelLevel( m_subpixel_level );
     density_map.setSamplingStep( m_sampling_step );
     density_map.attachCamera( m_camera );
@@ -472,4 +472,4 @@ void ZhongGridSampling::mapping( const YinYangVis::ZhongVolumeObject* volume )
     SuperClass::setSize( 1.0f );
 }
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

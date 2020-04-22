@@ -53,7 +53,7 @@ View::View( kvs::glut::Application* app, local::Model* model ):
     this->show();
 
 #if defined( JSST2019_TEST )
-    const kvs::Xform S = kvs::Xform::Scaling( kvs::Vec3::All( 1.3 ) );
+    const kvs::Xform S = kvs::Xform::Scaling( kvs::Vec3::Constant( 1.3 ) );
     const kvs::Xform R = kvs::Xform::Rotation( kvs::Mat3::RotationX( 30 ) * kvs::Mat3::RotationY( -40 ) );
     const kvs::Xform x = S * R;
     m_screen.scene()->object("YinMesh")->multiplyXform( x );

@@ -2,9 +2,14 @@
 #include "ZhongVolumeObject.h"
 
 
-namespace YinYangVis
+namespace YYZVis
 {
 
+/*===========================================================================*/
+/**
+ *  @brief  Interpolation class for Zhong grid.
+ */
+/*===========================================================================*/
 class ZhongGrid
 {
 private:
@@ -14,10 +19,10 @@ private:
     mutable kvs::Real32 m_interpolation_functions[8];
     mutable kvs::Real32 m_differential_functions[24];
     mutable kvs::Vec3 m_local_point; ///< local point
-    const YinYangVis::ZhongVolumeObject* m_reference_volume;
+    const YYZVis::ZhongVolumeObject* m_reference_volume;
 
 public:
-    ZhongGrid( const YinYangVis::ZhongVolumeObject* volume );
+    ZhongGrid( const YYZVis::ZhongVolumeObject* volume );
 
     const kvs::Vec3ui& baseIndex() const { return m_base_index; }
     const kvs::Vec3& coord( const size_t index ) const { return m_coords[index]; }
@@ -39,4 +44,4 @@ public:
     const kvs::Vec3 randomSampling() const;
 };
 
-} // end of namespace YinYangVis
+} // end of namespace YYZVis

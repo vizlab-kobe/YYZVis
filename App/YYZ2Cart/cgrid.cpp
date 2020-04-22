@@ -1,6 +1,6 @@
 #include "cgrid.h"
-#include <YinYangVis/Lib/YinYangVolumeObject.h>
-#include <YinYangVis/Lib/ZhongVolumeObject.h>
+#include <YYZVis/Lib/YinYangVolumeObject.h>
+#include <YYZVis/Lib/ZhongVolumeObject.h>
 #include <kvs/ValueArray>
 #include <kvs/AnyValueArray>
 #include <vector>
@@ -8,20 +8,20 @@
 
 namespace local
 {
-  Cgrid::Cgrid( const YinYangVis::YinYangVolumeObject& yin_volume, const YinYangVis::YinYangVolumeObject& yang_volume, const YinYangVis::ZhongVolumeObject& zhong_volume )
+  Cgrid::Cgrid( const YYZVis::YinYangVolumeObject& yin_volume, const YYZVis::YinYangVolumeObject& yang_volume, const YYZVis::ZhongVolumeObject& zhong_volume )
   {
     this->cgrid__make( yin_volume ); 
     this->mapping__localize( yin_volume, yang_volume, zhong_volume );
   }
 
-  void Cgrid::cgrid__make( const YinYangVis::YinYangVolumeObject& yin_volume )
+  void Cgrid::cgrid__make( const YYZVis::YinYangVolumeObject& yin_volume )
   {
     this->set_minmax( yin_volume );
     this->set_xyz();
     this->set_metric();
   }  
   
-  void Cgrid::set_minmax( const YinYangVis::YinYangVolumeObject& yin_volume )
+  void Cgrid::set_minmax( const YYZVis::YinYangVolumeObject& yin_volume )
   {
     
     cgrid__x_min = -yin_volume.rangeR().max;
@@ -89,7 +89,7 @@ namespace local
       }
   }
 
-void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume, const YinYangVis::YinYangVolumeObject& yang_volume, const YinYangVis::ZhongVolumeObject& zhong_volume )
+void Cgrid::mapping__localize( const YYZVis::YinYangVolumeObject& yin_volume, const YYZVis::YinYangVolumeObject& yang_volume, const YYZVis::ZhongVolumeObject& zhong_volume )
   {
     int i, j, k;
     float x, y, z;
@@ -139,7 +139,7 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
       }
   }
   
-  void Cgrid::iFind_zhong(float x, float y, float z, int index, const YinYangVis::ZhongVolumeObject& z_object )
+  void Cgrid::iFind_zhong(float x, float y, float z, int index, const YYZVis::ZhongVolumeObject& z_object )
   {
     int i1,j1,k1;
     float wx1,wy1,wz1;
@@ -163,7 +163,7 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
     return;
    }
 
-  int Cgrid::igrid__find_nearleft( char axis, float c, const YinYangVis::ZhongVolumeObject& object )
+  int Cgrid::igrid__find_nearleft( char axis, float c, const YYZVis::ZhongVolumeObject& object )
   {
     int i;
     float x, y, z;
@@ -206,9 +206,10 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
       }
       break;
     }
+    return 0; // ???
   }
 
-  void Cgrid::ogrid__find_near_corner( float rad, float theta, float phi, int index, const YinYangVis::YinYangVolumeObject& object  )
+  void Cgrid::ogrid__find_near_corner( float rad, float theta, float phi, int index, const YYZVis::YinYangVolumeObject& object  )
   {                            
     int i1, j1, k1=0;                         
     float wr1, wt1, wp1=0;          
@@ -256,7 +257,7 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
     this-> ogrid_to_cgrid_localize( i1, j1, k1, wr1, wt1, wp1, rad, theta, phi,index, object );
    
       }
-  void Cgrid::ogrid_to_cgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1, float rad, float tht, float phi, int index, const YinYangVis::YinYangVolumeObject& object )
+  void Cgrid::ogrid_to_cgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1, float rad, float tht, float phi, int index, const YYZVis::YinYangVolumeObject& object )
    {
      float wr2, wt2, wp2;
      float w[8];
@@ -295,7 +296,7 @@ void Cgrid::mapping__localize( const YinYangVis::YinYangVolumeObject& yin_volume
      cgrid__values[index] = value;
    }
 
-  void Cgrid::igrid_to_cgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1, int index, const YinYangVis::ZhongVolumeObject& object)
+  void Cgrid::igrid_to_cgrid_localize(int i1, int j1, int k1, float wr1, float wt1, float wp1, int index, const YYZVis::ZhongVolumeObject& object)
    {
      float wr2, wt2, wp2;
      float w[8];

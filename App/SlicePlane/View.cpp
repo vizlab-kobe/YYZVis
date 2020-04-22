@@ -62,7 +62,7 @@ void View::setup()
     this->setup_slices();
 
 #if defined( JSST2019_TEST )
-    const kvs::Xform S = kvs::Xform::Scaling( kvs::Vec3::All( 1.3 ) );
+    const kvs::Xform S = kvs::Xform::Scaling( kvs::Vec3::Constant( 1.3 ) );
     const kvs::Xform R = kvs::Xform::Rotation( kvs::Mat3::RotationX( 30 ) * kvs::Mat3::RotationY( -40 ) );
     const kvs::Xform x = S * R;
     m_screen.scene()->object("YinMesh")->multiplyXform( x );
@@ -208,7 +208,7 @@ void View::setup_slices()
 
 #if JSST2019_TEST
     const kvs::Vec3 plane_point = m_model->planePoint();
-    const kvs::Vec3 plane_normal = m_model->planeNormal();
+//    const kvs::Vec3 plane_normal = m_model->planeNormal();
     const kvs::Vec3 normal2( 1, 0, 0 );
     const kvs::Vec3 normal3( 0, 1, 0 );
 

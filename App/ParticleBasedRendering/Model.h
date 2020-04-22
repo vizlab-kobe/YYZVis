@@ -1,7 +1,7 @@
 #pragma once
 #include "Input.h"
-#include <YinYangVis/Lib/YinYangVolumeObject.h>
-#include <YinYangVis/Lib/ZhongVolumeObject.h>
+#include <YYZVis/Lib/YinYangVolumeObject.h>
+#include <YYZVis/Lib/ZhongVolumeObject.h>
 #include <kvs/PointObject>
 #include <kvs/LineObject>
 #include <kvs/PolygonObject>
@@ -20,9 +20,9 @@ namespace local
 class Model
 {
 public:
-    typedef YinYangVis::YinYangVolumeObject YinVolume;
-    typedef YinYangVis::YinYangVolumeObject YangVolume;
-    typedef YinYangVis::ZhongVolumeObject ZhongVolume;
+    typedef YYZVis::YinYangVolumeObject YinVolume;
+    typedef YYZVis::YinYangVolumeObject YangVolume;
+    typedef YYZVis::ZhongVolumeObject ZhongVolume;
 
 private:
     const local::Input& m_input; ///< input information from commandline arguments

@@ -5,9 +5,9 @@ namespace local
 {
 
 kvs::StructuredVolumeObject Convert(
-    YinYangVis::YinYangVolumeObject& yin_volume,
-    YinYangVis::YinYangVolumeObject& yang_volume,
-    YinYangVis::ZhongVolumeObject& zhong_volume )
+    YYZVis::YinYangVolumeObject& yin_volume,
+    YYZVis::YinYangVolumeObject& yang_volume,
+    YYZVis::ZhongVolumeObject& zhong_volume )
 {
     // Vector length
     const int veclen = 1;
