@@ -62,7 +62,7 @@ kvs::LineObject* Model::newZhongEdges() const
 
 kvs::PolygonObject* Model::newYinFaces() const
 {
-    return new YYZVis::ExternalFaces( &m_yin_volume );
+    return new local::ExternalFaces( &m_yin_volume );
 
 //    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
 //    return this->newFaces( volume.get() );
@@ -70,7 +70,7 @@ kvs::PolygonObject* Model::newYinFaces() const
 
 kvs::PolygonObject* Model::newYangFaces() const
 {
-    return new YYZVis::ExternalFaces( &m_yang_volume );
+    return new local::ExternalFaces( &m_yang_volume );
 
 //    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
 //    return this->newFaces( volume.get() );
@@ -78,7 +78,7 @@ kvs::PolygonObject* Model::newYangFaces() const
 
 kvs::PolygonObject* Model::newZhongFaces() const
 {
-    return new YYZVis::ExternalFaces( &m_zhong_volume );
+    return new local::ExternalFaces( &m_zhong_volume );
 
 //    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
 //    return this->newFaces( volume.get() );
