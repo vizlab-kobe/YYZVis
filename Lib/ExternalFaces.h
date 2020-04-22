@@ -4,11 +4,11 @@
 #include <kvs/PolygonObject>
 #include <kvs/VolumeObjectBase>
 #include <kvs/TransferFunction>
-#include <YYZVis/Lib/YinYangVolumeObject.h>
-#include <YYZVis/Lib/ZhongVolumeObject.h>
+#include "YinYangVolumeObject.h"
+#include "ZhongVolumeObject.h"
 
 
-namespace local
+namespace YYZVis
 {
 
 /*===========================================================================*/
@@ -18,7 +18,7 @@ namespace local
 /*===========================================================================*/
 class ExternalFaces : public kvs::MapperBase, public kvs::PolygonObject
 {
-    kvsModule( local::ExternalFaces, Mapper );
+    kvsModule( YYZVis::ExternalFaces, Mapper );
     kvsModuleBaseClass( kvs::MapperBase );
     kvsModuleSuperClass( kvs::PolygonObject );
 
@@ -37,4 +37,4 @@ private:
     void calculate_colors( const YYZVis::ZhongVolumeObject* zvolume );
 };
 
-} // end of namespace local
+} // end of namespace YYZVis

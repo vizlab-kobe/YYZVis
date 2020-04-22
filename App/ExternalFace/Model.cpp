@@ -2,10 +2,10 @@
 #include <YYZVis/Lib/Edge.h>
 #include <YYZVis/Lib/YinYangGridSampling.h>
 #include <YYZVis/Lib/ZhongGridSampling.h>
+#include <YYZVis/Lib/ExternalFaces.h>
 #include <kvs/ExternalFaces>
 #include <kvs/SmartPointer>
 #include <kvs/Indent>
-#include "ExternalFaces.h"
 
 
 namespace
@@ -62,7 +62,7 @@ kvs::LineObject* Model::newZhongEdges() const
 
 kvs::PolygonObject* Model::newYinFaces() const
 {
-    return new local::ExternalFaces( &m_yin_volume );
+    return new YYZVis::ExternalFaces( &m_yin_volume );
 
 //    ::VolumePointer volume( YinVolume::ToUnstructuredVolumeObject( &m_yin_volume ) );
 //    return this->newFaces( volume.get() );
@@ -70,7 +70,7 @@ kvs::PolygonObject* Model::newYinFaces() const
 
 kvs::PolygonObject* Model::newYangFaces() const
 {
-    return new local::ExternalFaces( &m_yang_volume );
+    return new YYZVis::ExternalFaces( &m_yang_volume );
 
 //    ::VolumePointer volume( YangVolume::ToUnstructuredVolumeObject( &m_yang_volume ) );
 //    return this->newFaces( volume.get() );
@@ -78,7 +78,7 @@ kvs::PolygonObject* Model::newYangFaces() const
 
 kvs::PolygonObject* Model::newZhongFaces() const
 {
-    return new local::ExternalFaces( &m_zhong_volume );
+    return new YYZVis::ExternalFaces( &m_zhong_volume );
 
 //    ::VolumePointer volume( ZhongVolume::ToUnstructuredVolumeObject( &m_zhong_volume ) );
 //    return this->newFaces( volume.get() );
@@ -86,7 +86,7 @@ kvs::PolygonObject* Model::newZhongFaces() const
 
 kvs::PolygonObject* Model::newFaces( const kvs::UnstructuredVolumeObject* volume ) const
 {
-    return new kvs::ExternalFaces( volume, m_input.tfunc );
+    return new YYZVis::ExternalFaces( volume, m_input.tfunc );
 }
 
 void Model::import_yin_volume()

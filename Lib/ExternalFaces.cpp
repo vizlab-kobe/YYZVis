@@ -102,7 +102,7 @@ inline kvs::Vec3 GetCoord(
 } // end of namespace
 
 
-namespace local
+namespace YYZVis
 {
 
  /*===========================================================================*/
@@ -1060,4 +1060,4 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
     SuperClass::setColors( colors );
 }
 
-} // end of namespace local
+} // end of namespace YYZVis
