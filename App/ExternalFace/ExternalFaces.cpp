@@ -1,6 +1,6 @@
 #include "ExternalFaces.h"
 
-#define SET_FACE( coord, v1, v2, v3 )          \
+#define SET_FACE( coord, v1, v2, v3 )           \
     *( coord++ ) = v1.x();                      \
     *( coord++ ) = v1.y();                      \
     *( coord++ ) = v1.z();                      \
@@ -16,6 +16,69 @@
     *( normal++ ) = n.y();                      \
     *( normal++ ) = n.z()
 
+#define SET_COLOR( color, c )                  \
+    *( color++ ) = c.r();                      \
+    *( color++ ) = c.g();                      \
+    *( color++ ) = c.b()
+
+namespace
+{
+
+/*===========================================================================*/
+/**
+ *  @brief  Calculates color indices for the given nodes.
+ *  @param  values [in] node values
+ *  @param  min_value [in] minimum value of the node value
+ *  @param  max_value [in] maximum value of the node value
+ *  @param  veclen [in] vector length of the node data
+ *  @param  colormap_resolution [in] resolution of the color map
+ *  @param  node_index [in] node indices
+ *  @param  color_level [out] pointer to the color indices
+ */
+/*===========================================================================*/
+template <const size_t N>
+inline void GetColorIndices(
+    const kvs::AnyValueArray& values,
+    const kvs::Real64 min_value,
+    const kvs::Real64 max_value,
+    const size_t veclen,
+    const size_t colormap_resolution,
+    const kvs::UInt32 node_index[N],
+    kvs::UInt32 (*color_index)[N] )
+{
+    const kvs::Real64 normalize =
+        static_cast<kvs::Real64>( colormap_resolution - 1 ) / ( max_value - min_value );
+
+    // Scalar data.
+    if ( veclen == 1 )
+    {
+        for ( size_t i = 0; i < N; i++ )
+        {
+            (*color_index)[i] = kvs::UInt32( normalize * ( values.at<kvs::Real64>( node_index[i] ) - min_value ) );
+        }
+    }
+    // Vector data.
+    else
+    {
+        // In case of the vector component, the magnitude value is calculated.
+        kvs::Real64 magnitude[N]; memset( magnitude, 0, sizeof( kvs::Real64 ) * N );
+        for ( size_t i = 0; i < veclen; ++i )
+        {
+            for ( size_t j = 0; j < N; j++ )
+            {
+                magnitude[j] += kvs::Math::Square( values.at<kvs::Real64>( veclen * node_index[j] + i ) );
+            }
+        }
+
+        for ( size_t i = 0; i < N; i++ )
+        {
+            magnitude[i] = std::sqrt( magnitude[i] );
+            (*color_index)[i] = kvs::UInt32( normalize * ( magnitude[i] - min_value ) );
+        }
+    }
+}
+
+} // end of namespace
 
 namespace local
 {
@@ -814,6 +877,8 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
                            + (dim_theta - 1) * (dim_phi - 1) * 2) * 2;
     const size_t nverts = nfaces * 3;
 
+    const size_t veclen = yvolume->veclen();
+
     kvs::ValueArray<kvs::UInt8> colors( 3 * nverts );
     kvs::UInt8* color = colors.data();
 
@@ -829,7 +894,10 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
                 node_index[1] = node_index[0] + 1;
                 node_index[2] = node_index[1] + dim_r;
                 node_index[3] = node_index[0] + dim_r;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(),node_index, &color_level );
+//                this->GetColorIndices( value, min_value, max_value, cmap.resolution(),node_index, &color_level );
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
+
+
                 // v3
                 *( color++ ) = cmap[ color_level[3] ].r();
                 *( color++ ) = cmap[ color_level[3] ].g();
@@ -871,7 +939,8 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
                 node_index[1] = node_index[0] + 1;
                 node_index[2] = node_index[1] + dim_r;
                 node_index[3] = node_index[0] + dim_r;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+//                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
                 // v0
                 *( color++ ) = cmap[ color_level[0] ].r();
                 *( color++ ) = cmap[ color_level[0] ].g();
@@ -913,7 +982,8 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
                 node_index[1] = node_index[0] + ( dim_r * dim_theta );
                 node_index[2] = node_index[1] + dim_r;
                 node_index[3] = node_index[0] + dim_r;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+//                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
                 // v0
                 *( color++ ) = cmap[ color_level[0] ].r();
                 *( color++ ) = cmap[ color_level[0] ].g();
@@ -955,7 +1025,8 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
                 node_index[1] = node_index[0] + ( dim_r * dim_theta );
                 node_index[2] = node_index[1] + dim_r;
                 node_index[3] = node_index[0] + dim_r;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+//                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
                 // v3
                 *( color++ ) = cmap[ color_level[3] ].r();
                 *( color++ ) = cmap[ color_level[3] ].g();
@@ -997,7 +1068,8 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
                 node_index[1] = node_index[0] + 1;
                 node_index[2] = node_index[1] + ( dim_r * dim_theta );
                 node_index[3] = node_index[0] + ( dim_r * dim_theta );
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+//                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
                 // v0
                 *( color++ ) = cmap[ color_level[0] ].r();
                 *( color++ ) = cmap[ color_level[0] ].g();
@@ -1039,7 +1111,8 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
                 node_index[1] = node_index[0] + 1;
                 node_index[2] = node_index[1] + ( dim_r * dim_theta );
                 node_index[3] = node_index[0] + ( dim_r * dim_theta );
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+//                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
                 // v3
                 *( color++ ) = cmap[ color_level[3] ].r();
                 *( color++ ) = cmap[ color_level[3] ].g();
@@ -1074,23 +1147,25 @@ void ExternalFaces::calculate_yinyang_colors( const YYZVis::YinYangVolumeObject*
 void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
 {
     // Parameters of the volume data.
-    const size_t dim = zvolume->dim();
     const kvs::Real64 min_value = zvolume->minValue();
     const kvs::Real64 max_value = zvolume->maxValue();
-    const kvs::AnyValueArray& value =  zvolume->values();
+    const kvs::AnyValueArray& value = zvolume->values();
+    const size_t veclen = zvolume->veclen();
+    const size_t dim = zvolume->dim();
     const size_t nnodes_per_line = dim;
     const size_t nnodes_per_slice = dim * dim;
+    const size_t nfaces = (dim - 1) * (dim - 1) * 6 * 2;
+    const size_t nverts = nfaces * 3;
+
+    const kvs::ColorMap cmap( BaseClass::colorMap() );
+
+    kvs::ValueArray<kvs::UInt8> colors( 3 * nverts );
+    kvs::UInt8* color = colors.data();
 
     kvs::UInt32 node_index[4];
     kvs::UInt32 color_level[4];
 
-    const size_t nfaces = (dim - 1) * (dim - 1) * 6 * 2;
-    const size_t nverts = nfaces * 3;
-    kvs::ValueArray<kvs::UInt8> colors( 3 * nverts );
-    kvs::UInt8* color = colors.data();	       
-    const kvs::ColorMap cmap( BaseClass::colorMap() );
-
-    // XY (Z=-0.35) plane.
+    // XY (Z=Zmin) plane.
     {
         const size_t k = 0;
         const size_t offset0 = k * nnodes_per_line;
@@ -1102,37 +1177,20 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
                 node_index[1] = node_index[0] + 1;
                 node_index[2] = node_index[1] + nnodes_per_line;
                 node_index[3] = node_index[0] + nnodes_per_line;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
+                // v3-v2-v1
+                SET_COLOR( color, cmap[ color_level[3] ] );
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                // v1-v0-v3
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                SET_COLOR( color, cmap[ color_level[0] ] );
+                SET_COLOR( color, cmap[ color_level[3] ] );
             }
         }
     }
 
-    // XY (Z=0.35) plane.
+    // XY (Z=Zmax) plane.
     {
         const size_t k = dim - 1;
         const size_t offset0 = k * nnodes_per_slice;
@@ -1144,37 +1202,20 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
                 node_index[1] = node_index[0] + 1;
                 node_index[2] = node_index[1] + nnodes_per_line;
                 node_index[3] = node_index[0] + nnodes_per_line;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
+                // v0-v1-v2
+                SET_COLOR( color, cmap[ color_level[0] ] );
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                // v2-v3-v0
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                SET_COLOR( color, cmap[ color_level[3] ] );
+                SET_COLOR( color, cmap[ color_level[0] ] );
             }
         }
     }
 
-    // YZ (X=-0.35) plane.
+    // YZ (X=Xmin) plane.
     {
         const size_t i = 0;
         const size_t offset0 = i;
@@ -1186,37 +1227,20 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
                 node_index[1] = node_index[0] + nnodes_per_slice;
                 node_index[2] = node_index[1] + nnodes_per_line;
                 node_index[3] = node_index[0] + nnodes_per_line;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
+                // v0-v1-v2
+                SET_COLOR( color, cmap[ color_level[0] ] );
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                // v2-v3-v0
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                SET_COLOR( color, cmap[ color_level[3] ] );
+                SET_COLOR( color, cmap[ color_level[0] ] );
             }
         }
     }
 
-    // YZ (X=0.35) plane.
+    // YZ (X=Xmax) plane.
     {
         const size_t i = dim - 1;
         const size_t offset0 = i;
@@ -1228,37 +1252,20 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
                 node_index[1] = node_index[0] + nnodes_per_slice;
                 node_index[2] = node_index[1] + nnodes_per_line;
                 node_index[3] = node_index[0] + nnodes_per_line;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
+                // v3-v2-v1
+                SET_COLOR( color, cmap[ color_level[3] ] );
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                // v1-v0-v3
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                SET_COLOR( color, cmap[ color_level[0] ] );
+                SET_COLOR( color, cmap[ color_level[3] ] );
             }
         }
     }
 
-    // XZ (Y=-0.35) plane.
+    // XZ (Y=Ymin) plane.
     {
         const size_t j = 0;
         const size_t offset0 = j * nnodes_per_line;
@@ -1270,37 +1277,20 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
                 node_index[1] = node_index[0] + 1;
                 node_index[2] = node_index[1] + nnodes_per_slice;
                 node_index[3] = node_index[0] + nnodes_per_slice;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
+                // v0-v1-v2
+                SET_COLOR( color, cmap[ color_level[0] ] );
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                // v2-v3-v0
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                SET_COLOR( color, cmap[ color_level[3] ] );
+                SET_COLOR( color, cmap[ color_level[0] ] );
             }
         }
     }
 
-    // XZ (Y=0.35) plane.
+    // XZ (Y=Ymax) plane.
     {
         const size_t j = dim - 1;
         const size_t offset0 = j * nnodes_per_line;
@@ -1312,32 +1302,15 @@ void ExternalFaces::calculate_colors( const YYZVis::ZhongVolumeObject* zvolume )
                 node_index[1] = node_index[0] + 1;
                 node_index[2] = node_index[1] + nnodes_per_slice;
                 node_index[3] = node_index[0] + nnodes_per_slice;
-                this->GetColorIndices( value, min_value, max_value, cmap.resolution(), node_index, &color_level );
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
-                // v2
-                *( color++ ) = cmap[ color_level[2] ].r();
-                *( color++ ) = cmap[ color_level[2] ].g();
-                *( color++ ) = cmap[ color_level[2] ].b();
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-
-                // v1
-                *( color++ ) = cmap[ color_level[1] ].r();
-                *( color++ ) = cmap[ color_level[1] ].g();
-                *( color++ ) = cmap[ color_level[1] ].b();
-                // v0
-                *( color++ ) = cmap[ color_level[0] ].r();
-                *( color++ ) = cmap[ color_level[0] ].g();
-                *( color++ ) = cmap[ color_level[0] ].b();
-                // v3
-                *( color++ ) = cmap[ color_level[3] ].r();
-                *( color++ ) = cmap[ color_level[3] ].g();
-                *( color++ ) = cmap[ color_level[3] ].b();
+                ::GetColorIndices<4>( value, min_value, max_value, veclen, cmap.resolution(), node_index, &color_level );
+                // v3-v2-v1
+                SET_COLOR( color, cmap[ color_level[3] ] );
+                SET_COLOR( color, cmap[ color_level[2] ] );
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                // v1-v0-v3
+                SET_COLOR( color, cmap[ color_level[1] ] );
+                SET_COLOR( color, cmap[ color_level[0] ] );
+                SET_COLOR( color, cmap[ color_level[3] ] );
             }
         }
     }
@@ -1374,48 +1347,6 @@ void ExternalFaces::calculate_normal( const float x0, const float y0, const floa
     normal[ 3 * index ] = x6;
     normal[ 3 * index + 1 ] = y6;
     normal[ 3 * index + 2 ] = z6;
-}
-
-void ExternalFaces::GetColorIndices(  kvs::AnyValueArray value,
-				      const kvs::Real64 min_value,
-				      const kvs::Real64 max_value,
-				      const size_t colormap_resolution,
-				      const kvs::UInt32 node_index[4],
-				      kvs::UInt32 (*color_index)[4])
-{
-   
-    
-    const kvs::Real64 normalize =
-        static_cast<kvs::Real64>( colormap_resolution - 1 ) / ( max_value - min_value );
-
-    // Scalar data.
-    // if ( veclen == 1 )
-    {
-        for ( size_t i = 0; i < 4; i++ )
-        {
-            (*color_index)[i] = kvs::UInt32( normalize * ( kvs::Real64( value.at<double>( node_index[i] ) - min_value ) ));
-					   
-	}
-    }
-    /*   // Vector data.
-	 else
-	 {
-	 // In case of the vector component, the magnitude value is calculated.
-	 kvs::Real64 magnitude[N]; memset( magnitude, 0, sizeof( kvs::Real64 ) * N );
-	 for ( size_t i = 0; i < veclen; ++i )
-	 {
-	 for ( size_t j = 0; j < N; j++ )
-	 {
-	 magnitude[j] += kvs::Math::Square( kvs::Real64( value[ veclen * node_index[j] + i ] ) );
-	 }
-	 }
-
-	 for ( size_t i = 0; i < N; i++ )
-	 {
-	 magnitude[i] = std::sqrt( magnitude[i] );
-	 (*color_index)[i] = kvs::UInt32( normalize * ( magnitude[i] - min_value ) );
-	 }
-	 }*/
 }
 
 } // end of namespace local

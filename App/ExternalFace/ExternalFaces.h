@@ -39,13 +39,6 @@ private:
         const float x2, const float y2, const float z2, kvs::Real32* normal, size_t index );
     void calculate_yinyang_colors( const YYZVis::YinYangVolumeObject* yvolume );
     void calculate_colors( const YYZVis::ZhongVolumeObject* zvolume );
-    void GetColorIndices(
-        kvs::AnyValueArray value,
-        const kvs::Real64 min_value,
-        const kvs::Real64 max_value,
-        const size_t colormap_resolution,
-        const kvs::UInt32 node_index[4],
-        kvs::UInt32 (*color_index)[4]);
 };
 
 } // end of namespace local
