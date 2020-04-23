@@ -134,11 +134,10 @@ int Program::exec( int argc, char** argv )
     zhong_volume.print( std::cout << "ZHONG VOLUME DATA" << std::endl, indent );
 
     std::cout << "CONVERT VOLUMES ..." << std::endl;
-//    const bool ascii = false;
+    const bool ascii = false;
     kvs::StructuredVolumeObject cart_volume = local::Convert( yin_volume, yang_volume, zhong_volume );
     cart_volume.print( std::cout << "STRUCTURED VOLUME DATA" << std::endl, indent );
-    
-    // cart_volume.write( input.filename_output, ascii );
+    cart_volume.write( input.filename_output, ascii );
 
     return 0;
 }
