@@ -41,9 +41,10 @@ public:
 private:
     void mapping( const YYZVis::ZhongVolumeObject* zvolume );
     void mapping( const YYZVis::YinYangVolumeObject* yvolume );
-    void extract_yinyang_surfaces_with_duplication( const YYZVis::YinYangVolumeObject* yvolume );
-    void extract_zhong_surfaces_with_duplication( const YYZVis::ZhongVolumeObject* zvolume );
+    void extract_surfaces_with_duplication( const YYZVis::YinYangVolumeObject* yvolume );
+    void extract_surfaces_with_duplication( const YYZVis::ZhongVolumeObject* zvolume );
     size_t calculate_table_index( const kvs::AnyValueArray values, const size_t* local_index ) const;
+    const kvs::Vec3 interpolate_vertex( const kvs::Vec3& vertex0, const kvs::Vec3& vertex1, const double value0, const double value1 ) const;
     const kvs::Vec3 interpolate_vertex(
         const kvs::AnyValueArray values,
         const kvs::Real32* coords,
