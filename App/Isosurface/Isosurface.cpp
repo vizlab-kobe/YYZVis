@@ -183,7 +183,7 @@ void Isosurface::mapping( const YYZVis::YinYangVolumeObject* yvolume )
     // SuperClass::setOpacity( 255 );
 }
 
-void Isosurface::extract_surfaces_with_duplication(const YYZVis::YinYangVolumeObject* yvolume )
+void Isosurface::extract_surfaces_with_duplication( const YYZVis::YinYangVolumeObject* yvolume )
 {
     // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -192,112 +192,106 @@ void Isosurface::extract_surfaces_with_duplication(const YYZVis::YinYangVolumeOb
     const size_t dim_r = yvolume->dimR(); // radius
     const size_t dim_theta = yvolume->dimTheta(); // latitude
     const size_t dim_phi = yvolume->dimPhi(); // longitude
+    const size_t line_size = dim_r;
+    const size_t slice_size = dim_r * dim_theta;
 
-    const kvs::AnyValueArray values = yvolume->values();
-    const kvs::Real32* const yvolume_coords = yvolume->coords().data();
-
-    // Calculate connections.
-    const size_t nnodes = yvolume->numberOfNodes();
-    kvs::ValueArray<kvs::UInt32> connections( nnodes * 8 );
-    kvs::UInt32* pconnections = connections.data();
-    for ( size_t k = 0, index = 0; k < dim_phi - 1; k++, index += dim_r )
+    // Extract surfaces.
+    size_t index = 0;
+    size_t local_index[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    for ( size_t k = 0; k < dim_phi - 1; k++, index += dim_r )
     {
         for ( size_t j = 0; j < dim_theta - 1; j++, index++ )
         {
             for ( size_t i = 0; i < dim_r - 1; i++, index++ )
             {
-                *(pconnections++) = index;
-                *(pconnections++) = index + 1;
-                *(pconnections++) = index + ( dim_r * dim_theta ) + 1;
-                *(pconnections++) = index + ( dim_r * dim_theta );
-                *(pconnections++) = index + dim_r;
-                *(pconnections++) = index + dim_r + 1;
-                *(pconnections++) = index + dim_r + ( dim_r * dim_theta ) + 1;
-                *(pconnections++) = index + dim_r + ( dim_r * dim_theta );
+                // Calculate the indices of the target cell.
+                local_index[0] = index;
+                local_index[1] = local_index[0] + 1;
+                local_index[2] = local_index[1] + line_size;
+                local_index[3] = local_index[0] + line_size;
+                local_index[4] = local_index[0] + slice_size;
+                local_index[5] = local_index[1] + slice_size;
+                local_index[6] = local_index[2] + slice_size;
+                local_index[7] = local_index[3] + slice_size;
+
+                // Calculate the index of the reference table.
+                const size_t table_index = this->calculate_table_index( yvolume->values(), local_index );
+                if ( table_index == 0 ) continue;
+                if ( table_index == 255 ) continue;
+
+                // Calculate the triangle polygons.
+                for ( size_t t = 0; kvs::MarchingHexahedraTable::TriangleID[ table_index ][t] != -1; t += 3 )
+                {
+                    // Refer the edge IDs from the TriangleTable by using the table_index.
+                    const int e0 = kvs::MarchingHexahedraTable::TriangleID[table_index][t];
+                    const int e1 = kvs::MarchingHexahedraTable::TriangleID[table_index][t+2];
+                    const int e2 = kvs::MarchingHexahedraTable::TriangleID[table_index][t+1];
+
+                    // Determine vertices for each edge.
+                    const int p0 = local_index[kvs::MarchingHexahedraTable::VertexID[e0][0]];
+                    const int p1 = local_index[kvs::MarchingHexahedraTable::VertexID[e0][1]];
+
+                    const int p2 = local_index[kvs::MarchingHexahedraTable::VertexID[e1][0]];
+                    const int p3 = local_index[kvs::MarchingHexahedraTable::VertexID[e1][1]];
+
+                    const int p4 = local_index[kvs::MarchingHexahedraTable::VertexID[e2][0]];
+                    const int p5 = local_index[kvs::MarchingHexahedraTable::VertexID[e2][1]];
+
+                    // Calculate coordinates of the vertices which are composed
+                    // of the triangle polygon.
+                    const kvs::Vec3 v0( yvolume->coords().data() + p0 * 3 );
+                    const kvs::Vec3 v1( yvolume->coords().data() + p1 * 3 );
+                    const kvs::Real64 s0 = yvolume->values().at<kvs::Real64>( p0 );
+                    const kvs::Real64 s1 = yvolume->values().at<kvs::Real64>( p1 );
+                    const kvs::Vec3 vertex0( this->interpolate_vertex( v0, v1, s0, s1 ) );
+                    coords.push_back( vertex0.x() );
+                    coords.push_back( vertex0.y() );
+                    coords.push_back( vertex0.z() );
+
+                    const kvs::Vec3 v2( yvolume->coords().data() + p2 * 3 );
+                    const kvs::Vec3 v3( yvolume->coords().data() + p3 * 3 );
+                    const kvs::Real64 s2 = yvolume->values().at<kvs::Real64>( p2 );
+                    const kvs::Real64 s3 = yvolume->values().at<kvs::Real64>( p3 );
+                    const kvs::Vec3 vertex1( this->interpolate_vertex( v2, v3, s2, s3 ) );
+                    coords.push_back( vertex1.x() );
+                    coords.push_back( vertex1.y() );
+                    coords.push_back( vertex1.z() );
+
+                    const kvs::Vec3 v4( yvolume->coords().data() + p4 * 3 );
+                    const kvs::Vec3 v5( yvolume->coords().data() + p5 * 3 );
+                    const kvs::Real64 s4 = yvolume->values().at<kvs::Real64>( p4 );
+                    const kvs::Real64 s5 = yvolume->values().at<kvs::Real64>( p5 );
+                    const kvs::Vec3 vertex2( this->interpolate_vertex( v4, v5, s4, s5 ) );
+                    coords.push_back( vertex2.x() );
+                    coords.push_back( vertex2.y() );
+                    coords.push_back( vertex2.z() );
+
+                    // Calculate a normal vector for the triangle polygon.
+                    const kvs::Vec3 normal( ( vertex1 - vertex0 ).cross( vertex2 - vertex0 ) );
+                    normals.push_back( normal.x() );
+                    normals.push_back( normal.y() );
+                    normals.push_back( normal.z() );
+                } // end of loop-triangle
             }
         }
     }
 
-    const kvs::UInt32 ncells( yvolume->numberOfCells() );
-
-    // Extract surfaces.
-    size_t index = 0;
-    size_t local_index[8];
-    for ( kvs::UInt32 cell = 0; cell < ncells; ++cell, index += 8 )
-    {
-        // Calculate the indices of the target cell.
-        local_index[0] = connections[ index + 4 ];
-        local_index[1] = connections[ index + 5 ];
-        local_index[2] = connections[ index + 6 ];
-        local_index[3] = connections[ index + 7 ];
-        local_index[4] = connections[ index + 0 ];
-        local_index[5] = connections[ index + 1 ];
-        local_index[6] = connections[ index + 2 ];
-        local_index[7] = connections[ index + 3 ];
-
-        // Calculate the index of the reference table.
-        const size_t table_index = this->calculate_table_index( values, local_index );
-        if ( table_index == 0 ) continue;
-        if ( table_index == 255 ) continue;
-
-        // Calculate the triangle polygons.
-        for ( size_t i = 0; kvs::MarchingHexahedraTable::TriangleID[ table_index ][i] != -1; i += 3 )
-        {
-            // Refer the edge IDs from the TriangleTable by using the table_index.
-	  const int e0 = kvs::MarchingHexahedraTable::TriangleID[table_index][i];
-	  const int e1 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+2];
-	  const int e2 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+1];
-
-            // Determine vertices for each edge.
-	  const int v0 = local_index[kvs::MarchingHexahedraTable::VertexID[e0][0]];
-	  const int v1 = local_index[kvs::MarchingHexahedraTable::VertexID[e0][1]];
-
-	  const int v2 = local_index[kvs::MarchingHexahedraTable::VertexID[e1][0]];
-	  const int v3 = local_index[kvs::MarchingHexahedraTable::VertexID[e1][1]];
-
-	  const int v4 = local_index[kvs::MarchingHexahedraTable::VertexID[e2][0]];
-	  const int v5 = local_index[kvs::MarchingHexahedraTable::VertexID[e2][1]];
-
-            // Calculate coordinates of the vertices which are composed
-            // of the triangle polygon.
-          const kvs::Vec3 vertex0( this->interpolate_vertex( values, yvolume_coords, v0, v1 ) );
-            coords.push_back( vertex0.x() );
-            coords.push_back( vertex0.y() );
-            coords.push_back( vertex0.z() );
-
-            const kvs::Vec3 vertex1( this->interpolate_vertex( values, yvolume_coords, v2, v3 ) );
-            coords.push_back( vertex1.x() );
-            coords.push_back( vertex1.y() );
-            coords.push_back( vertex1.z() );
-
-            const kvs::Vec3 vertex2( this->interpolate_vertex( values, yvolume_coords, v4, v5 ) );
-            coords.push_back( vertex2.x() );
-            coords.push_back( vertex2.y() );
-            coords.push_back( vertex2.z() );
-
-            // Calculate a normal vector for the triangle polygon.
-            const kvs::Vec3 normal( ( vertex1 - vertex0 ).cross( vertex2 - vertex0 ) );
-            normals.push_back( normal.x() );
-            normals.push_back( normal.y() );
-            normals.push_back( normal.z() );
-        } // end of loop-triangle
-    } // end of loop-cell
-
     // Calculate the polygon color for the isolevel.
     const kvs::RGBColor color = this->calculate_color();
 
-    if( coords.size() > 0 ){
+    if ( coords.size() > 0 )
+    {
         SuperClass::setCoords( kvs::ValueArray<kvs::Real32>( coords ) );
-        SuperClass::setColor( color );
         SuperClass::setNormals( kvs::ValueArray<kvs::Real32>( normals ) );
+        SuperClass::setColor( color );
         SuperClass::setOpacity( 255 );
-        SuperClass::setPolygonType( kvs::PolygonObject::Triangle );
-        SuperClass::setColorType( kvs::PolygonObject::PolygonColor );
-        SuperClass::setNormalType( kvs::PolygonObject::PolygonNormal );
+        SuperClass::setPolygonTypeToTriangle();
+        SuperClass::setColorTypeToPolygon();
+        SuperClass::setNormalTypeToPolygon();
     }
 }
 
-void Isosurface::extract_surfaces_with_duplication(const YYZVis::ZhongVolumeObject* zvolume )
+void Isosurface::extract_surfaces_with_duplication( const YYZVis::ZhongVolumeObject* zvolume )
 {
     // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -394,7 +388,8 @@ void Isosurface::extract_surfaces_with_duplication(const YYZVis::ZhongVolumeObje
     // Calculate the polygon color for the isolevel.
     const kvs::RGBColor color = this->calculate_color();
 
-    if( coords.size() > 0 ){
+    if ( coords.size() > 0 )
+    {
         SuperClass::setCoords( kvs::ValueArray<kvs::Real32>( coords ) );
         SuperClass::setColor( color );
         SuperClass::setNormals( kvs::ValueArray<kvs::Real32>( normals ) );
@@ -430,26 +425,6 @@ const kvs::Vec3 Isosurface::interpolate_vertex(
 {
     const float ratio = static_cast<float>( kvs::Math::Abs( ( m_isolevel - value0 ) / ( value1 - value0 ) ) );
     return ( 1.0f - ratio ) * vertex0 + ratio * vertex1;
-}
-
-const kvs::Vec3 Isosurface::interpolate_vertex(
-    const kvs::AnyValueArray values,
-    const kvs::Real32* coords,
-    const int vertex0,
-    const int vertex1 ) const
-{
-    const size_t coord0_index = 3 * vertex0;
-    const size_t coord1_index = 3 * vertex1;
-
-    const double v0 = values.at<double>( vertex0 );
-    const double v1 = values.at<double>( vertex1 );
-    const float ratio = static_cast<float>( kvs::Math::Abs( ( m_isolevel - v0 ) / ( v1 - v0 ) ) );
-
-    const float x = coords[coord0_index]   + ratio * ( coords[coord1_index]   - coords[coord0_index] );
-    const float y = coords[coord0_index+1] + ratio * ( coords[coord1_index+1] - coords[coord0_index+1] );
-    const float z = coords[coord0_index+2] + ratio * ( coords[coord1_index+2] - coords[coord0_index+2] );
-
-    return kvs::Vec3( x, y, z );
 }
 
 const kvs::RGBColor Isosurface::calculate_color()
