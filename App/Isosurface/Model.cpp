@@ -1,13 +1,11 @@
 #include "Model.h"
 #include <YYZVis/Lib/Edge.h>
-#include <YYZVis/Lib/YinYangGridSampling.h>
-#include <YYZVis/Lib/ZhongGridSampling.h>
+#include <YYZVis/Lib/Isosurface.h>
 #include <kvs/ExternalFaces>
 #include <kvs/Isosurface>
 #include <kvs/PolygonToPolygon>
 #include <kvs/SmartPointer>
 #include <kvs/Indent>
-#include "Isosurface.h"
 
 
 namespace

@@ -4,8 +4,8 @@
 #include <kvs/PolygonObject>
 #include <kvs/VolumeObjectBase>
 #include <kvs/TransferFunction>
-#include <YYZVis/Lib/YinYangVolumeObject.h>
-#include <YYZVis/Lib/ZhongVolumeObject.h>
+#include "YinYangVolumeObject.h"
+#include "ZhongVolumeObject.h"
 
 
 namespace YYZVis
