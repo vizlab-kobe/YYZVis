@@ -62,7 +62,7 @@ public:
   }
 };
 
-void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, YinYangVis::YinYangVolumeObject* volume, kvs::ColorMap cmap, kvs::OpacityMap omap, size_t repeats = 1 )
+void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, YYZVis::YinYangVolumeObject* volume, kvs::ColorMap cmap, kvs::OpacityMap omap, size_t repeats = 1 )
 {
 
   std::cout << "repeats = " << repeats << std::endl;
@@ -72,7 +72,7 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, YinYangVis::YinYa
 
     const kvs::TransferFunction tfunc( cmap, omap );
     kvs::Timer timer( kvs::Timer::Start );
-    kvs::PointObject* object = new YinYangVis::YinYangGridSampling( volume, level, step, tfunc );
+    kvs::PointObject* object = new YYZVis::YinYangGridSampling( volume, level, step, tfunc );
     timer.stop();
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
     object->setName( volume->name() );
@@ -87,7 +87,7 @@ void ParticleBasedRenderingYinYang( kvs::glut::Screen& screen, YinYangVis::YinYa
 
 }
 
-void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, YinYangVis::ZhongVolumeObject* volume, kvs::ColorMap cmap, kvs::OpacityMap omap, size_t repeats = 1 )
+void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, YYZVis::ZhongVolumeObject* volume, kvs::ColorMap cmap, kvs::OpacityMap omap, size_t repeats = 1 )
 {
   std::cout << "repeats = " << repeats << std::endl;
     const size_t subpixels = 1; // fixed to '1'
@@ -96,7 +96,7 @@ void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, YinYangVis::ZhongVo
 
     const kvs::TransferFunction tfunc( cmap, omap );
     kvs::Timer timer( kvs::Timer::Start );
-    kvs::PointObject* object = new YinYangVis::ZhongGridSampling( volume, level, step, tfunc );
+    kvs::PointObject* object = new YYZVis::ZhongGridSampling( volume, level, step, tfunc );
     object->setName( volume->name() );
 //    kvs::Xform x = kvs::Xform::Rotation( kvs::Mat3::RotationX(-135) );
 //    object->multiplyXform( x );
@@ -113,7 +113,7 @@ void ParticleBasedRenderingZhong( kvs::glut::Screen& screen, YinYangVis::ZhongVo
 }
 
 
-void SetMinMax( YinYangVis::YinYangVolumeObject* volume_yin, YinYangVis::YinYangVolumeObject* volume_yang, YinYangVis::ZhongVolumeObject* volume_zhong )
+void SetMinMax( YYZVis::YinYangVolumeObject* volume_yin, YYZVis::YinYangVolumeObject* volume_yang, YYZVis::ZhongVolumeObject* volume_zhong )
 {
     const float min_yyz_value  = kvs::Math::Min( volume_yin->minValue(), volume_yang->minValue(), volume_zhong->minValue() );
     const float max_yyz_value  = kvs::Math::Max( volume_yin->maxValue(), volume_yang->maxValue(), volume_zhong->maxValue() );
@@ -148,7 +148,7 @@ void SetMinMax( YinYangVis::YinYangVolumeObject* volume_yin, YinYangVis::YinYang
     volume_zhong->setMinMaxExternalCoords( min_coord, max_coord );
 }
 
-void SetMinMax( YinYangVis::YinYangVolumeObject* volume_yin, YinYangVis::YinYangVolumeObject* volume_yang )
+void SetMinMax( YYZVis::YinYangVolumeObject* volume_yin, YYZVis::YinYangVolumeObject* volume_yang )
 {
     const float min_yyz_value  = kvs::Math::Min( volume_yin->minValue(), volume_yang->minValue() );
     const float max_yyz_value  = kvs::Math::Max( volume_yin->maxValue(), volume_yang->maxValue() );
@@ -179,7 +179,7 @@ void SetMinMax( YinYangVis::YinYangVolumeObject* volume_yin, YinYangVis::YinYang
     }
 
 
-void SetVolumeYin( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
+void SetVolumeYin( YYZVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
 {
     volume->setDimR( rad_n );
     volume->setDimTheta( lat_n );
@@ -193,7 +193,7 @@ void SetVolumeYin( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_t
     volume->print( std::cout << std::endl );
 }
 
-void SetVolumeYang( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
+void SetVolumeYang( YYZVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
 {
     volume->setDimR( rad_n );
     volume->setDimTheta( lat_n );
@@ -207,7 +207,7 @@ void SetVolumeYang( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_
     volume->print( std::cout << std::endl );
 }
 
-void SetVolumeZhong( YinYangVis::ZhongVolumeObject* volume, size_t zhong_n, size_t rad_n, std::string filename )
+void SetVolumeZhong( YYZVis::ZhongVolumeObject* volume, size_t zhong_n, size_t rad_n, std::string filename )
 {
   volume->setDimR( rad_n );
     volume->setDim( zhong_n );
@@ -372,17 +372,17 @@ int main_yin_yang_vis( int argc, char** argv )
     size_t repeats = atoi(argv[5]);
     
     const std::string filename_yin( argv[6] );
-    YinYangVis::YinYangVolumeObject* volume_yin = new YinYangVis::YinYangVolumeObject();
+    YYZVis::YinYangVolumeObject* volume_yin = new YYZVis::YinYangVolumeObject();
     volume_yin->setName("Yin");
     SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
 
     const std::string filename_yang( argv[7] );
-    YinYangVis::YinYangVolumeObject* volume_yang = new YinYangVis::YinYangVolumeObject();
+    YYZVis::YinYangVolumeObject* volume_yang = new YYZVis::YinYangVolumeObject();
     volume_yang->setName("Yang");
     SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
     
     const std::string filename_zhong( argv[8] );
-    YinYangVis::ZhongVolumeObject* volume_zhong = new YinYangVis::ZhongVolumeObject();
+    YYZVis::ZhongVolumeObject* volume_zhong = new YYZVis::ZhongVolumeObject();
     volume_zhong->setName("Zhong");
     SetVolumeZhong( volume_zhong,zhong_n, rad_n, filename_zhong );
 
@@ -397,27 +397,27 @@ int main_yin_yang_vis( int argc, char** argv )
     omap.addPoint( 255, 1.0 );
     omap.create();
 
-    kvs::LineObject* mesh_yin = YinYangVis::Edge::CreateLineMeshObject( volume_yin );
+    kvs::LineObject* mesh_yin = YYZVis::Edge::CreateLineMeshObject( volume_yin );
     mesh_yin->setName("YinMesh");
     kvs::StochasticLineRenderer* mesh_yin_renderer = new kvs::StochasticLineRenderer();
     screen.registerObject( mesh_yin, mesh_yin_renderer);
 
-    kvs::LineObject* mesh_yang = YinYangVis::Edge::CreateLineMeshObject( volume_yang );
+    kvs::LineObject* mesh_yang = YYZVis::Edge::CreateLineMeshObject( volume_yang );
     mesh_yang->setName("YangMesh");
     kvs::StochasticLineRenderer* mesh_yang_renderer = new kvs::StochasticLineRenderer();
     screen.registerObject( mesh_yang, mesh_yang_renderer);
 
-    kvs::LineObject* edge_yin = YinYangVis::Edge::CreateLineEdgeObject( volume_yin );
+    kvs::LineObject* edge_yin = YYZVis::Edge::CreateLineEdgeObject( volume_yin );
     edge_yin->setName("YinEdge");
     kvs::StochasticLineRenderer* edge_yin_renderer = new kvs::StochasticLineRenderer();
     screen.registerObject( edge_yin, edge_yin_renderer);
 
-    kvs::LineObject* edge_yang = YinYangVis::Edge::CreateLineEdgeObject( volume_yang );
+    kvs::LineObject* edge_yang = YYZVis::Edge::CreateLineEdgeObject( volume_yang );
     edge_yang->setName("YangEdge");
     kvs::StochasticLineRenderer* edge_yang_renderer = new kvs::StochasticLineRenderer();
     screen.registerObject( edge_yang, edge_yang_renderer);
     
-    kvs::LineObject* edge_zhong = YinYangVis::Edge::CreateLineEdgeObject( volume_zhong );
+    kvs::LineObject* edge_zhong = YYZVis::Edge::CreateLineEdgeObject( volume_zhong );
     edge_zhong->setName("ZhongEdge");
     kvs::StochasticLineRenderer* edge_zhong_renderer = new kvs::StochasticLineRenderer();
     screen.registerObject( edge_zhong, edge_zhong_renderer);

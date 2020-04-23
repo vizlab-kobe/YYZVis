@@ -34,7 +34,7 @@
 #include <Lib/ZhongVolumeObject.h>
 #include <Lib/ZhongGridSampling.h>
 
-void CreateParticleObjectYinYang( YinYangVis::YinYangVolumeObject* volume, size_t repeats = 1 )
+void CreateParticleObjectYinYang( YYZVis::YinYangVolumeObject* volume, size_t repeats = 1 )
 {
 
   std::cout << "repeats = " << repeats << std::endl;
@@ -53,7 +53,7 @@ void CreateParticleObjectYinYang( YinYangVis::YinYangVolumeObject* volume, size_
 
     const kvs::TransferFunction tfunc( cmap, omap );
     kvs::Timer timer( kvs::Timer::Start );
-    kvs::PointObject* object = new YinYangVis::YinYangGridSampling( volume, level, step, tfunc );
+    kvs::PointObject* object = new YYZVis::YinYangGridSampling( volume, level, step, tfunc );
     timer.stop();
     std::cout << std::endl << "Particle generation time: " << timer.sec() << " [sec]" << std::endl;
     object->setName( volume->name() );
@@ -71,7 +71,7 @@ void CreateParticleObjectYinYang( YinYangVis::YinYangVolumeObject* volume, size_
       }
 }
 
-void CreateParticleObjectZhong( YinYangVis::ZhongVolumeObject* volume, size_t repeats = 1 )
+void CreateParticleObjectZhong( YYZVis::ZhongVolumeObject* volume, size_t repeats = 1 )
 {
 
   std::cout << "repeats = " << repeats << std::endl;
@@ -90,7 +90,7 @@ void CreateParticleObjectZhong( YinYangVis::ZhongVolumeObject* volume, size_t re
 
     const kvs::TransferFunction tfunc( cmap, omap );
     kvs::Timer timer( kvs::Timer::Start );
-    kvs::PointObject* object = new YinYangVis::ZhongGridSampling( volume, level, step, tfunc );
+    kvs::PointObject* object = new YYZVis::ZhongGridSampling( volume, level, step, tfunc );
     object->setName( volume->name() );
     timer.stop();
     object->print( std::cout << std::endl );
@@ -102,7 +102,7 @@ void CreateParticleObjectZhong( YinYangVis::ZhongVolumeObject* volume, size_t re
 }
 
 
-void SetMinMax( YinYangVis::YinYangVolumeObject* volume_yin, YinYangVis::YinYangVolumeObject* volume_yang, YinYangVis::ZhongVolumeObject* volume_zhong )
+void SetMinMax( YYZVis::YinYangVolumeObject* volume_yin, YYZVis::YinYangVolumeObject* volume_yang, YYZVis::ZhongVolumeObject* volume_zhong )
 {
     const float min_yyz_value  = kvs::Math::Min( volume_yin->minValue(), volume_yang->minValue(), volume_zhong->minValue() );
     const float max_yyz_value  = kvs::Math::Max( volume_yin->maxValue(), volume_yang->maxValue(), volume_zhong->maxValue() );
@@ -137,7 +137,7 @@ void SetMinMax( YinYangVis::YinYangVolumeObject* volume_yin, YinYangVis::YinYang
     volume_zhong->setMinMaxExternalCoords( min_coord, max_coord );
 }
 
-void SetVolumeYin( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
+void SetVolumeYin( YYZVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
 {
     volume->setDimR( rad_n );
     volume->setDimTheta( lat_n );
@@ -151,7 +151,7 @@ void SetVolumeYin( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_t
     volume->print( std::cout << std::endl );
 }
 
-void SetVolumeYang( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
+void SetVolumeYang( YYZVis::YinYangVolumeObject* volume, size_t rad_n, size_t lat_n, size_t lon_n, std::string filename )
 {
     volume->setDimR( rad_n );
     volume->setDimTheta( lat_n );
@@ -165,7 +165,7 @@ void SetVolumeYang( YinYangVis::YinYangVolumeObject* volume, size_t rad_n, size_
     volume->print( std::cout << std::endl );
 }
 
-void SetVolumeZhong( YinYangVis::ZhongVolumeObject* volume, size_t zhong_n, size_t rad_n, std::string filename )
+void SetVolumeZhong( YYZVis::ZhongVolumeObject* volume, size_t zhong_n, size_t rad_n, std::string filename )
 {
   volume->setDimR( rad_n );
     volume->setDim( zhong_n );
@@ -186,19 +186,19 @@ int main_write_kvsml( int argc, char** argv )
     
     //const std::string filename_yin( argv[1] );
     const std::string filename_yin( "../../../bx_vx/oct09b.011.wyin.vx.n000250000.t00302" );
-    YinYangVis::YinYangVolumeObject* volume_yin = new YinYangVis::YinYangVolumeObject();
+    YYZVis::YinYangVolumeObject* volume_yin = new YYZVis::YinYangVolumeObject();
     volume_yin->setName("Yin");
     SetVolumeYin( volume_yin, rad_n, lat_n, lon_n, filename_yin );
 
     //const std::string filename_yang( argv[2] );
     const std::string filename_yang( "../../../bx_vx/oct09b.011.wyng.vx.n000250000.t00302" );
-    YinYangVis::YinYangVolumeObject* volume_yang = new YinYangVis::YinYangVolumeObject();
+    YYZVis::YinYangVolumeObject* volume_yang = new YYZVis::YinYangVolumeObject();
     volume_yang->setName("Yang");
     SetVolumeYang( volume_yang, rad_n, lat_n, lon_n, filename_yang );
     
     //const std::string filename_zhong( argv[3] );
     const std::string filename_zhong( "../../../bx_vx/oct09b.011.icore_3d.vx.n000250000.t00302" );
-    YinYangVis::ZhongVolumeObject* volume_zhong = new YinYangVis::ZhongVolumeObject();
+    YYZVis::ZhongVolumeObject* volume_zhong = new YYZVis::ZhongVolumeObject();
     volume_zhong->setName("Zhong");
     SetVolumeZhong( volume_zhong,zhong_n, rad_n, filename_zhong );
 
