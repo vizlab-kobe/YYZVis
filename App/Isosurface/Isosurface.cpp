@@ -1,9 +1,30 @@
 #include "Isosurface.h"
 #include <kvs/MarchingHexahedraTable>
+#include <kvs/Math>
+
+namespace
+{
+
+bool HasIgnoreValue( const kvs::AnyValueArray values, const size_t* indices, const double ignore_value = 0.0 )
+{
+    for ( size_t i = 0; i < 8; ++i )
+    {
+        if ( kvs::Math::Equal( values.at<double>( indices[i] ), ignore_value ) ) { return true; }
+    }
+    return false;
+}
+
+} // end of namespace
+
 
 namespace YYZVis
 {
 
+/*===========================================================================*/
+/**
+ *  @brief  Constructs a new Isosurface class.
+ */
+/*===========================================================================*/
 Isosurface::Isosurface():
     kvs::MapperBase(),
     kvs::PolygonObject(),
@@ -12,6 +33,16 @@ Isosurface::Isosurface():
 {
 }
 
+/*===========================================================================*/
+/**
+ *  @brief  Constructs a new Isosurface class.
+ *  @param  volume [in] pointer to the volume object
+ *  @param  isolevel [in] level of the isosurfaces
+ *  @param  normal_type [in] type of the normal vector
+ *  @param  duplication [in] duplication flag
+ *  @param  transfer_function [in] transfer function
+ */
+/*===========================================================================*/
 Isosurface::Isosurface(
     const kvs::VolumeObjectBase* volume,
     const double isolevel,
@@ -27,12 +58,19 @@ Isosurface::Isosurface(
     this->exec( volume );
 }
 
+/*===========================================================================*/
+/**
+ *  @brief  Executes the isosurface extraction process.
+ *  @param  object [in] pointer to the input volume object
+ *  @return pointer to the polygon object
+ */
+/*===========================================================================*/
 Isosurface::SuperClass* Isosurface::exec( const kvs::ObjectBase* object )
 {
     if ( !object )
     {
         BaseClass::setSuccess( false );
-        kvsMessageError("Input object is NULL.");
+        kvsMessageError() << "Input object is NULL." << std::endl;
         return NULL;
     }
 
@@ -40,7 +78,7 @@ Isosurface::SuperClass* Isosurface::exec( const kvs::ObjectBase* object )
     if ( !volume )
     {
         BaseClass::setSuccess( false );
-        kvsMessageError("Input object is not volume dat.");
+        kvsMessageError() << "Input object is not volume dat." << std::endl;
         return NULL;
     }
 
@@ -48,7 +86,7 @@ Isosurface::SuperClass* Isosurface::exec( const kvs::ObjectBase* object )
     if ( volume->veclen() != 1 )
     {
         BaseClass::setSuccess( false );
-        kvsMessageError("The input volume is not a sclar field data.");
+        kvsMessageError() << "The input volume is not a sclar field data." << std::endl;
         return NULL;
     }
 
@@ -72,25 +110,31 @@ Isosurface::SuperClass* Isosurface::exec( const kvs::ObjectBase* object )
 
     if ( YYZVis::ZhongVolumeObject::DownCast( volume ) )
     {
-        const YYZVis::ZhongVolumeObject* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
+        const auto* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
         this->mapping( zvolume );
     }
     else if ( YYZVis::YinYangVolumeObject::DownCast( volume ) )
     {
-        const YYZVis::YinYangVolumeObject* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
+        const auto* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
         this->mapping( yvolume );
     }
 
     return this;
 }
 
+/*==========================================================================*/
+/**
+ *  @brief  Extracts isosurfaces from the specified zhong volume object.
+ *  @param  volume [in] pointer to zhong volume object
+ */
+/*==========================================================================*/
 void Isosurface::mapping( const YYZVis::ZhongVolumeObject* zvolume )
 {
     // std::vector<kvs::Real32> coords;
     // std::vector<kvs::Real32> normals;
 
     // Calculate coords and normals.
-     if ( m_duplication )
+//     if ( m_duplication )
      {
         this->extract_zhong_surfaces_with_duplication( zvolume );
      }
@@ -108,13 +152,19 @@ void Isosurface::mapping( const YYZVis::ZhongVolumeObject* zvolume )
     // SuperClass::setOpacity( 255 );
 }
 
+/*==========================================================================*/
+/**
+ *  @brief  Extracts isosurfaces from the specified yin/yang volume object.
+ *  @param  volume [in] pointer to yin/yang volume object
+ */
+/*==========================================================================*/
 void Isosurface::mapping( const YYZVis::YinYangVolumeObject* yvolume )
 {
     // std::vector<kvs::Real32> coords;
     // std::vector<kvs::Real32> normals;
 
     // Calculate coords and normals.
-     if ( m_duplication )
+//     if ( m_duplication )
      {
        this->extract_yinyang_surfaces_with_duplication( yvolume );
      }
@@ -144,7 +194,7 @@ void Isosurface::extract_yinyang_surfaces_with_duplication(const YYZVis::YinYang
 
     const kvs::AnyValueArray values = yvolume->values();
     const kvs::Real32* const yvolume_coords = yvolume->coords().data();
-    
+
     // Calculate connections.
     const size_t nnodes = yvolume->numberOfNodes();
     kvs::ValueArray<kvs::UInt32> connections( nnodes * 8 );
@@ -166,7 +216,7 @@ void Isosurface::extract_yinyang_surfaces_with_duplication(const YYZVis::YinYang
             }
         }
     }
-    
+
     const kvs::UInt32 ncells( yvolume->numberOfCells() );
 
     // Extract surfaces.
@@ -256,10 +306,11 @@ void Isosurface::extract_zhong_surfaces_with_duplication(const YYZVis::ZhongVolu
     const size_t dim_y = zvolume->dim(); // Y
     const size_t dim_z = zvolume->dim(); // Z
 
-    const kvs::AnyValueArray values = zvolume->values();    
+    const kvs::AnyValueArray& values = zvolume->values();
     const kvs::Real32* const zvolume_coords = zvolume->coords().data();
-    
+
     // Calculate connections.
+//    /*
     const size_t nnodes = zvolume->numberOfNodes();
     kvs::ValueArray<kvs::UInt32> connections( nnodes * 8 );
     kvs::UInt32* pconnections = connections.data();
@@ -280,15 +331,17 @@ void Isosurface::extract_zhong_surfaces_with_duplication(const YYZVis::ZhongVolu
             }
         }
     }
-    
+//    */
     const kvs::UInt32 ncells( zvolume->numberOfCells() );
 
     // Extract surfaces.
     size_t index = 0;
     size_t local_index[8];
     for ( kvs::UInt32 cell = 0; cell < ncells; ++cell, index += 8 )
+//    for ( kvs::UInt32 cell = 0; cell < ncells; ++cell, ++index )
     {
         // Calculate the indices of the target cell.
+//        /*
         local_index[0] = connections[ index + 4 ];
         local_index[1] = connections[ index + 5 ];
         local_index[2] = connections[ index + 6 ];
@@ -297,6 +350,19 @@ void Isosurface::extract_zhong_surfaces_with_duplication(const YYZVis::ZhongVolu
         local_index[5] = connections[ index + 1 ];
         local_index[6] = connections[ index + 2 ];
         local_index[7] = connections[ index + 3 ];
+//        */
+        /*
+        local_index[0] = index;
+        local_index[1] = index + 1;
+        local_index[2] = index + ( dim_x * dim_y ) + 1;
+        local_index[3] = index + ( dim_x * dim_y );
+        local_index[4] = index + dim_x;
+        local_index[5] = index + dim_x + 1;
+        local_index[6] = index + dim_x + ( dim_x * dim_y ) + 1;
+        local_index[7] = index + dim_x + ( dim_x * dim_y );
+        */
+
+        if ( ::HasIgnoreValue( values, local_index, 0.0 ) ) { continue; }
 
         // Calculate the index of the reference table.
         const size_t table_index = this->calculate_table_index( values, local_index );
@@ -307,23 +373,23 @@ void Isosurface::extract_zhong_surfaces_with_duplication(const YYZVis::ZhongVolu
         for ( size_t i = 0; kvs::MarchingHexahedraTable::TriangleID[ table_index ][i] != -1; i += 3 )
         {
             // Refer the edge IDs from the TriangleTable by using the table_index.
-	  const int e0 = kvs::MarchingHexahedraTable::TriangleID[table_index][i];
-	  const int e1 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+2];
-	  const int e2 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+1];
+            const int e0 = kvs::MarchingHexahedraTable::TriangleID[table_index][i];
+            const int e1 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+2];
+            const int e2 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+1];
 
             // Determine vertices for each edge.
-	  const int v0 = local_index[kvs::MarchingHexahedraTable::VertexID[e0][0]];
-	  const int v1 = local_index[kvs::MarchingHexahedraTable::VertexID[e0][1]];
+            const int v0 = local_index[kvs::MarchingHexahedraTable::VertexID[e0][0]];
+            const int v1 = local_index[kvs::MarchingHexahedraTable::VertexID[e0][1]];
 
-	  const int v2 = local_index[kvs::MarchingHexahedraTable::VertexID[e1][0]];
-	  const int v3 = local_index[kvs::MarchingHexahedraTable::VertexID[e1][1]];
+            const int v2 = local_index[kvs::MarchingHexahedraTable::VertexID[e1][0]];
+            const int v3 = local_index[kvs::MarchingHexahedraTable::VertexID[e1][1]];
 
-	  const int v4 = local_index[kvs::MarchingHexahedraTable::VertexID[e2][0]];
-	  const int v5 = local_index[kvs::MarchingHexahedraTable::VertexID[e2][1]];
+            const int v4 = local_index[kvs::MarchingHexahedraTable::VertexID[e2][0]];
+            const int v5 = local_index[kvs::MarchingHexahedraTable::VertexID[e2][1]];
 
             // Calculate coordinates of the vertices which are composed
             // of the triangle polygon.
-	  const kvs::Vec3 vertex0( this->interpolate_vertex( values, zvolume_coords, v0, v1 ) );
+            const kvs::Vec3 vertex0( this->interpolate_vertex( values, zvolume_coords, v0, v1 ) );
             coords.push_back( vertex0.x() );
             coords.push_back( vertex0.y() );
             coords.push_back( vertex0.z() );
@@ -379,10 +445,10 @@ size_t Isosurface::calculate_table_index( const kvs::AnyValueArray values, const
 
 
 const kvs::Vec3 Isosurface::interpolate_vertex(
-				                const kvs::AnyValueArray values,
-						const kvs::Real32* coords,
-						const int vertex0,
-                                                const int vertex1 ) const
+    const kvs::AnyValueArray values,
+    const kvs::Real32* coords,
+    const int vertex0,
+    const int vertex1 ) const
 {
     const size_t coord0_index = 3 * vertex0;
     const size_t coord1_index = 3 * vertex1;
@@ -403,8 +469,8 @@ const kvs::RGBColor Isosurface::calculate_color()
     const kvs::Real64 min_value = BaseClass::volume()->minValue();
     const kvs::Real64 max_value = BaseClass::volume()->maxValue();
     const kvs::Real64 normalize_factor = 255.0 / ( max_value - min_value );
-    const kvs::UInt8  index = static_cast<kvs::UInt8>( normalize_factor * ( m_isolevel - min_value ) );
-
+    const kvs::UInt8 index = static_cast<kvs::UInt8>( normalize_factor * ( m_isolevel - min_value ) );
     return BaseClass::transferFunction().colorMap()[ index ];
 }
+
 } // end of namespace YYZVis

@@ -11,6 +11,11 @@
 namespace YYZVis
 {
 
+/*===========================================================================*/
+/**
+ *  @brief  Isosurface extraction class.
+ */
+/*===========================================================================*/
 class Isosurface : public kvs::MapperBase, public kvs::PolygonObject
 {
     kvsModule( YYZVis::Isosurface, Mapper );
@@ -19,7 +24,7 @@ class Isosurface : public kvs::MapperBase, public kvs::PolygonObject
 
 private:
     double m_isolevel; ///< isosurface level
-    bool m_duplication; ///< duplication flag
+    bool m_duplication; ///< duplication flag (not available)
 
 public:
     Isosurface();
@@ -39,10 +44,11 @@ private:
     void extract_yinyang_surfaces_with_duplication( const YYZVis::YinYangVolumeObject* yvolume );
     void extract_zhong_surfaces_with_duplication( const YYZVis::ZhongVolumeObject* zvolume );
     size_t calculate_table_index( const kvs::AnyValueArray values, const size_t* local_index ) const;
-
-    const kvs::Vec3 interpolate_vertex( const kvs::AnyValueArray values,
-					const kvs::Real32* coords,			                                                                                                      const int vertex0,
-					const int vertex1 ) const;
+    const kvs::Vec3 interpolate_vertex(
+        const kvs::AnyValueArray values,
+        const kvs::Real32* coords,
+        const int vertex0,
+        const int vertex1 ) const;
     const kvs::RGBColor calculate_color();
 };
 
