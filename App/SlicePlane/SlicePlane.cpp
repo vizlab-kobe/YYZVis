@@ -1,6 +1,7 @@
 #include "SlicePlane.h"
 #include <kvs/MarchingHexahedraTable>
 
+
 namespace YYZVis
 {
 
@@ -38,7 +39,7 @@ void SlicePlane::setPlane( const kvs::Vector4f& coefficients )
     m_coefficients = coefficients;
 }
 
-void SlicePlane::setPlane( const kvs::Vector3f& point, const kvs::Vector3f& normal )
+void SlicePlane::setPlane( const kvs::Vec3& point, const kvs::Vec3& normal )
 {
     m_coefficients = kvs::Vec4( normal, -point.dot( normal ) );
 }
@@ -48,7 +49,7 @@ SlicePlane::SuperClass* SlicePlane::exec( const kvs::ObjectBase* object )
     if ( !object )
     {
         BaseClass::setSuccess( false );
-        kvsMessageError("Input object is NULL.");
+        kvsMessageError() << "Input object is NULL." << std::endl;
         return NULL;
     }
 
@@ -56,7 +57,7 @@ SlicePlane::SuperClass* SlicePlane::exec( const kvs::ObjectBase* object )
     if ( !volume )
     {
         BaseClass::setSuccess( false );
-        kvsMessageError("Input object is not volume dat.");
+        kvsMessageError() << "Input object is not volume dat." << std::endl;
         return NULL;
     }
 
@@ -64,7 +65,7 @@ SlicePlane::SuperClass* SlicePlane::exec( const kvs::ObjectBase* object )
     if ( volume->veclen() != 1 )
     {
         BaseClass::setSuccess( false );
-        kvsMessageError("The input volume is not a sclar field data.");
+        kvsMessageError() << "The input volume is not a sclar field data." << std::endl;
         return NULL;
     }
 
@@ -78,12 +79,12 @@ SlicePlane::SuperClass* SlicePlane::exec( const kvs::ObjectBase* object )
 
     if ( YYZVis::ZhongVolumeObject::DownCast( volume ) )
     {
-        const YYZVis::ZhongVolumeObject* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
+        const auto* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
         this->mapping( zvolume );
     }
     else if ( YYZVis::YinYangVolumeObject::DownCast( volume ) )
     {
-        const YYZVis::YinYangVolumeObject* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
+        const auto* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
         this->mapping( yvolume );
     }
 
@@ -98,7 +99,7 @@ void SlicePlane::mapping( const YYZVis::ZhongVolumeObject* zvolume )
     // const kvs::ColorMap cmap = BaseClass::colorMap();
 
     // Calculate coords, normals and colors.
-     this->extract_zhong_plane( zvolume );
+     this->extract_plane( zvolume );
 
     // SuperClass::setCoords( coords );
     // SuperClass::setColors( colors );
@@ -114,15 +115,15 @@ void SlicePlane::mapping( const YYZVis::YinYangVolumeObject* yvolume )
   // const kvs::ColorMap cmap = BaseClass::colorMap();
 
     // Calculate coords, normals and colors.
-     this->extract_yinyang_plane( yvolume );
+     this->extract_plane( yvolume );
 
     // SuperClass::setCoords( coords );
     // SuperClass::setColors( colors );
     // SuperClass::setNormals( normals );
     // SuperClass::setOpacity( 255 );
 }
-  
-void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolume )
+
+void SlicePlane::extract_plane( const YYZVis::YinYangVolumeObject* yvolume )
 {
    // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -138,7 +139,7 @@ void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolu
     const size_t dim_phi = yvolume->dimPhi(); // longitude
 
     const kvs::Real32* yvolume_coords = yvolume->coords().data();
- 
+
     //Const kvs::UInt32    line_size( volume->numberOfNodesPerLine() );
     const kvs::ColorMap& color_map( BaseClass::transferFunction().colorMap() );
 
@@ -188,48 +189,48 @@ void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolu
         for ( size_t i = 0; kvs::MarchingHexahedraTable::TriangleID[ table_index ][i] != -1; i += 3 )
         {
             // Refer the edge IDs from the TriangleTable using the table_index.
-	  const int e0 = kvs::MarchingHexahedraTable::TriangleID[table_index][i];
-	  const int e1 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+1];
-	  const int e2 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+2];
+            const int e0 = kvs::MarchingHexahedraTable::TriangleID[table_index][i];
+            const int e1 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+1];
+            const int e2 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+2];
 
             // Refer indices of the coordinate array from the VertexTable using the edgeIDs.
-	  const size_t c0 = local_index[ kvs::MarchingHexahedraTable::VertexID[e0][0] ];
-	  const size_t c1 = local_index[ kvs::MarchingHexahedraTable::VertexID[e0][1] ];
-	  const size_t c2 = local_index[ kvs::MarchingHexahedraTable::VertexID[e1][0] ];
-	  const size_t c3 = local_index[ kvs::MarchingHexahedraTable::VertexID[e1][1] ];
-	  const size_t c4 = local_index[ kvs::MarchingHexahedraTable::VertexID[e2][0] ];
-	  const size_t c5 = local_index[ kvs::MarchingHexahedraTable::VertexID[e2][1] ];
+            const size_t c0 = local_index[ kvs::MarchingHexahedraTable::VertexID[e0][0] ];
+            const size_t c1 = local_index[ kvs::MarchingHexahedraTable::VertexID[e0][1] ];
+            const size_t c2 = local_index[ kvs::MarchingHexahedraTable::VertexID[e1][0] ];
+            const size_t c3 = local_index[ kvs::MarchingHexahedraTable::VertexID[e1][1] ];
+            const size_t c4 = local_index[ kvs::MarchingHexahedraTable::VertexID[e2][0] ];
+            const size_t c5 = local_index[ kvs::MarchingHexahedraTable::VertexID[e2][1] ];
 
             // Determine vertices for each edge.
-            const kvs::Vector3f v0( yvolume_coords + 3 * c0 );
-            const kvs::Vector3f v1( yvolume_coords + 3 * c1 );
+            const kvs::Vec3 v0( yvolume_coords + 3 * c0 );
+            const kvs::Vec3 v1( yvolume_coords + 3 * c1 );
 
-            const kvs::Vector3f v2( yvolume_coords + 3 * c2 );
-            const kvs::Vector3f v3( yvolume_coords + 3 * c3 );
+            const kvs::Vec3 v2( yvolume_coords + 3 * c2 );
+            const kvs::Vec3 v3( yvolume_coords + 3 * c3 );
 
-            const kvs::Vector3f v4( yvolume_coords + 3 * c4 );
-            const kvs::Vector3f v5( yvolume_coords + 3 * c5 );
+            const kvs::Vec3 v4( yvolume_coords + 3 * c4 );
+            const kvs::Vec3 v5( yvolume_coords + 3 * c5 );
 
             // Calculate coordinates of the vertices which are composed
             // of the triangle polygon.
-            const kvs::Vector3f vertex0( this->interpolate_vertex( v0, v1 ) );
+            const kvs::Vec3 vertex0( this->interpolate_vertex( v0, v1 ) );
             coords.push_back( vertex0.x() );
             coords.push_back( vertex0.y() );
             coords.push_back( vertex0.z() );
 
-            const kvs::Vector3f vertex1( this->interpolate_vertex( v2, v3 ) );
+            const kvs::Vec3 vertex1( this->interpolate_vertex( v2, v3 ) );
             coords.push_back( vertex1.x() );
             coords.push_back( vertex1.y() );
             coords.push_back( vertex1.z() );
 
-            const kvs::Vector3f vertex2( this->interpolate_vertex( v4, v5 ) );
+            const kvs::Vec3 vertex2( this->interpolate_vertex( v4, v5 ) );
             coords.push_back( vertex2.x() );
             coords.push_back( vertex2.y() );
             coords.push_back( vertex2.z() );
 
-            const double value0 = this->interpolate_yinyang_value( yvolume, c0, c1 );
-            const double value1 = this->interpolate_yinyang_value( yvolume, c2, c3 );
-            const double value2 = this->interpolate_yinyang_value( yvolume, c4, c5 );
+            const double value0 = this->interpolate_value( yvolume, c0, c1 );
+            const double value1 = this->interpolate_value( yvolume, c2, c3 );
+            const double value2 = this->interpolate_value( yvolume, c4, c5 );
 
             const kvs::UInt8 color0 =
                 static_cast<kvs::UInt8>( normalize_factor * ( value0 - min_value ) );
@@ -250,7 +251,7 @@ void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolu
             colors.push_back( color_map[ color2 ].b() );
 
             // Calculate a normal vector for the triangle polygon.
-            const kvs::Vector3f normal( -( vertex2 - vertex0 ).cross( vertex1 - vertex0 ) );
+            const kvs::Vec3 normal( -( vertex2 - vertex0 ).cross( vertex1 - vertex0 ) );
             normals.push_back( normal.x() );
             normals.push_back( normal.y() );
             normals.push_back( normal.z() );
@@ -266,7 +267,7 @@ void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolu
     SuperClass::setNormalType( kvs::PolygonObject::PolygonNormal );
 }
 
-  void SlicePlane::extract_zhong_plane( const YYZVis::ZhongVolumeObject* zvolume )
+void SlicePlane::extract_plane( const YYZVis::ZhongVolumeObject* zvolume )
 {
    // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -282,7 +283,7 @@ void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolu
     const size_t dim_z = zvolume->dim(); // Z
 
     const kvs::Real32* zvolume_coords = zvolume->coords().data();
- 
+
     //Const kvs::UInt32    line_size( volume->numberOfNodesPerLine() );
     const kvs::ColorMap& color_map( BaseClass::transferFunction().colorMap() );
 
@@ -332,48 +333,48 @@ void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolu
         for ( size_t i = 0; kvs::MarchingHexahedraTable::TriangleID[ table_index ][i] != -1; i += 3 )
         {
             // Refer the edge IDs from the TriangleTable using the table_index.
-	  const int e0 = kvs::MarchingHexahedraTable::TriangleID[table_index][i];
-	  const int e1 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+1];
-	  const int e2 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+2];
+            const int e0 = kvs::MarchingHexahedraTable::TriangleID[table_index][i];
+            const int e1 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+1];
+            const int e2 = kvs::MarchingHexahedraTable::TriangleID[table_index][i+2];
 
             // Refer indices of the coordinate array from the VertexTable using the edgeIDs.
-	  const size_t c0 = local_index[ kvs::MarchingHexahedraTable::VertexID[e0][0] ];
-	  const size_t c1 = local_index[ kvs::MarchingHexahedraTable::VertexID[e0][1] ];
-	  const size_t c2 = local_index[ kvs::MarchingHexahedraTable::VertexID[e1][0] ];
-	  const size_t c3 = local_index[ kvs::MarchingHexahedraTable::VertexID[e1][1] ];
-	  const size_t c4 = local_index[ kvs::MarchingHexahedraTable::VertexID[e2][0] ];
-	  const size_t c5 = local_index[ kvs::MarchingHexahedraTable::VertexID[e2][1] ];
+            const size_t c0 = local_index[ kvs::MarchingHexahedraTable::VertexID[e0][0] ];
+            const size_t c1 = local_index[ kvs::MarchingHexahedraTable::VertexID[e0][1] ];
+            const size_t c2 = local_index[ kvs::MarchingHexahedraTable::VertexID[e1][0] ];
+            const size_t c3 = local_index[ kvs::MarchingHexahedraTable::VertexID[e1][1] ];
+            const size_t c4 = local_index[ kvs::MarchingHexahedraTable::VertexID[e2][0] ];
+            const size_t c5 = local_index[ kvs::MarchingHexahedraTable::VertexID[e2][1] ];
 
             // Determine vertices for each edge.
-            const kvs::Vector3f v0( zvolume_coords + 3 * c0 );
-            const kvs::Vector3f v1( zvolume_coords + 3 * c1 );
+            const kvs::Vec3 v0( zvolume_coords + 3 * c0 );
+            const kvs::Vec3 v1( zvolume_coords + 3 * c1 );
 
-            const kvs::Vector3f v2( zvolume_coords + 3 * c2 );
-            const kvs::Vector3f v3( zvolume_coords + 3 * c3 );
+            const kvs::Vec3 v2( zvolume_coords + 3 * c2 );
+            const kvs::Vec3 v3( zvolume_coords + 3 * c3 );
 
-            const kvs::Vector3f v4( zvolume_coords + 3 * c4 );
-            const kvs::Vector3f v5( zvolume_coords + 3 * c5 );
+            const kvs::Vec3 v4( zvolume_coords + 3 * c4 );
+            const kvs::Vec3 v5( zvolume_coords + 3 * c5 );
 
             // Calculate coordinates of the vertices which are composed
             // of the triangle polygon.
-            const kvs::Vector3f vertex0( this->interpolate_vertex( v0, v1 ) );
+            const kvs::Vec3 vertex0( this->interpolate_vertex( v0, v1 ) );
             coords.push_back( vertex0.x() );
             coords.push_back( vertex0.y() );
             coords.push_back( vertex0.z() );
 
-            const kvs::Vector3f vertex1( this->interpolate_vertex( v2, v3 ) );
+            const kvs::Vec3 vertex1( this->interpolate_vertex( v2, v3 ) );
             coords.push_back( vertex1.x() );
             coords.push_back( vertex1.y() );
             coords.push_back( vertex1.z() );
 
-            const kvs::Vector3f vertex2( this->interpolate_vertex( v4, v5 ) );
+            const kvs::Vec3 vertex2( this->interpolate_vertex( v4, v5 ) );
             coords.push_back( vertex2.x() );
             coords.push_back( vertex2.y() );
             coords.push_back( vertex2.z() );
 
-            const double value0 = this->interpolate_zhong_value( zvolume, c0, c1 );
-            const double value1 = this->interpolate_zhong_value( zvolume, c2, c3 );
-            const double value2 = this->interpolate_zhong_value( zvolume, c4, c5 );
+            const double value0 = this->interpolate_value( zvolume, c0, c1 );
+            const double value1 = this->interpolate_value( zvolume, c2, c3 );
+            const double value2 = this->interpolate_value( zvolume, c4, c5 );
 
             const kvs::UInt8 color0 =
                 static_cast<kvs::UInt8>( normalize_factor * ( value0 - min_value ) );
@@ -394,7 +395,7 @@ void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolu
             colors.push_back( color_map[ color2 ].b() );
 
             // Calculate a normal vector for the triangle polygon.
-            const kvs::Vector3f normal( -( vertex2 - vertex0 ).cross( vertex1 - vertex0 ) );
+            const kvs::Vec3 normal( -( vertex2 - vertex0 ).cross( vertex1 - vertex0 ) );
             normals.push_back( normal.x() );
             normals.push_back( normal.y() );
             normals.push_back( normal.z() );
@@ -410,19 +411,18 @@ void SlicePlane::extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolu
     SuperClass::setNormalType( kvs::PolygonObject::PolygonNormal );
 }
 
-size_t SlicePlane::calculate_hexahedra_table_index(
-    const size_t* local_index ) const
+size_t SlicePlane::calculate_hexahedra_table_index( const size_t* local_index ) const
 {
     const kvs::Real32* const coords = BaseClass::volume()->coords().data();
 
-    const kvs::Vector3f vertex0( coords + 3 * local_index[0] );
-    const kvs::Vector3f vertex1( coords + 3 * local_index[1] );
-    const kvs::Vector3f vertex2( coords + 3 * local_index[2] );
-    const kvs::Vector3f vertex3( coords + 3 * local_index[3] );
-    const kvs::Vector3f vertex4( coords + 3 * local_index[4] );
-    const kvs::Vector3f vertex5( coords + 3 * local_index[5] );
-    const kvs::Vector3f vertex6( coords + 3 * local_index[6] );
-    const kvs::Vector3f vertex7( coords + 3 * local_index[7] );
+    const kvs::Vec3 vertex0( coords + 3 * local_index[0] );
+    const kvs::Vec3 vertex1( coords + 3 * local_index[1] );
+    const kvs::Vec3 vertex2( coords + 3 * local_index[2] );
+    const kvs::Vec3 vertex3( coords + 3 * local_index[3] );
+    const kvs::Vec3 vertex4( coords + 3 * local_index[4] );
+    const kvs::Vec3 vertex5( coords + 3 * local_index[5] );
+    const kvs::Vec3 vertex6( coords + 3 * local_index[6] );
+    const kvs::Vec3 vertex7( coords + 3 * local_index[7] );
 
     size_t table_index = 0;
     if ( this->substitute_plane_equation( vertex0 ) > 0.0 ) { table_index |=   1; }
@@ -437,8 +437,7 @@ size_t SlicePlane::calculate_hexahedra_table_index(
     return table_index;
 }
 
-float SlicePlane::substitute_plane_equation(
-    const kvs::Vector3f& vertex ) const
+float SlicePlane::substitute_plane_equation( const kvs::Vec3& vertex ) const
 {
     return
         m_coefficients.x() * vertex.x() +
@@ -447,9 +446,9 @@ float SlicePlane::substitute_plane_equation(
         m_coefficients.w();
 }
 
-const kvs::Vector3f SlicePlane::interpolate_vertex(
-    const kvs::Vector3f& vertex0,
-    const kvs::Vector3f& vertex1 ) const
+const kvs::Vec3 SlicePlane::interpolate_vertex(
+    const kvs::Vec3& vertex0,
+    const kvs::Vec3& vertex1 ) const
 {
     const float value0 = this->substitute_plane_equation( vertex0 );
     const float value1 = this->substitute_plane_equation( vertex1 );
@@ -458,33 +457,34 @@ const kvs::Vector3f SlicePlane::interpolate_vertex(
     return ( 1.0f - ratio ) * vertex0 + ratio * vertex1;
 }
 
-double SlicePlane::interpolate_yinyang_value(
-				     const YYZVis::YinYangVolumeObject* yvolume,
-                                     const size_t                         index0,
-                                     const size_t                         index1 ) const
+double SlicePlane::interpolate_value(
+    const YYZVis::YinYangVolumeObject* yvolume,
+    const size_t index0,
+    const size_t index1 ) const
 {
     const kvs::AnyValueArray values = yvolume->values();
     const kvs::Real32* const coords = yvolume->coords().data();
 
-    const float value0 = this->substitute_plane_equation( kvs::Vector3f( coords + 3 * index0 ) );
-    const float value1 = this->substitute_plane_equation( kvs::Vector3f( coords + 3 * index1 ) );
+    const float value0 = this->substitute_plane_equation( kvs::Vec3( coords + 3 * index0 ) );
+    const float value1 = this->substitute_plane_equation( kvs::Vec3( coords + 3 * index1 ) );
     const float ratio = kvs::Math::Abs( value0 / ( value1 - value0 ) );
 
     return values.at<float>( index0 ) + ratio * ( values.at<float>( index1 ) - values.at<float>( index0 ) );
 }
 
-double SlicePlane::interpolate_zhong_value(
-				     const YYZVis::ZhongVolumeObject* zvolume,
-                                     const size_t                         index0,
-                                     const size_t                         index1 ) const
+double SlicePlane::interpolate_value(
+    const YYZVis::ZhongVolumeObject* zvolume,
+    const size_t index0,
+    const size_t index1 ) const
 {
     const kvs::AnyValueArray values = zvolume->values();
     const kvs::Real32* const coords = zvolume->coords().data();
 
-    const float value0 = this->substitute_plane_equation( kvs::Vector3f( coords + 3 * index0 ) );
-    const float value1 = this->substitute_plane_equation( kvs::Vector3f( coords + 3 * index1 ) );
+    const float value0 = this->substitute_plane_equation( kvs::Vec3( coords + 3 * index0 ) );
+    const float value1 = this->substitute_plane_equation( kvs::Vec3( coords + 3 * index1 ) );
     const float ratio = kvs::Math::Abs( value0 / ( value1 - value0 ) );
 
     return values.at<float>( index0 ) + ratio * ( values.at<float>( index1 ) - values.at<float>( index0 ) );
 }
+
 } // end of namespace YYZVis

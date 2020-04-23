@@ -41,21 +41,13 @@ public:
 private:
     void mapping( const YYZVis::ZhongVolumeObject* zvolume );
     void mapping( const YYZVis::YinYangVolumeObject* yvolume );
-    void extract_yinyang_plane( const YYZVis::YinYangVolumeObject* yvolume );
-    void extract_zhong_plane( const YYZVis::ZhongVolumeObject* zvolume );
+    void extract_plane( const YYZVis::YinYangVolumeObject* yvolume );
+    void extract_plane( const YYZVis::ZhongVolumeObject* zvolume );
     size_t calculate_hexahedra_table_index( const size_t* local_index ) const;
-    float substitute_plane_equation( const kvs::Vector3f& vertex ) const;
-    const kvs::Vector3f interpolate_vertex(
-                                           const kvs::Vector3f& vertex0,
-                                           const kvs::Vector3f& vertex1 ) const;
-    double interpolate_yinyang_value(
-			     const YYZVis::YinYangVolumeObject* yvolume,
-                             const size_t                         index0,
-                             const size_t                         index1 ) const;
-    double interpolate_zhong_value(
-			     const YYZVis::ZhongVolumeObject* zvolume,
-                             const size_t                         index0,
-                             const size_t                         index1 ) const;
+    float substitute_plane_equation( const kvs::Vec3& vertex ) const;
+    const kvs::Vec3 interpolate_vertex( const kvs::Vec3& vertex0, const kvs::Vec3& vertex1 ) const;
+    double interpolate_value( const YYZVis::YinYangVolumeObject* yvolume, const size_t index0, const size_t index1 ) const;
+    double interpolate_value( const YYZVis::ZhongVolumeObject* zvolume, const size_t index0, const size_t index1 ) const;
 };
 
 } // end of namespace YYZVis
