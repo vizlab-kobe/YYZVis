@@ -6,8 +6,8 @@
 #include <kvs/TransferFunction>
 #include <kvs/Vector3>
 #include <kvs/Vector4>
-#include <YYZVis/Lib/YinYangVolumeObject.h>
-#include <YYZVis/Lib/ZhongVolumeObject.h>
+#include "YinYangVolumeObject.h"
+#include "ZhongVolumeObject.h"
 
 
 namespace YYZVis

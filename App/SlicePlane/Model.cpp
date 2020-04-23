@@ -1,12 +1,10 @@
 #include "Model.h"
 #include <YYZVis/Lib/Edge.h>
-#include <YYZVis/Lib/YinYangGridSampling.h>
-#include <YYZVis/Lib/ZhongGridSampling.h>
+#include <YYZVis/Lib/SlicePlane.h>
 #include <kvs/ExternalFaces>
 #include <kvs/SlicePlane>
 #include <kvs/SmartPointer>
 #include <kvs/Indent>
-#include "SlicePlane.h"
 
 
 namespace
