@@ -1,4 +1,4 @@
-## YYZ library
+## YYZVis library
 The YYZ library includes the following classes used in the test programs and application programs. All of classes included in the library are defined in the namespace of `YYZVis`.
 
 * `YYZVis::DensityMap`
