@@ -43,6 +43,8 @@ int main( int argc, char** argv )
 {
     kvs::glut::Application app( argc, argv );
     kvs::glut::Screen screen( &app );
+    screen.setTitle( "YYZVis::ExternalFaces" );
+    screen.setBackgroundColor( kvs::RGBColor::White() );
 
     // Get input values.
     const size_t dim_rad = atoi( argv[1] );
