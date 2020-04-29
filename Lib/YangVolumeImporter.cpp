@@ -96,16 +96,15 @@ YangVolumeImporter::SuperClass* YangVolumeImporter::exec( const kvs::FileFormatB
     const size_t dim_rad( object["dim_rad"].get<double>() );
     const size_t dim_lat( object["dim_lat"].get<double>() );
     const size_t dim_lon( object["dim_lon"].get<double>() );
-    const size_t veclen( object["veclen"].get<double>() );
     const std::string endian( object["endian"].get<std::string>() );
 
     auto& yang_value = object["yang_value"].get<kvs::Json::Array>();
     const std::string path_name = kvs::File( json->filename() ).pathName( true );
     const bool swap = ::ByteSwap( endian );
     std::vector<kvs::ValueArray<kvs::Real32>> temp;
-    for ( size_t i = 0; i < veclen; ++i )
+    for ( auto& f : yang_value )
     {
-        const std::string data_file = yang_value[i].get<std::string>();
+        const std::string data_file = f.get<std::string>();
         if ( ::IsAbsolutePath( data_file ) )
         {
             temp.push_back( ::ReadBinary( data_file, 4, swap ) );
@@ -122,13 +121,13 @@ YangVolumeImporter::SuperClass* YangVolumeImporter::exec( const kvs::FileFormatB
         }
     }
 
-    auto values = ( veclen == 1 ) ? temp[0] : ::Interleave( temp[0], temp[1], temp[2] );
+    auto values = ( temp.size() == 1 ) ? temp[0] : ::Interleave( temp[0], temp[1], temp[2] );
 
     SuperClass::setGridTypeToYang();
     SuperClass::setDimR( dim_rad );
     SuperClass::setDimTheta( dim_lat );
     SuperClass::setDimPhi( dim_lon );
-    SuperClass::setVeclen( veclen );
+    SuperClass::setVeclen( temp.size() );
     SuperClass::calculateCoords();
     SuperClass::setValues( values );
     SuperClass::updateMinMaxCoords();

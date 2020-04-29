@@ -3,7 +3,6 @@
     "dim_lat": 204,
     "dim_lon": 608,
     "dim_zhong": 222,
-    "veclen": 1,
     "endian": "big",
     "yin_value": [
         "~/Work/Data/MHD/Jun28b.000.wyin.vx.n000550000.t00067"
