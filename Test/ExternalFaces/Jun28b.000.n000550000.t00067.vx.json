@@ -1,0 +1,17 @@
+{
+    "dim_rad": 201,
+    "dim_lat": 204,
+    "dim_lon": 608,
+    "dim_zhong": 222,
+    "veclen": 1,
+    "endian": "big",
+    "yin_value": [
+        "~/Work/Data/MHD/Jun28b.000.wyin.vx.n000550000.t00067"
+    ],
+    "yang_value": [
+        "~/Work/Data/MHD/Jun28b.000.wyng.vx.n000550000.t00067"
+    ],
+    "zhong_value": [
+        "~/Work/Data/MHD/Jun28b.000.icore_3d.vx.n000550000.t00067"
+    ]
+}
