@@ -1,6 +1,5 @@
 #include "Program.h"
 #include "Input.h"
-#include "Convert.h"
 #include <YYZVis/Lib/YinVolumeImporter.h>
 #include <YYZVis/Lib/YangVolumeImporter.h>
 #include <YYZVis/Lib/ZhongVolumeImporter.h>
@@ -15,9 +14,12 @@ namespace local
 
 int Program::exec( int argc, char** argv )
 {
+    local::Input input( argc, argv );
+    if ( !input.parse() ) { return 1; }
+
     // Import YYZ data.
     std::cout << "IMPORT VOLUMES ..." << std::endl;
-    const std::string input_file( argv[1] );
+    const std::string input_file( input.filename );
     auto yin_volume = YYZVis::YinVolumeImporter( input_file );
     auto yng_volume = YYZVis::YangVolumeImporter( input_file );
     auto zng_volume = YYZVis::ZhongVolumeImporter( input_file );
@@ -32,11 +34,10 @@ int Program::exec( int argc, char** argv )
 
     std::cout << "CONVERT VOLUMES ..." << std::endl;
     const bool ascii = false;
-//    kvs::StructuredVolumeObject cart_volume = local::Convert( yin_volume, yng_volume, zng_volume );
-    const size_t dim = 200;
+    const size_t dim = input.dim;
     auto cart_volume = YYZVis::UniformGridMerger( &yin_volume, &yng_volume, &zng_volume, dim );
     cart_volume.print( std::cout << "STRUCTURED VOLUME DATA" << std::endl, indent );
-    cart_volume.write( "output.kvsml", ascii );
+    cart_volume.write( input.output, ascii );
 
     return 0;
 }

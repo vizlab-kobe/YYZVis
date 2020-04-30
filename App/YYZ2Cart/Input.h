@@ -17,42 +17,28 @@ private:
     kvs::CommandLine m_commandline; ///< command line parser
 
 public:
-    std::string filename_yin; ///< filename of yin volume data
-    std::string filename_yang; ///< filename of yang volume data
-    std::string filename_zhong; ///< filename of zhong volume data
-    std::string filename_output; ///< filename of output data
-    size_t dim_rad; ///< dimension in the radial direction
-    size_t dim_lat; ///< dimension in the latitude direction
-    size_t dim_lon; ///< dimension in longitude direction
-    size_t dim_zhong; ///< dimension of the cubic zhong grid
+    std::string filename; ///< input filename
+    std::string output; ///< output filename
+    size_t dim; ///< dimension in the radial direction
 
-    Input( int argc, char** argv )
+    Input( int argc, char** argv ):
+        filename(""),
+        output("output.kvsml"),
+        dim( 200 )
     {
         m_commandline = kvs::CommandLine( argc, argv );
-        m_commandline.addOption( "dim_rad", "Dimension in the radial direction.", 1, true );
-        m_commandline.addOption( "dim_lat", "Dimension in the latitude direction.", 1, true );
-        m_commandline.addOption( "dim_lon", "Dimension in the longitude direction.", 1, true );
-        m_commandline.addOption( "dim_zhong", "Dimension of the cubic zhong grid.", 1, true );
-        m_commandline.addOption( "yin", "Filename of yin volume data.", 1, true );
-        m_commandline.addOption( "yang", "Filename of yang volume data.", 1, true );
-        m_commandline.addOption( "zhong", "Filename of zhong volume data.", 1, true );
-        m_commandline.addOption( "output", "Filename of output data.", 1, true );
+        m_commandline.addOption( "dim", "Grid resolution of output data. (default: 200)", 1, false );
+        m_commandline.addOption( "output", "Output filename. (default: output.kvsml)", 1, false );
+        m_commandline.addValue( "Input filename." );
         m_commandline.addHelpOption();
     }
 
     bool parse()
     {
         if ( !m_commandline.parse() ) { return false; }
-
-        filename_yin = m_commandline.optionValue<std::string>("yin");
-        filename_yang = m_commandline.optionValue<std::string>("yang");
-        filename_zhong = m_commandline.optionValue<std::string>("zhong");
-        filename_output = m_commandline.optionValue<std::string>("output");
-        dim_rad = m_commandline.optionValue<size_t>("dim_rad");
-        dim_lat = m_commandline.optionValue<size_t>("dim_lat");
-        dim_lon = m_commandline.optionValue<size_t>("dim_lon");
-        dim_zhong = m_commandline.optionValue<size_t>("dim_zhong");
-
+        if ( m_commandline.hasOption("dim") ) { dim = m_commandline.optionValue<size_t>("dim"); }
+        if ( m_commandline.hasOption("output") ) { output = m_commandline.optionValue<std::string>("output"); }
+        filename = m_commandline.value<std::string>();
         return true;
     }
 };
