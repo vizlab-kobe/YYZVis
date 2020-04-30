@@ -93,25 +93,28 @@ kvs::StructuredVolumeObject Convert(
                     zng_grid.setLocalPoint( zng_local_index );
                     values[index] = zng_grid.scalar();
                 }
-                // Inside yin volume region.
-                else if ( ::IsInsideOf( yin_volume, rtp ) )
-                {
-                    const kvs::Vec3 yin_index = ::IndexOf( yin_volume, rtp );
-                    const kvs::Vec3ui yin_base_index( yin_index );
-                    const kvs::Vec3 yin_local_index = yin_index - kvs::Vec3( yin_base_index );
-                    yin_grid.bind( yin_base_index );
-                    yin_grid.setLocalPoint( yin_local_index );
-                    values[index] = yin_grid.scalar();
-                }
-                // Inside yang volume region.
                 else
                 {
-                    const kvs::Vec3 yng_index = ::IndexOf( yng_volume, ::Cart2Polar( kvs::Vec3( -x, z, y ) ) );
-                    const kvs::Vec3ui yng_base_index( yng_index );
-                    const kvs::Vec3 yng_local_index = yng_index - kvs::Vec3( yng_base_index );
-                    yng_grid.bind( yng_base_index );
-                    yng_grid.setLocalPoint( yng_local_index );
-                    values[index] = yng_grid.scalar();
+                    // Inside yin volume region.
+                    if ( ::IsInsideOf( yin_volume, rtp ) )
+                    {
+                        const kvs::Vec3 yin_index = ::IndexOf( yin_volume, rtp );
+                        const kvs::Vec3ui yin_base_index( yin_index );
+                        const kvs::Vec3 yin_local_index = yin_index - kvs::Vec3( yin_base_index );
+                        yin_grid.bind( yin_base_index );
+                        yin_grid.setLocalPoint( yin_local_index );
+                        values[index] = yin_grid.scalar();
+                    }
+                    // Inside yang volume region.
+                    else
+                    {
+                        const kvs::Vec3 yng_index = ::IndexOf( yng_volume, ::Cart2Polar( kvs::Vec3( -x, z, y ) ) );
+                        const kvs::Vec3ui yng_base_index( yng_index );
+                        const kvs::Vec3 yng_local_index = yng_index - kvs::Vec3( yng_base_index );
+                        yng_grid.bind( yng_base_index );
+                        yng_grid.setLocalPoint( yng_local_index );
+                        values[index] = yng_grid.scalar();
+                    }
                 }
             }
         }
