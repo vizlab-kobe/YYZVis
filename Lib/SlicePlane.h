@@ -6,7 +6,7 @@
 #include <kvs/TransferFunction>
 #include <kvs/Vector3>
 #include <kvs/Vector4>
-#include "YinYangVolumeObject.h"
+#include "YinYangVolumeObjectBase.h"
 #include "ZhongVolumeObject.h"
 
 
@@ -40,13 +40,13 @@ public:
 
 private:
     void mapping( const YYZVis::ZhongVolumeObject* zvolume );
-    void mapping( const YYZVis::YinYangVolumeObject* yvolume );
-    void extract_plane( const YYZVis::YinYangVolumeObject* yvolume );
+    void mapping( const YYZVis::YinYangVolumeObjectBase* yvolume );
+    void extract_plane( const YYZVis::YinYangVolumeObjectBase* yvolume );
     void extract_plane( const YYZVis::ZhongVolumeObject* zvolume );
     size_t calculate_hexahedra_table_index( const size_t* local_index ) const;
     float substitute_plane_equation( const kvs::Vec3& vertex ) const;
     const kvs::Vec3 interpolate_vertex( const kvs::Vec3& vertex0, const kvs::Vec3& vertex1 ) const;
-    double interpolate_value( const YYZVis::YinYangVolumeObject* yvolume, const size_t index0, const size_t index1 ) const;
+    double interpolate_value( const YYZVis::YinYangVolumeObjectBase* yvolume, const size_t index0, const size_t index1 ) const;
     double interpolate_value( const YYZVis::ZhongVolumeObject* zvolume, const size_t index0, const size_t index1 ) const;
 };
 

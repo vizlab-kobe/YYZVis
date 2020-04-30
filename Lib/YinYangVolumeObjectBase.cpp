@@ -1,4 +1,4 @@
-#include "YinYangVolumeObject.h"
+#include "YinYangVolumeObjectBase.h"
 #include <kvs/Endian>
 #include <fstream>
 
@@ -11,15 +11,15 @@ const std::string GridTypeName[2] = {
     "yang"
 };
 
-kvs::ValueArray<kvs::Real32> CalculateCoords( const YYZVis::YinYangVolumeObject* object )
+kvs::ValueArray<kvs::Real32> CalculateCoords( const YYZVis::YinYangVolumeObjectBase* object )
 {
     const size_t dim_r = object->dimR(); // radius
     const size_t dim_theta = object->dimTheta(); // latitude
     const size_t dim_phi = object->dimPhi(); // longitude
 
-    const YYZVis::YinYangVolumeObject::Range range_r = object->rangeR();
-    const YYZVis::YinYangVolumeObject::Range range_theta = object->rangeTheta();
-    const YYZVis::YinYangVolumeObject::Range range_phi = object->rangePhi();
+    const YYZVis::YinYangVolumeObjectBase::Range range_r = object->rangeR();
+    const YYZVis::YinYangVolumeObjectBase::Range range_theta = object->rangeTheta();
+    const YYZVis::YinYangVolumeObjectBase::Range range_phi = object->rangePhi();
 
     const size_t nnodes = object->numberOfNodes();
     kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
@@ -41,9 +41,9 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const YYZVis::YinYangVolumeObject*
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
 
-                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x : -x;
-                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y : z;
-                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z : y;
+                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? x : -x;
+                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? y : z;
+                *(pcoords++) = ( object->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? z : y;
             }
         }
     }
@@ -51,7 +51,7 @@ kvs::ValueArray<kvs::Real32> CalculateCoords( const YYZVis::YinYangVolumeObject*
     return coords;
 }
 
-kvs::ValueArray<kvs::UInt32> CalculateConnections( const YYZVis::YinYangVolumeObject* object )
+kvs::ValueArray<kvs::UInt32> CalculateConnections( const YYZVis::YinYangVolumeObjectBase* object )
 {
     const size_t dim_r = object->dimR(); // radius
     const size_t dim_theta = object->dimTheta(); // latitude
@@ -86,7 +86,8 @@ kvs::ValueArray<kvs::UInt32> CalculateConnections( const YYZVis::YinYangVolumeOb
 namespace YYZVis
 {
 
-kvs::StructuredVolumeObject* YinYangVolumeObject::ToStructuredVolumeObject( const YYZVis::YinYangVolumeObject* object )
+kvs::StructuredVolumeObject* YinYangVolumeObjectBase::ToStructuredVolumeObject(
+    const YYZVis::YinYangVolumeObjectBase* object )
 {
     kvs::StructuredVolumeObject* volume = new kvs::StructuredVolumeObject();
     volume->setGridTypeToCurvilinear();
@@ -102,7 +103,8 @@ kvs::StructuredVolumeObject* YinYangVolumeObject::ToStructuredVolumeObject( cons
     return volume;
 }
 
-kvs::UnstructuredVolumeObject* YinYangVolumeObject::ToUnstructuredVolumeObject( const YYZVis::YinYangVolumeObject* object )
+kvs::UnstructuredVolumeObject* YinYangVolumeObjectBase::ToUnstructuredVolumeObject(
+    const YYZVis::YinYangVolumeObjectBase* object )
 {
     kvs::UnstructuredVolumeObject* volume = new kvs::UnstructuredVolumeObject();
     volume->setCellTypeToHexahedra();
@@ -120,7 +122,7 @@ kvs::UnstructuredVolumeObject* YinYangVolumeObject::ToUnstructuredVolumeObject( 
     return volume;
 }
 
-YinYangVolumeObject::YinYangVolumeObject():
+YinYangVolumeObjectBase::YinYangVolumeObjectBase():
     kvs::VolumeObjectBase(),
     m_grid_type( Yin ),
     m_dim_r( 0 ),
@@ -142,7 +144,7 @@ YinYangVolumeObject::YinYangVolumeObject():
     m_range_phi.d = 0.0f;
 }
 
-void YinYangVolumeObject::shallowCopy( const YinYangVolumeObject& object )
+void YinYangVolumeObjectBase::shallowCopy( const YinYangVolumeObjectBase& object )
 {
     BaseClass::shallowCopy( object );
     m_grid_type = object.m_grid_type;
@@ -154,7 +156,7 @@ void YinYangVolumeObject::shallowCopy( const YinYangVolumeObject& object )
     m_range_phi = object.m_range_phi;
 }
 
-void YinYangVolumeObject::deepCopy( const YinYangVolumeObject& object )
+void YinYangVolumeObjectBase::deepCopy( const YinYangVolumeObjectBase& object )
 {
     BaseClass::deepCopy( object );
     m_grid_type = object.m_grid_type;
@@ -166,7 +168,7 @@ void YinYangVolumeObject::deepCopy( const YinYangVolumeObject& object )
     m_range_phi = object.m_range_phi;
 }
 
-void YinYangVolumeObject::print( std::ostream& os, const kvs::Indent& indent ) const
+void YinYangVolumeObjectBase::print( std::ostream& os, const kvs::Indent& indent ) const
 {
     if ( !this->hasMinMaxValues() ) this->updateMinMaxValues();
     os << indent << "Object type : " << "yin-yang volume object" << std::endl;
@@ -182,7 +184,7 @@ void YinYangVolumeObject::print( std::ostream& os, const kvs::Indent& indent ) c
     os << indent << "Max. value : " << this->maxValue() << std::endl;
 }
 
-void YinYangVolumeObject::setDimR( const size_t dim_r, const float range_min, const float range_max )
+void YinYangVolumeObjectBase::setDimR( const size_t dim_r, const float range_min, const float range_max )
 {
     KVS_ASSERT( dim_r > 1 );
 
@@ -193,7 +195,7 @@ void YinYangVolumeObject::setDimR( const size_t dim_r, const float range_min, co
     m_range_r.d = ( m_range_r.max - m_range_r.min ) / ( m_dim_r - 1 );
 }
 
-void YinYangVolumeObject::setDimTheta( const size_t dim_theta, const size_t overwrap )
+void YinYangVolumeObjectBase::setDimTheta( const size_t dim_theta, const size_t overwrap )
 {
     KVS_ASSERT( dim_theta - overwrap > 1 );
 
@@ -205,7 +207,7 @@ void YinYangVolumeObject::setDimTheta( const size_t dim_theta, const size_t over
     m_range_theta.d = ( m_range_theta.max - m_range_theta.min ) / ( m_dim_theta - overwrap - 1 );
 }
 
-void YinYangVolumeObject::setDimPhi( const size_t dim_phi, const size_t overwrap )
+void YinYangVolumeObjectBase::setDimPhi( const size_t dim_phi, const size_t overwrap )
 {
     KVS_ASSERT( dim_phi - overwrap > 1 );
 
@@ -217,22 +219,22 @@ void YinYangVolumeObject::setDimPhi( const size_t dim_phi, const size_t overwrap
     m_range_phi.d = ( m_range_phi.max - m_range_phi.min ) / ( m_dim_phi - overwrap - 1 );
 }
 
-size_t YinYangVolumeObject::numberOfNodes() const
+size_t YinYangVolumeObjectBase::numberOfNodes() const
 {
     return m_dim_r * m_dim_theta * m_dim_phi;
 }
 
-size_t YinYangVolumeObject::numberOfCells() const
+size_t YinYangVolumeObjectBase::numberOfCells() const
 {
     return ( m_dim_r - 1 ) * ( m_dim_theta - 1 ) * ( m_dim_phi - 1 );
 }
 
-void YinYangVolumeObject::calculateCoords()
+void YinYangVolumeObjectBase::calculateCoords()
 {
     this->setCoords( ::CalculateCoords( this ) );
 }
 
-bool YinYangVolumeObject::readValues( const std::string& filename )
+bool YinYangVolumeObjectBase::readValues( const std::string& filename )
 {
     const size_t nnodes = this->numberOfNodes();
     const size_t veclen = this->veclen();
@@ -250,7 +252,7 @@ bool YinYangVolumeObject::readValues( const std::string& filename )
     return true;
 }
 
-void YinYangVolumeObject::updateMinMaxCoords()
+void YinYangVolumeObjectBase::updateMinMaxCoords()
 {
     kvs::Vec3 min_coord( 0.0f, 0.0f, 0.0f );
     kvs::Vec3 max_coord( 0.0f, 0.0f, 0.0f );

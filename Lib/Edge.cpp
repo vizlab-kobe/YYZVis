@@ -1,5 +1,5 @@
 #include "Edge.h"
-#include "YinYangVolumeObject.h"
+#include "YinYangVolumeObjectBase.h"
 #include "ZhongVolumeObject.h"
 #include <kvs/Xform>
 #include <kvs/XformControl>
@@ -12,15 +12,15 @@ namespace YYZVis
 namespace Edge
 {
 
-kvs::LineObject* CreateLineMeshObject( const YYZVis::YinYangVolumeObject* volume, const size_t dim_edge )
+kvs::LineObject* CreateLineMeshObject( const YYZVis::YinYangVolumeObjectBase* volume, const size_t dim_edge )
 {
     const size_t dim_r = volume->dimR(); // radius
     const size_t dim_theta = volume->dimTheta(); // latitude
     const size_t dim_phi = volume->dimPhi(); // longitude
 
-    const YYZVis::YinYangVolumeObject::Range range_r = volume->rangeR();
-    const YYZVis::YinYangVolumeObject::Range range_theta = volume->rangeTheta();
-    const YYZVis::YinYangVolumeObject::Range range_phi = volume->rangePhi();
+    const YYZVis::YinYangVolumeObjectBase::Range range_r = volume->rangeR();
+    const YYZVis::YinYangVolumeObjectBase::Range range_theta = volume->rangeTheta();
+    const YYZVis::YinYangVolumeObjectBase::Range range_phi = volume->rangePhi();
 
     float step_r = ( dim_r - 1.0f ) / dim_edge;
     float step_theta = ( dim_theta - 1.0f ) / dim_edge;
@@ -48,9 +48,9 @@ kvs::LineObject* CreateLineMeshObject( const YYZVis::YinYangVolumeObject* volume
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
 
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x : -x;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y : z;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z : y;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? x : -x;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? y : z;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? z : y;
             }
         }
     }
@@ -73,9 +73,9 @@ kvs::LineObject* CreateLineMeshObject( const YYZVis::YinYangVolumeObject* volume
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
 
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x : -x;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y : z;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z : y;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? x : -x;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? y : z;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? z : y;
             }
         }
     }
@@ -98,9 +98,9 @@ kvs::LineObject* CreateLineMeshObject( const YYZVis::YinYangVolumeObject* volume
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
 
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x : -x;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y : z;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z : y;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? x : -x;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? y : z;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? z : y;
             }
         }
     }
@@ -123,9 +123,9 @@ kvs::LineObject* CreateLineMeshObject( const YYZVis::YinYangVolumeObject* volume
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
 
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x : -x;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y : z;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z : y;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? x : -x;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? y : z;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? z : y;
             }
         }
     }
@@ -199,9 +199,9 @@ kvs::LineObject* CreateLineMeshObject( const YYZVis::YinYangVolumeObject* volume
     kvs::UInt8* pcolors = colors.data();
     for ( int i = 0; i < nnodes; i++ )
     {
-        *(pcolors++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? 255 : 0;
+        *(pcolors++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? 255 : 0;
         *(pcolors++) = 0;
-        *(pcolors++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? 0 : 255;
+        *(pcolors++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? 0 : 255;
     }
 
     kvs::LineObject* object = new kvs::LineObject();
@@ -217,15 +217,15 @@ kvs::LineObject* CreateLineMeshObject( const YYZVis::YinYangVolumeObject* volume
     return object;
 }
 
-kvs::LineObject* CreateLineEdgeObject( const YYZVis::YinYangVolumeObject* volume )
+kvs::LineObject* CreateLineEdgeObject( const YYZVis::YinYangVolumeObjectBase* volume )
 {
     const size_t dim_r = volume->dimR(); // radius
     const size_t dim_theta = volume->dimTheta(); // latitude
     const size_t dim_phi = volume->dimPhi(); // longitude
 
-    const YYZVis::YinYangVolumeObject::Range range_r = volume->rangeR();
-    const YYZVis::YinYangVolumeObject::Range range_theta = volume->rangeTheta();
-    const YYZVis::YinYangVolumeObject::Range range_phi = volume->rangePhi();
+    const YYZVis::YinYangVolumeObjectBase::Range range_r = volume->rangeR();
+    const YYZVis::YinYangVolumeObjectBase::Range range_theta = volume->rangeTheta();
+    const YYZVis::YinYangVolumeObjectBase::Range range_phi = volume->rangePhi();
 
     const size_t nnodes = dim_theta * 4 + dim_phi * 4;
     kvs::ValueArray<kvs::Real32> coords( nnodes * 3 );
@@ -249,9 +249,9 @@ kvs::LineObject* CreateLineEdgeObject( const YYZVis::YinYangVolumeObject* volume
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
 
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x : -x;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y : z;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z : y;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? x : -x;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? y : z;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? z : y;
             }
         }
     }
@@ -273,9 +273,9 @@ kvs::LineObject* CreateLineEdgeObject( const YYZVis::YinYangVolumeObject* volume
                 const float y = r * sin_theta * sin_phi;
                 const float z = r * cos_theta;
 
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? x : -x;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? y : z;
-                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? z : y;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? x : -x;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? y : z;
+                *(pcoords++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? z : y;
             }
         }
     }
@@ -316,9 +316,9 @@ kvs::LineObject* CreateLineEdgeObject( const YYZVis::YinYangVolumeObject* volume
     kvs::UInt8* pcolors = colors.data();
     for ( int i = 0; i < nnodes; i++ )
     {
-        *(pcolors++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? 255 : 0;
+        *(pcolors++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? 255 : 0;
         *(pcolors++) = 0;
-        *(pcolors++) = ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ? 0 : 255;
+        *(pcolors++) = ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ? 0 : 255;
     }
 
     kvs::LineObject* object = new kvs::LineObject();

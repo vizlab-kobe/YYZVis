@@ -1,17 +1,23 @@
 #pragma once
-#include <kvs/ImporterBase>
-#include <kvs/Module>
-#include "YinYangVolumeObject.h"
+#include "ImporterBase.h"
+//#include "YinYangVolumeObject.h"
+#include "YangVolumeObject.h"
 
 
 namespace YYZVis
 {
 
-class YangVolumeImporter : public kvs::ImporterBase, public YYZVis::YinYangVolumeObject
+/*===========================================================================*/
+/**
+ *  @brief  Importer class for yang volume object.
+ */
+/*===========================================================================*/
+//class YangVolumeImporter : public YYZVis::ImporterBase, public YYZVis::YinYangVolumeObject
+class YangVolumeImporter : public YYZVis::ImporterBase, public YYZVis::YangVolumeObject
 {
     kvsModule( YYZVis::YangVolumeImporter, Importer );
-    kvsModuleBaseClass( kvs::ImporterBase );
-    kvsModuleSuperClass( YYZVis::YinYangVolumeObject );
+    kvsModuleBaseClass( YYZVis::ImporterBase );
+    kvsModuleSuperClass( YYZVis::YangVolumeObject );
 
 public:
     YangVolumeImporter() {}

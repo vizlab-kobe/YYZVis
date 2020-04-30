@@ -89,12 +89,12 @@ inline void GetColorIndices(
  */
 /*===========================================================================*/
 inline kvs::Vec3 GetCoord(
-    const YYZVis::YinYangVolumeObject* volume,
+    const YYZVis::YinYangVolumeObjectBase* volume,
     const float x,
     const float y,
     const float z )
 {
-    return ( volume->gridType() == YYZVis::YinYangVolumeObject::Yin ) ?
+    return ( volume->gridType() == YYZVis::YinYangVolumeObjectBase::Yin ) ?
         kvs::Vec3(  x, y, z ) : // Yin
         kvs::Vec3( -x, z, y ); // Yang = rotated yin
 }
@@ -171,9 +171,9 @@ ExternalFaces::SuperClass* ExternalFaces::exec( const kvs::ObjectBase* object )
         const auto* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
         this->mapping( zvolume );
     }
-    else if ( YYZVis::YinYangVolumeObject::DownCast( volume ) )
+    else if ( YYZVis::YinYangVolumeObjectBase::DownCast( volume ) )
     {
-        const auto* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
+        const auto* yvolume = YYZVis::YinYangVolumeObjectBase::DownCast( volume );
         this->mapping( yvolume );
     }
 
@@ -199,7 +199,7 @@ void ExternalFaces::mapping( const YYZVis::ZhongVolumeObject* zvolume )
  *  @param  yvolume [in] pointer to yin or yang volume object
  */
 /*===========================================================================*/
-void ExternalFaces::mapping( const YYZVis::YinYangVolumeObject* yvolume )
+void ExternalFaces::mapping( const YYZVis::YinYangVolumeObjectBase* yvolume )
 {
     // Calculate coords, colors, and normals.
     this->calculate_coords( yvolume );
@@ -212,7 +212,7 @@ void ExternalFaces::mapping( const YYZVis::YinYangVolumeObject* yvolume )
  *  @param  yvolume [in] pointer to yin or yang volume object
  */
 /*===========================================================================*/
-void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume )
+void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObjectBase* yvolume )
 {
     const float r_d = yvolume->rangeR().d;
     const float r_from = yvolume->rangeR().min;
@@ -547,7 +547,7 @@ void ExternalFaces::calculate_coords( const YYZVis::YinYangVolumeObject* yvolume
  *  @param  zvolume [in] pointer to yin or yang volume object
  */
 /*===========================================================================*/
-void ExternalFaces::calculate_colors( const YYZVis::YinYangVolumeObject* yvolume )
+void ExternalFaces::calculate_colors( const YYZVis::YinYangVolumeObjectBase* yvolume )
 {
     const kvs::Real64 min_value = yvolume->minValue();
     const kvs::Real64 max_value = yvolume->maxValue();

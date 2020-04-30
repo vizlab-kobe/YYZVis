@@ -97,9 +97,9 @@ SlicePlane::SuperClass* SlicePlane::exec( const kvs::ObjectBase* object )
         const auto* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
         this->mapping( zvolume );
     }
-    else if ( YYZVis::YinYangVolumeObject::DownCast( volume ) )
+    else if ( YYZVis::YinYangVolumeObjectBase::DownCast( volume ) )
     {
-        const auto* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
+        const auto* yvolume = YYZVis::YinYangVolumeObjectBase::DownCast( volume );
         this->mapping( yvolume );
     }
 
@@ -122,7 +122,7 @@ void SlicePlane::mapping( const YYZVis::ZhongVolumeObject* zvolume )
     // SuperClass::setOpacity( 255 );
 }
 
-void SlicePlane::mapping( const YYZVis::YinYangVolumeObject* yvolume )
+void SlicePlane::mapping( const YYZVis::YinYangVolumeObjectBase* yvolume )
 {
     // std::vector<kvs::Real32> coords;
     // std::vector<kvs::Real32> normals;
@@ -138,7 +138,7 @@ void SlicePlane::mapping( const YYZVis::YinYangVolumeObject* yvolume )
     // SuperClass::setOpacity( 255 );
 }
 
-void SlicePlane::extract_plane( const YYZVis::YinYangVolumeObject* yvolume )
+void SlicePlane::extract_plane( const YYZVis::YinYangVolumeObjectBase* yvolume )
 {
    // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;
@@ -443,7 +443,7 @@ const kvs::Vec3 SlicePlane::interpolate_vertex(
 }
 
 double SlicePlane::interpolate_value(
-    const YYZVis::YinYangVolumeObject* yvolume,
+    const YYZVis::YinYangVolumeObjectBase* yvolume,
     const size_t index0,
     const size_t index1 ) const
 {

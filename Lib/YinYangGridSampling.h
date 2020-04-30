@@ -4,7 +4,7 @@
 #include <kvs/PointObject>
 #include <kvs/VolumeObjectBase>
 #include <kvs/Module>
-#include "YinYangVolumeObject.h"
+#include "YinYangVolumeObjectBase.h"
 
 
 namespace YYZVis
@@ -55,9 +55,9 @@ public:
     void setObjectDepth( const float depth ) { m_object_depth = depth; }
 
 private:
-    void mapping_metro_yin( const YYZVis::YinYangVolumeObject* volume );
-    void mapping_metro_yang( const YYZVis::YinYangVolumeObject* volume );
-    void mapping_uniform( const YYZVis::YinYangVolumeObject* volume );
+    void mapping_metro_yin( const YYZVis::YinYangVolumeObjectBase* volume );
+    void mapping_metro_yang( const YYZVis::YinYangVolumeObjectBase* volume );
+    void mapping_uniform( const YYZVis::YinYangVolumeObjectBase* volume );
 };
 
 } // end of namespace YYZVis

@@ -107,7 +107,11 @@ kvs::PointObject* Model::newZhongParticles() const
 
 kvs::PointObject* Model::newYinParticles( const YinVolume* volume ) const
 {
-    return this->newYangParticles( volume );
+    const size_t repeats = m_input.repeats;
+    const size_t subpixels = 1; // fixed to '1'
+    const size_t level = static_cast<size_t>( subpixels * std::sqrt( double( repeats ) ) );
+    const float step = 0.1f;
+    return new YYZVis::YinYangGridSampling( volume, level, step, m_input.tfunc );
 }
 
 kvs::PointObject* Model::newYangParticles( const YangVolume* volume ) const
@@ -144,7 +148,6 @@ void Model::import_yin_volume()
     const size_t dim_lon = m_input.dim_lon;
     const std::string& filename = m_input.filename_yin;
 
-    m_yin_volume.setGridTypeToYin();
     m_yin_volume.setDimR( dim_rad );
     m_yin_volume.setDimTheta( dim_lat );
     m_yin_volume.setDimPhi( dim_lon );
@@ -162,7 +165,6 @@ void Model::import_yang_volume()
     const size_t dim_lon = m_input.dim_lon;
     const std::string& filename = m_input.filename_yang;
 
-    m_yang_volume.setGridTypeToYang();
     m_yang_volume.setDimR( dim_rad );
     m_yang_volume.setDimTheta( dim_lat );
     m_yang_volume.setDimPhi( dim_lon );

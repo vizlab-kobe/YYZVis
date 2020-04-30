@@ -115,9 +115,9 @@ Isosurface::SuperClass* Isosurface::exec( const kvs::ObjectBase* object )
         const auto* zvolume = YYZVis::ZhongVolumeObject::DownCast( volume );
         this->mapping( zvolume );
     }
-    else if ( YYZVis::YinYangVolumeObject::DownCast( volume ) )
+    else if ( YYZVis::YinYangVolumeObjectBase::DownCast( volume ) )
     {
-        const auto* yvolume = YYZVis::YinYangVolumeObject::DownCast( volume );
+        const auto* yvolume = YYZVis::YinYangVolumeObjectBase::DownCast( volume );
         this->mapping( yvolume );
     }
 
@@ -160,7 +160,7 @@ void Isosurface::mapping( const YYZVis::ZhongVolumeObject* zvolume )
  *  @param  volume [in] pointer to yin/yang volume object
  */
 /*==========================================================================*/
-void Isosurface::mapping( const YYZVis::YinYangVolumeObject* yvolume )
+void Isosurface::mapping( const YYZVis::YinYangVolumeObjectBase* yvolume )
 {
     // std::vector<kvs::Real32> coords;
     // std::vector<kvs::Real32> normals;
@@ -184,7 +184,7 @@ void Isosurface::mapping( const YYZVis::YinYangVolumeObject* yvolume )
     // SuperClass::setOpacity( 255 );
 }
 
-void Isosurface::extract_surfaces_with_duplication( const YYZVis::YinYangVolumeObject* yvolume )
+void Isosurface::extract_surfaces_with_duplication( const YYZVis::YinYangVolumeObjectBase* yvolume )
 {
     // Calculated the coordinate data array and the normal vector array.
     std::vector<kvs::Real32> coords;

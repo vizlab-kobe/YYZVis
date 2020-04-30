@@ -1,5 +1,5 @@
 #include "YinYangGridSampling.h"
-#include "YinYangVolumeObject.h"
+#include "YinYangVolumeObjectBase.h"
 #include "YinYangGrid.h"
 #include "DensityMap.h"
 #include <kvs/Timer>
@@ -83,7 +83,7 @@ public:
         m_grid->bind( base_index );
     }
 
-    size_t numberOfParticles( const YYZVis::YinYangVolumeObject* object )
+    size_t numberOfParticles( const YYZVis::YinYangVolumeObjectBase* object )
     {
         const kvs::Real32 scalar = this->averaged_scalar();
         kvs::Real32 density;
@@ -92,7 +92,7 @@ public:
         return this->number_of_particles( density, volume );
     }
 
-    size_t numberOfParticles( const YYZVis::YinYangVolumeObject* object, size_t overlap_flag )
+    size_t numberOfParticles( const YYZVis::YinYangVolumeObjectBase* object, size_t overlap_flag )
     {
         const kvs::Real32 scalar = this->averaged_scalar();
         kvs::Real32 density;
@@ -163,7 +163,7 @@ public:
         return m_density_map->at( m_current.scalar );
     }
 
-    kvs::Real32 sampleOverlap( const YYZVis::YinYangVolumeObject* object, size_t& sample_stoper )
+    kvs::Real32 sampleOverlap( const YYZVis::YinYangVolumeObjectBase* object, size_t& sample_stoper )
     {
         size_t counter = 0;
         while( 1 )
@@ -183,7 +183,7 @@ public:
         return m_density_map->at( m_current.scalar );
     }
 
-    kvs::Real32 sampleOverlap( const size_t max_loops, const YYZVis::YinYangVolumeObject* object, size_t& sample_stoper )
+    kvs::Real32 sampleOverlap( const size_t max_loops, const YYZVis::YinYangVolumeObjectBase* object, size_t& sample_stoper )
     {
         kvs::Real32 density = this->sampleOverlap( object, sample_stoper );
         if ( kvs::Math::IsZero( density ) )
@@ -198,7 +198,7 @@ public:
         return density;
     }
 
-    kvs::Real32 trySampleOverlap( const YYZVis::YinYangVolumeObject* object, size_t& sample_stoper )
+    kvs::Real32 trySampleOverlap( const YYZVis::YinYangVolumeObjectBase* object, size_t& sample_stoper )
     {
         size_t counter = 0;
         while( 1 )
@@ -230,7 +230,7 @@ public:
         m_current.scalar = m_trial.scalar;
     }
 
-    size_t checkOverlapFlag( const YYZVis::YinYangVolumeObject* object ) const
+    size_t checkOverlapFlag( const YYZVis::YinYangVolumeObjectBase* object ) const
     {
         kvs::Real32 tht_max;
         kvs::Real32 tht_min;
@@ -456,7 +456,7 @@ private:
         return st;
     }
 
-    kvs::Real32 calc_yinyang_overlap_weight( const YYZVis::YinYangVolumeObject* object ) const
+    kvs::Real32 calc_yinyang_overlap_weight( const YYZVis::YinYangVolumeObjectBase* object ) const
     {
         kvs::Real32 r[5], tht[5], phi[5], x[5], y[5], z[5], tht_n, tht_s, phi_w, phi_e;
         std::string c11, c12, c21, c22;
@@ -515,7 +515,7 @@ private:
         return overlap_weight( cv );
     }
 
-    size_t judge_yinyang_overlap( const YYZVis::YinYangVolumeObject* object, kvs::Vec3 coords ) const
+    size_t judge_yinyang_overlap( const YYZVis::YinYangVolumeObjectBase* object, kvs::Vec3 coords ) const
     {
         kvs::Real32 r = sqrt( coords.x()*coords.x() + coords.y()*coords.y() + coords.z()*coords.z() );
         kvs::Real32 tht = acos( coords.z() / r );
@@ -644,14 +644,14 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
         delete_camera = true;
     }
 
-    const YYZVis::YinYangVolumeObject* yin_yang_object = YYZVis::YinYangVolumeObject::DownCast( volume );
+    const YYZVis::YinYangVolumeObjectBase* yin_yang_object = YYZVis::YinYangVolumeObjectBase::DownCast( volume );
     if ( yin_yang_object->gridType() == yin_yang_object->gridYin() )
     {
-        this->mapping_metro_yin( YYZVis::YinYangVolumeObject::DownCast( volume ) );
+        this->mapping_metro_yin( YYZVis::YinYangVolumeObjectBase::DownCast( volume ) );
     }
     else
     {
-        this->mapping_metro_yang( YYZVis::YinYangVolumeObject::DownCast( volume ) );
+        this->mapping_metro_yang( YYZVis::YinYangVolumeObjectBase::DownCast( volume ) );
     }
 
     if ( delete_camera )
@@ -663,7 +663,7 @@ YinYangGridSampling::SuperClass* YinYangGridSampling::exec( const kvs::ObjectBas
     return this;
 }
 
-void YinYangGridSampling::mapping_metro_yin( const YYZVis::YinYangVolumeObject* volume ) //Yin-grid Metropolis sampling.
+void YinYangGridSampling::mapping_metro_yin( const YYZVis::YinYangVolumeObjectBase* volume ) //Yin-grid Metropolis sampling.
 {
     KVS_ASSERT( volume != NULL );
     BaseClass::attachVolume( volume );
@@ -762,7 +762,7 @@ void YinYangGridSampling::mapping_metro_yin( const YYZVis::YinYangVolumeObject* 
  
 }
 
-void YinYangGridSampling::mapping_metro_yang( const YYZVis::YinYangVolumeObject* volume ) //Yang-grid Metropolis sampling.
+void YinYangGridSampling::mapping_metro_yang( const YYZVis::YinYangVolumeObjectBase* volume ) //Yang-grid Metropolis sampling.
 {
     KVS_ASSERT( volume != NULL );
     BaseClass::attachVolume( volume );
@@ -910,7 +910,7 @@ void YinYangGridSampling::mapping_metro_yang( const YYZVis::YinYangVolumeObject*
     SuperClass::setSize( 1.0f );
 }
 
-void YinYangGridSampling::mapping_uniform( const YYZVis::YinYangVolumeObject* volume )
+void YinYangGridSampling::mapping_uniform( const YYZVis::YinYangVolumeObjectBase* volume )
 {
     KVS_ASSERT( volume != NULL );
     BaseClass::attachVolume( volume );

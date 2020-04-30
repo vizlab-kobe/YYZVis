@@ -1,5 +1,5 @@
 #pragma once
-#include "YinYangVolumeObject.h"
+#include "YinYangVolumeObjectBase.h"
 
 
 namespace YYZVis
@@ -19,10 +19,10 @@ private:
     mutable kvs::Real32 m_interpolation_functions[8];
     mutable kvs::Real32 m_differential_functions[24];
     mutable kvs::Vec3 m_local_point; ///< local point
-    const YYZVis::YinYangVolumeObject* m_reference_volume;
+    const YYZVis::YinYangVolumeObjectBase* m_reference_volume;
 
 public:
-    YinYangGrid( const YYZVis::YinYangVolumeObject* volume );
+    YinYangGrid( const YYZVis::YinYangVolumeObjectBase* volume );
 
     const kvs::Vec3ui& baseIndex() const { return m_base_index; }
     const kvs::Vec3& coord( const size_t index ) const { return m_coords[index]; }

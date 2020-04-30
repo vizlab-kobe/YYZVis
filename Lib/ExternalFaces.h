@@ -4,7 +4,7 @@
 #include <kvs/PolygonObject>
 #include <kvs/VolumeObjectBase>
 #include <kvs/TransferFunction>
-#include "YinYangVolumeObject.h"
+#include "YinYangVolumeObjectBase.h"
 #include "ZhongVolumeObject.h"
 
 
@@ -30,9 +30,9 @@ public:
 
 private:
     void mapping( const YYZVis::ZhongVolumeObject* zvolume );
-    void mapping( const YYZVis::YinYangVolumeObject* yvolume );
-    void calculate_coords( const YYZVis::YinYangVolumeObject* yvolume );
-    void calculate_colors( const YYZVis::YinYangVolumeObject* yvolume );
+    void mapping( const YYZVis::YinYangVolumeObjectBase* yvolume );
+    void calculate_coords( const YYZVis::YinYangVolumeObjectBase* yvolume );
+    void calculate_colors( const YYZVis::YinYangVolumeObjectBase* yvolume );
     void calculate_coords( const YYZVis::ZhongVolumeObject* zvolume );
     void calculate_colors( const YYZVis::ZhongVolumeObject* zvolume );
 };

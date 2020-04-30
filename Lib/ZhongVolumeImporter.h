@@ -1,16 +1,20 @@
 #pragma once
-#include <kvs/ImporterBase>
-#include <kvs/Module>
+#include "ImporterBase.h"
 #include "ZhongVolumeObject.h"
 
 
 namespace YYZVis
 {
 
-class ZhongVolumeImporter : public kvs::ImporterBase, public YYZVis::ZhongVolumeObject
+/*===========================================================================*/
+/**
+ *  @brief  Importer class for zhong volume object.
+ */
+/*===========================================================================*/
+class ZhongVolumeImporter : public YYZVis::ImporterBase, public YYZVis::ZhongVolumeObject
 {
     kvsModule( YYZVis::ZhongVolumeImporter, Importer );
-    kvsModuleBaseClass( kvs::ImporterBase );
+    kvsModuleBaseClass( YYZVis::ImporterBase );
     kvsModuleSuperClass( YYZVis::ZhongVolumeObject );
 
 public:

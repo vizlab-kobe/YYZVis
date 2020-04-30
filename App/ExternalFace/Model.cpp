@@ -96,7 +96,6 @@ void Model::import_yin_volume()
     const size_t dim_lon = m_input.dim_lon;
     const std::string& filename = m_input.filename_yin;
 
-    m_yin_volume.setGridTypeToYin();
     m_yin_volume.setDimR( dim_rad );
     m_yin_volume.setDimTheta( dim_lat );
     m_yin_volume.setDimPhi( dim_lon );
@@ -114,7 +113,6 @@ void Model::import_yang_volume()
     const size_t dim_lon = m_input.dim_lon;
     const std::string& filename = m_input.filename_yang;
 
-    m_yang_volume.setGridTypeToYang();
     m_yang_volume.setDimR( dim_rad );
     m_yang_volume.setDimTheta( dim_lat );
     m_yang_volume.setDimPhi( dim_lon );

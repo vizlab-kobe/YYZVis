@@ -1,6 +1,7 @@
 #pragma once
 #include "Input.h"
-#include <YYZVis/Lib/YinYangVolumeObject.h>
+#include <YYZVis/Lib/YinVolumeObject.h>
+#include <YYZVis/Lib/YangVolumeObject.h>
 #include <YYZVis/Lib/ZhongVolumeObject.h>
 #include <kvs/PointObject>
 #include <kvs/LineObject>
@@ -20,8 +21,8 @@ namespace local
 class Model
 {
 public:
-    typedef YYZVis::YinYangVolumeObject YinVolume;
-    typedef YYZVis::YinYangVolumeObject YangVolume;
+    typedef YYZVis::YinVolumeObject YinVolume;
+    typedef YYZVis::YangVolumeObject YangVolume;
     typedef YYZVis::ZhongVolumeObject ZhongVolume;
 
 private:
