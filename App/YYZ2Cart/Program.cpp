@@ -6,6 +6,7 @@
 #include <YYZVis/Lib/ZhongVolumeImporter.h>
 #include <YYZVis/Lib/UpdateMinMaxValues.h>
 #include <YYZVis/Lib/UpdateMinMaxCoords.h>
+#include <YYZVis/Lib/UniformGridMerger.h>
 #include <kvs/Indent>
 
 
@@ -31,7 +32,9 @@ int Program::exec( int argc, char** argv )
 
     std::cout << "CONVERT VOLUMES ..." << std::endl;
     const bool ascii = false;
-    kvs::StructuredVolumeObject cart_volume = local::Convert( yin_volume, yng_volume, zng_volume );
+//    kvs::StructuredVolumeObject cart_volume = local::Convert( yin_volume, yng_volume, zng_volume );
+    const size_t dim = 200;
+    auto cart_volume = YYZVis::UniformGridMerger( &yin_volume, &yng_volume, &zng_volume, dim );
     cart_volume.print( std::cout << "STRUCTURED VOLUME DATA" << std::endl, indent );
     cart_volume.write( "output.kvsml", ascii );
 
