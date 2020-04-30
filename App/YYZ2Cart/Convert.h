@@ -1,4 +1,5 @@
-#include <YYZVis/Lib/YinYangVolumeObject.h>
+#include <YYZVis/Lib/YinVolumeObject.h>
+#include <YYZVis/Lib/YangVolumeObject.h>
 #include <YYZVis/Lib/ZhongVolumeObject.h>
 #include <kvs/StructuredVolumeObject>
 
@@ -7,8 +8,8 @@ namespace local
 {
 
 kvs::StructuredVolumeObject Convert(
-    YYZVis::YinYangVolumeObject& yin_volume,
-    YYZVis::YinYangVolumeObject& yang_volume,
-    YYZVis::ZhongVolumeObject& zhong_volume );
+    YYZVis::YinVolumeObject& yin_volume,
+    YYZVis::YangVolumeObject& yng_volume,
+    YYZVis::ZhongVolumeObject& zng_volume );
 
 } // end of namespace local

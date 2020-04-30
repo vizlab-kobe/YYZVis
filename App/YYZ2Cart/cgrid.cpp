@@ -104,13 +104,13 @@ void Cgrid::mapping__localize(
 
     for ( k = 0; k < cgrid__size.nz; k++ )
     {
-        x = cgrid__x[k];
+        z = cgrid__z[k];
         for ( j = 0; j < cgrid__size.ny; j++ )
         {
             y = cgrid__y[j];
             for ( i = 0; i < cgrid__size.nx; i++ )
             {
-                z = cgrid__x[i];
+                x = cgrid__x[i];
 
                 r = sqrt( x*x + y*y + z*z );
                 t = acos( z/r );
