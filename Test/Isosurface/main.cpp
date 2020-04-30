@@ -5,6 +5,7 @@
 #include <YYZVis/Lib/YinVolumeImporter.h>
 #include <YYZVis/Lib/YangVolumeImporter.h>
 #include <YYZVis/Lib/ZhongVolumeImporter.h>
+#include <YYZVis/Lib/UpdateMinMaxValues.h>
 #include <YYZVis/Lib/Isosurface.h>
 
 
@@ -49,37 +50,28 @@ int main( int argc, char** argv )
 
     // Import YYZ data.
     const std::string input_file( argv[1] );
-    auto yin_volume = YYZVis::YinVolumeImporter( input_file );
-    auto yng_volume = YYZVis::YangVolumeImporter( input_file );
-    auto zng_volume = YYZVis::ZhongVolumeImporter( input_file );
-
-    // Update min/max values.
-    const kvs::Real32 min_value0 = yin_volume.minValue();
-    const kvs::Real32 min_value1 = yng_volume.minValue();
-    const kvs::Real32 min_value2 = zng_volume.minValue();
-    const kvs::Real32 max_value0 = yin_volume.maxValue();
-    const kvs::Real32 max_value1 = yng_volume.maxValue();
-    const kvs::Real32 max_value2 = zng_volume.maxValue();
-    const kvs::Real32 min_value = kvs::Math::Min( min_value0, min_value1, min_value2 );
-    const kvs::Real32 max_value = kvs::Math::Max( max_value0, max_value1, max_value2 );
-    yin_volume.setMinMaxValues( min_value, max_value );
-    yng_volume.setMinMaxValues( min_value, max_value );
-    zng_volume.setMinMaxValues( min_value, max_value );
+    auto* yin_volume = new YYZVis::YinVolumeImporter( input_file );
+    auto* yng_volume = new YYZVis::YangVolumeImporter( input_file );
+    auto* zng_volume = new YYZVis::ZhongVolumeImporter( input_file );
+    YYZVis::UpdateMinMaxValues( yin_volume, yng_volume, zng_volume );
 
     // Dump.
     const kvs::Indent indent( 4 );
-    yin_volume.print( std::cout << "YIN VOLUME DATA" << std::endl, indent );
-    yng_volume.print( std::cout << "YANG VOLUME DATA" << std::endl, indent );
-    zng_volume.print( std::cout << "ZHONG VOLUME DATA" << std::endl, indent );
+    yin_volume->print( std::cout << "YIN VOLUME DATA" << std::endl, indent );
+    yng_volume->print( std::cout << "YANG VOLUME DATA" << std::endl, indent );
+    zng_volume->print( std::cout << "ZHONG VOLUME DATA" << std::endl, indent );
 
     // Extract isosurfaces.
     const float isovalue = -0.01f;
     const bool d = true;
     const auto n = kvs::PolygonObject::PolygonNormal;
     const kvs::ColorMap cmap = kvs::ColorMap::BrewerSpectral();
-    kvs::PolygonObject* yin_object = new YYZVis::Isosurface( &yin_volume, isovalue, n, d, cmap );
-    kvs::PolygonObject* yng_object = new YYZVis::Isosurface( &yng_volume, isovalue, n, d, cmap );
-    kvs::PolygonObject* zng_object = new YYZVis::Isosurface( &zng_volume, isovalue, n, d, cmap );
+    auto* yin_object = new YYZVis::Isosurface( yin_volume, isovalue, n, d, cmap );
+    auto* yng_object = new YYZVis::Isosurface( yng_volume, isovalue, n, d, cmap );
+    auto* zng_object = new YYZVis::Isosurface( zng_volume, isovalue, n, d, cmap );
+    delete yin_volume;
+    delete yng_volume;
+    delete zng_volume;
 
     yin_object->setName( "Yin" );
     yng_object->setName( "Yang" );
