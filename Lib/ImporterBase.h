@@ -63,6 +63,11 @@ inline kvs::ValueArray<T> ImporterBase::readBinary(
     const bool swap )
 {
     std::ifstream ifs( filename.c_str(), std::ifstream::binary );
+    if ( !ifs )
+    {
+        kvsMessageError() << "Cannot open " << filename << std::endl;
+        return kvs::ValueArray<T>();
+    }
 
     ifs.seekg( 0, ifs.end );
     const size_t file_size = ifs.tellg();
