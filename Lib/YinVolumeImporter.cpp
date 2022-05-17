@@ -57,11 +57,12 @@ YinVolumeImporter::SuperClass* YinVolumeImporter::exec( const kvs::FileFormatBas
     std::vector<kvs::ValueArray<kvs::Real32>> temp;
     for ( auto& f : yin_value )
     {
-        const std::string data_file = f.get<std::string>();
-        const std::string filename =
-            ( BaseClass::isAbsolutePath( data_file ) ) ? data_file :
-            ( data_file[0] == '~' ) ? BaseClass::absolutePath( data_file ) :
-            path_name + kvs::File::Separator() + data_file;
+//        const std::string data_file = f.get<std::string>();
+//        const std::string filename =
+//            ( BaseClass::isAbsolutePath( data_file ) ) ? data_file :
+//            ( data_file[0] == '~' ) ? BaseClass::absolutePath( data_file ) :
+//            path_name + kvs::Directory::Separator() + data_file;
+        const std::string filename = f.get<std::string>();
         temp.push_back( BaseClass::readBinary<kvs::Real32>( filename, 4, swap ) );
     }
 
@@ -76,6 +77,11 @@ YinVolumeImporter::SuperClass* YinVolumeImporter::exec( const kvs::FileFormatBas
     SuperClass::setValues( values );
     SuperClass::updateMinMaxCoords();
     SuperClass::updateMinMaxValues();
+
+
+    std::cout << "min = " << SuperClass::minValue() << std::endl;
+    std::cout << "max = " << SuperClass::maxValue() << std::endl;
+
     return this;
 }
 

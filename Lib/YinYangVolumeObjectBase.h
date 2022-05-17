@@ -77,6 +77,7 @@ public:
     void calculateCoords();
     bool readValues( const std::string& filename );
     void updateMinMaxCoords();
+    void updateMinMaxValues() const;
 };
 
 } // end of namespace YYZVis

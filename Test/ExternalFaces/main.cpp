@@ -1,5 +1,5 @@
-#include <kvs/glut/Application>
-#include <kvs/glut/Screen>
+#include <kvs/Application>
+#include <kvs/Screen>
 #include <kvs/ColorMap>
 #include <kvs/KeyPressEventListener>
 #include <YYZVis/Lib/YinVolumeImporter.h>
@@ -9,44 +9,13 @@
 #include <YYZVis/Lib/ExternalFaces.h>
 
 
-class KeyPressEvent : public kvs::KeyPressEventListener
-{
-    void update( kvs::KeyEvent* event )
-    {
-        switch ( event->key() )
-        {
-        case kvs::Key::One:
-        {
-            auto* object = scene()->object( "Yin" );
-            if ( object->isShown() ) { object->hide(); }
-            else { object->show(); }
-            break;
-        }
-        case kvs::Key::Two:
-        {
-            auto* object = scene()->object( "Yang" );
-            if ( object->isShown() ) { object->hide(); }
-            else { object->show(); }
-            break;
-        }
-        case kvs::Key::Three:
-        {
-            auto* object = scene()->object( "Zhong" );
-            if ( object->isShown() ) { object->hide(); }
-            else { object->show(); }
-            break;
-        }
-        default: break;
-        }
-    }
-};
-
 int main( int argc, char** argv )
 {
-    kvs::glut::Application app( argc, argv );
-    kvs::glut::Screen screen( &app );
+    kvs::Application app( argc, argv );
+    kvs::Screen screen( &app );
     screen.setTitle( "YYZVis::ExternalFaces" );
     screen.setBackgroundColor( kvs::RGBColor::White() );
+    screen.create();
 
     // Import YYZ data.
     const std::string input_file( argv[1] );
@@ -70,19 +39,30 @@ int main( int argc, char** argv )
     delete yng_volume;
     delete zng_volume;
 
-    yin_object->setName( "Yin" );
-    yng_object->setName( "Yang" );
-    zng_object->setName( "Zhong" );
-
     screen.registerObject( yin_object );
     screen.registerObject( yng_object );
     screen.registerObject( zng_object );
 
     // Key press event.
-    KeyPressEvent key_event;
-    screen.addEvent( &key_event );
+    kvs::KeyPressEventListener key_event( [&] ( kvs::KeyEvent* e )
+    {
+        auto onoff = [] ( kvs::ObjectBase* o )
+        {
+            if ( o->isVisible() ) { o->hide(); }
+            else { o->show(); }
+        };
 
-    screen.show();
+        switch ( e->key() )
+        {
+        case kvs::Key::One: { onoff( yin_object ); break; }
+        case kvs::Key::Two: { onoff( yng_object ); break; }
+        case kvs::Key::Three: { onoff( zng_object ); break; }
+        default: break;
+        }
+
+        screen.redraw();
+    } );
+    screen.addEvent( &key_event );
 
     return app.run();
 }
